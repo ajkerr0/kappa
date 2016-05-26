@@ -16,3 +16,4 @@ setup(name='kappa',
       url='https://github.com/ajkerr0/kappa',
       packages=find_packages(),
       )
+
