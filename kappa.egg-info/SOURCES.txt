@@ -1,4 +1,0 @@
-kappa.egg-info/PKG-INFO
-kappa.egg-info/SOURCES.txt
-kappa.egg-info/dependency_links.txt
-kappa.egg-info/top_level.txt
