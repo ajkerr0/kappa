@@ -1,0 +1,3 @@
+# python packages that are kappa dependencies
+numpy
+matplotlib

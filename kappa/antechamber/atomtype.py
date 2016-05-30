@@ -7,18 +7,17 @@ Created on Fri Apr 29 13:38:20 2016
 
 import csv
 import re
+from .. import package_dir
 
 nums = ["1", "2", "3", "4"]
 atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16], "Cl":[17], 
                  "Br":[35], "I":[53], "XX":[6,7,8,15,16], "XA":[8,16], "XB":[7,15], "XD":[15,16]}
 
-amberFile = "AMBER_kerr_edit.txt"
-
 def main(molecule):
     
-    file_ = amberFile
+    file_ = molecule.ff.atomtypeFile
     
-    reader = csv.reader(open("./kappa/antechamber/%s" % (file_)), delimiter=" ")
+    reader = csv.reader(open("%s/antechamber/%s" % (package_dir,file_)), delimiter=" ")
     lines = []
     for line in reader:
         #populate lineList

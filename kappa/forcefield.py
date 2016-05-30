@@ -7,6 +7,8 @@ Created on Mon Mar 21 13:16:37 2016
 
 import numpy as np
 
+from . import package_dir
+
 #change in position for the finite difference equations
 ds = 1e-7
 dx = ds
@@ -36,6 +38,7 @@ class Amber(Forcefield):
                                "OW":21,"OH":22,"OS":23,"O":24,"O2":25,"S":26,"SH":27,"P":28,"H":29,"HW":30, 
                                "HO":31,"HS":32,"HA":33,"HC":34,"H1":35,"H2":36,"H3":37,"HP":38,"H4":39,"HS":40,
                                "DU":1}
+        self.atomtypeFile = "AMBER_kerr_edit.txt"
         
     def _configure_parameters(self, molecule):
         """Store parameters in bonds, angles, dihedrals, etc. along with non-bonded iteractions."""
@@ -45,7 +48,7 @@ class Amber(Forcefield):
         bondList = molecule.bondList
         angleList = molecule.angleList
         dihedralList = molecule.dihedralList
-        fileName = "./kappa/param/"+self.name
+        fileName = "%s/param/%s" % (package_dir, self.name)
         refArr = np.load(fileName+"/refArr.npy")
         r0Arr, epArr = np.load(fileName+"/vdwR.npy"), np.load(fileName+"/vdwE.npy")
         kbArr, l0Arr = np.load(fileName+"/kb.npy"), np.load(fileName+"/rb0.npy")
