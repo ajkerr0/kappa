@@ -11,6 +11,16 @@ from forcefield import forcefieldList
 
 #default values
 defaultFF = forcefieldList[0]()  #Amber
+
+#change in position for the finite difference equations
+ds = 1e-5
+dx = ds
+dy = ds
+dz = ds
+
+vdx = np.array([dx,0.0,0.0])
+vdy = np.array([0.0,dy,0.0])
+vdz = np.array([0.0,0.0,dz])
         
 class Molecule:
     """A molecule, representing a collection of atoms; requires a forcefield, name, list of positions of the atoms
@@ -152,6 +162,98 @@ class Molecule:
         self._configure_aromaticity()
         self._configure_atomtypes()
         self._configure_parameters()
+        
+    def define_energy_routine(self):
+        
+        e_funcs = []
+        
+        if self.ff.lengths:
+            
+            ibonds,jbonds = self.bondList[:,0], self.bondList[:,1]
+            def e_lengths():
+                rij = self.posList[ibonds] - self.posList[jbonds]
+                rij = np.linalg.norm(rij, axis=1)
+                return np.sum(self.kbList*(rij-self.l0List)**2)
+                
+            e_funcs.append(e_lengths)
+            
+        if self.ff.angles:
+            
+            iangles,jangles,kangles = self.angleList[:,0], self.angleList[:,1], self.angleList[:,2]
+            def e_angles():
+                posij = self.posList[iangles] - self.posList[jangles]
+                poskj = self.posList[kangles] - self.posList[jangles]
+                rij = np.linalg.norm(posij,axis=1)
+                rkj = np.linalg.norm(poskj,axis=1)
+                cosTheta = np.einsum('ij,ij->i',posij,poskj)/rij/rkj
+                theta = np.degrees(np.arccos(cosTheta))
+                return np.sum(self.kaList*(theta-self.t0List)**2)
+                
+            e_funcs.append(e_angles)
+            
+#        if self.ff.dihs:
+            
+#            idih,jdih,kdih,ldih = dihs[:,0],dihs[:,1],dihs[:,2],dihs[:3]
+#            def e_dihs():
+#                posji = pos[jdih] - pos[idih]
+#                poskj = pos[kdih] - pos[jdih]
+#                poslk = pos[ldih] - pos[kdih]
+#                rkj = np.linalg.norm(poskj,axis=1)
+#                cross12 = 2
+            
+        #non-bonded interactions    
+            
+        def calculate_e():
+            e = 0.0 #base energy level
+            for e_func in e_funcs:
+                e += e_func()
+            return e
+                
+        return calculate_e    
+        
+    def define_gradient_routine(self):
+        #this will change if analytical gradients get implemented
+        #for now call `define_energy_routine` again, which can be wasteful
+        #we're also doing bruteforce gradient calculations (calculating all the energy, not just what bonds are involved)
+        calculate_e = self.define_energy_routine()
+        
+        def calculate_grad():
+        
+            gradient = np.zeros([len(self),3])
+            
+            for i in range(len(self)):
+                ipos = self.posList[i]
+            
+                ipos += vdx
+                vPlusX = calculate_e()
+#                print vPlusX
+                ipos += -2.0*vdx
+                vMinusX = calculate_e()
+#                print vMinusX
+                ipos += vdx+vdy
+                vPlusY = calculate_e()
+                ipos += -2.0*vdy
+                vMinusY = calculate_e()
+                ipos += vdy+vdz
+                vPlusZ = calculate_e()
+                ipos += -2.0*vdz
+                vMinusZ = calculate_e()
+                ipos += vdz
+                
+                xGrad = (vPlusX - vMinusX)/dx/2.0
+                yGrad = (vPlusY - vMinusY)/dy/2.0
+                zGrad = (vPlusZ - vMinusZ)/dz/2.0
+                
+                gradient[i] += np.array([xGrad,yGrad,zGrad])
+                
+            magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
+            maxForce = np.amax(magList)
+            totalMag = np.linalg.norm(magList)
+            
+            return gradient, maxForce, totalMag
+            
+        return calculate_grad
+        
         
 class Graphene(Molecule):
     
