@@ -12,33 +12,36 @@ GOLD = 1.618034
 GLIMIT = 100.0
 TINY = 1e-20
 
-n = 1000
-forcePrec = 0.001 #kcal/mol/angstroms
-stepPrec = 1e-18
-eFreq = 100
+N = 500
+EFREQ = 25
+FORCEPREC = 0.001 #kcal/mol/angstroms
+STEPPREC = 1e-18
+
 
 def minimize_energy(molecule):
     """Minimize the energy of a given molecule within a certain precision"""
     
-    print "Preparing " + molecule.name + " for energy minimization..."
+    print("Preparing %s for energy minimization..." % (molecule.name))
     
-    calculate_energy = molecule.ff.define_energy_routine(molecule)
+    calculate_energy = molecule.define_energy_routine()
+    calculate_gradient = molecule.define_gradient_routine()
     
 #    minimizer = steepest_descent
     minimizer = conjugate_gradient
     
-    minimizer(molecule, calculate_energy)
+    minimizer(molecule, calculate_energy, calculate_gradient)
     
-def steepest_descent(molecule, calculate_energy):
+def steepest_descent(molecule, calculate_energy, calculate_gradient):
     """Return minimized molecule using steepest descent method."""
     
-    prec = forcePrec/molecule.ff.eUnits
-    energy, gradient, maxForce, totalMag = calculate_energy()
+    prec = FORCEPREC/molecule.ff.eUnits
+    energy = calculate_energy()
+    gradient, maxForce, totalMag = calculate_gradient()
     eList = [energy]
-    print 'energy: ' + str(energy)
-    print 'maxforce: ' + str(maxForce)
+    print('energy: ' + str(energy))
+    print('maxforce: ' + str(maxForce))
 
-    for stepNo in range(n):
+    for stepNo in range(N):
         
         #calculate the stepsize
         stepSize = calculate_stepsize(molecule, -gradient/totalMag, energy)
@@ -46,11 +49,12 @@ def steepest_descent(molecule, calculate_energy):
         #take step
         molecule.posList += stepSize*-gradient/totalMag        
         
-        energy, gradient, maxForce, totalMag = calculate_energy()
+        energy = calculate_energy()
+        gradient, maxForce, totalMag = calculate_gradient()
         
         eList.append(energy)
         #for every multiple of eFreq print status
-        if (stepNo+1) % eFreq == 0:
+        if (stepNo+1) % EFREQ == 0:
             print 'step: ' + str(stepNo+1)
             print 'energy: ' + str(energy)
             print 'maxforce: ' + str(maxForce)
@@ -69,19 +73,19 @@ def steepest_descent(molecule, calculate_energy):
 
     return molecule, eList
     
-def conjugate_gradient(molecule, calculate_energy):
+def conjugate_gradient(molecule, calculate_energy, calculate_gradient):
     
-    prec = forcePrec/molecule.ff.eUnits
-    energy, gradient, maxForce, totalMag = calculate_energy()
+    prec = FORCEPREC/molecule.ff.eUnits
+    energy = calculate_energy()
+    gradient, maxForce, totalMag = calculate_gradient()
     eList = [energy]
-    print 'energy: ' + str(energy)
-    print 'maxforce: ' + str(maxForce)
+    print('energy: ' + str(energy))
+    print('maxforce: ' + str(maxForce))
     
     gamma = 0.0
     prevH = np.zeros((len(molecule.posList),3))
     
-    for stepNo in range(n):
-        
+    for stepNo in range(N):
         #step direction
         h = -gradient + gamma*prevH
         normH = h/np.linalg.norm(np.hstack(h))
@@ -95,11 +99,12 @@ def conjugate_gradient(molecule, calculate_energy):
         #take step
         molecule.posList += stepSize*normH
         
-        energy, gradient, maxForce, totalMag = calculate_energy()
+        energy = calculate_energy()
+        gradient, maxForce, totalMag = calculate_gradient()
         
         eList.append(energy)
         #for every multiple of eFreq print status
-        if (stepNo+1) % eFreq == 0:
+        if (stepNo+1) % EFREQ == 0:
             print 'step: ' + str(stepNo+1)
             print 'energy: ' + str(energy)
             print 'maxforce: ' + str(maxForce)
@@ -107,7 +112,7 @@ def conjugate_gradient(molecule, calculate_energy):
             pass
         
         #break the iteration if your forces are small enough
-        if maxForce < prec or stepSize < stepPrec:
+        if maxForce < prec or stepSize < STEPPREC:
 #        if maxForce < prec:
             print "Finished!"
             print 'step: ' + str(stepNo+1)
@@ -137,7 +142,7 @@ def calculate_stepsize(molecule, stepList, e):
     n = 3
     
     testMolecule = deepcopy(molecule)
-    calculate_energy = testMolecule.ff.define_energy_routine(testMolecule,grad=False)
+    calculate_energy = molecule.define_energy_routine()
     a,b,c,va,vb,vc = initial_bracket(testMolecule, stepList, e)
     if a is False:
         print a
@@ -154,7 +159,7 @@ def calculate_stepsize(molecule, stepList, e):
             va = vb
         b = step
         testMolecule.posList += b*stepList
-        vb,_,_,_ = calculate_energy()
+        vb = calculate_energy()
         testMolecule.posList += -b*stepList
         step = min_parabola(a,b,c,va,vb,vc)
         if step < 0.0:
@@ -165,7 +170,7 @@ def calculate_stepsize(molecule, stepList, e):
     
 def initial_bracket(testMolecule, stepList, e):
     
-    calculate_energy = testMolecule.ff.define_energy_routine(testMolecule,grad=False)
+    calculate_energy = testMolecule.define_energy_routine()
     
     #INITIAL BRACKET PHASE (Numerical Recipes 10.1)
     a = 0.
@@ -173,28 +178,28 @@ def initial_bracket(testMolecule, stepList, e):
     b = initb
     va = e
     testMolecule.posList += b*stepList
-    vb,_,_,_ = calculate_energy()
+    vb = calculate_energy()
     testMolecule.posList += -b*stepList
     while vb > va:  #if b isn't a center for the bracket make it close to a
         if initb < 1e-20:
 #            print "too small"
-            return False,_,_,_,_,_
+            return False,None,None,None,None,None
         initb = initb*0.1
         b = initb
         testMolecule.posList += b*stepList
-        vb,_,_,_ = calculate_energy()
+        vb = calculate_energy()
         testMolecule.posList += -b*stepList
 #        print "too large"
     c = b + GOLD*(b-a) #initial guess for c (it's at least as big as b)
     testMolecule.posList += c*stepList
-    vc,_,_,_ = calculate_energy()
+    vc = calculate_energy()
     testMolecule.posList += -c*stepList
     while vb > vc:
         u = min_parabola(a,b,c,va,vb,vc)
         ulim = b + GLIMIT*(c-b)
         if (b-u)*(u-c) > 0.0:
             testMolecule.posList += u*stepList
-            vu,_,_,_ = calculate_energy()
+            vu = calculate_energy()
             testMolecule.posList += -u*stepList
             if vu < vc:
                 a,b = b,u
@@ -205,23 +210,23 @@ def initial_bracket(testMolecule, stepList, e):
                 break
             u = c + GOLD*(c-b)
             testMolecule.posList += u*stepList
-            vu,_,_,_ = calculate_energy()
+            vu = calculate_energy()
             testMolecule.posList += -u*stepList
         elif (c-u)*(u-ulim) > 0.0:
             testMolecule.posList += u*stepList
-            vu,_,_,_ = calculate_energy()
+            vu = calculate_energy()
             testMolecule.posList += -u*stepList
             if vu < vc:
                 b,c,u = c,u,u + GOLD*(u-c)
         elif (u-ulim)*(ulim-c) >= 0.0:
             u = ulim
             testMolecule.posList += u*stepList
-            vu,_,_,_ = calculate_energy()
+            vu = calculate_energy()
             testMolecule.posList += -u*stepList
         else:
             u = c + GOLD*(c*b)
             testMolecule.posList += u*stepList
-            vu,_,_,_ = calculate_energy()
+            vu = calculate_energy()
             testMolecule.posList += -u*stepList
         a,b,c = b,c,u
         va,vb,vc = vb,vc,vu
