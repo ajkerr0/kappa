@@ -255,57 +255,52 @@ class Molecule:
         return calculate_grad
         
         
-class Graphene(Molecule):
-    
-    def __init__(self, ff, name="", radius=3):
+def build_graphene(ff, name="", radius=3):
         
-        from lattice.graphene import main as lattice
-        posList,nList = lattice(radius)
-        size = len(posList)
-        if not name:
-            name = 'graphene_N%s' % (str(size))
-        posList = np.array(posList)
-        zList = np.full(size, 6, dtype=int)  #full of carbons
-        Molecule.__init__(self, ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-        Molecule._configure(self)
+    from lattice.graphene import main as lattice
+    posList,nList = lattice(radius)
+    size = len(posList)
+    if not name:
+        name = 'graphene_N%s' % (str(size))
+    posList = np.array(posList)
+    zList = np.full(size, 6, dtype=int)  #full of carbons
+    graphene = Molecule(ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    graphene._configure()
+    return graphene
         
-class CarbonNT(Molecule):
+def build_cnt_armchair(ff, name="", radius=2, length=15):
     
-    def __init__(self, ff, name="", radius=2, length=15):
-        from lattice.cntarm import main as lattice
-        posList,nList = lattice(radius,length)
-        size = len(posList)
-        if not name:
-            name = 'cnt_R%s_L%s' % (str(radius), str(length))
-        posList = np.array(posList)
-        zList = np.full(size, 6, dtype=int) #full of carbons
-        Molecule.__init__(self, ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-        Molecule._configure(self)
+    from lattice.cntarm import main as lattice
+    posList,nList = lattice(radius,length)
+    size = len(posList)
+    if not name:
+        name = 'cnt_R%s_L%s' % (str(radius), str(length))
+    posList = np.array(posList)
+    zList = np.full(size, 6, dtype=int) #full of carbons
+    cnt = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    cnt._configure()
+    return cnt
+
+def build_amine(ff, name=""):
+    
+    from lattice.amine import main as lattice
+    posList, nList = lattice()
+    if not name:
+        name = 'amine'
+    posList = np.array(posList)
+    zList = np.array([6,7,1,1])
+    amine = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    amine._configure()
+    return amine
         
-class Amine(Molecule):
+def build_imine_chain(ff, name="", count=1):
     
-    def __init__(self, ff, name=""):
-        from lattice.amine import main as lattice
-        posList, nList = lattice()
-        if not name:
-            name = 'amine'
-        posList = np.array(posList)
-        zList = np.array([6,7,1,1])
-#        if ff.name == "amber":
-#            idList = np.array([3,19,29,29])
-#        else:
-#            "Invalid forcefield assignment"
-        Molecule.__init__(self, ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-        Molecule._configure(self)
-        
-def imineChain(ff, name="", count=1):
-    
-    molList = [Imine(ff)]
+    molList = [build_imine(ff)]
     indexList = [(4,0)]
     
-    benz = BenzeneBlock(ff)
-    cc = CC(ff)
-    ch = CH(ff)
+    benz = build_benzene_block(ff)
+    cc = build_cc(ff)
+    ch = build_ch(ff)
     
     for i in range(count-1):
         molList.append(benz)
@@ -322,64 +317,47 @@ def imineChain(ff, name="", count=1):
     
     return imineChain
     
-class Imine(Molecule):
-    
-    def __init__(self, ff, name=""):
-        from lattice.imine import main as lattice
-        posList, nList, zList = lattice()
-        if not name:
-            name = 'imine'
-        posList = np.array(posList)
-#        if ff.name == "amber":
-#            idList = np.array([14,4,29,3,3])
-#        else:
-#            print("There was an error with this Imine ff assignment!")
-        Molecule.__init__(self, ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
-        Molecule._configure(self)
-            
+def build_imine(ff, name=""):
+
+    from lattice.imine import main as lattice
+    posList, nList, zList = lattice()
+    if not name:
+        name = 'imine'
+    posList = np.array(posList)
+    imine = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    imine._configure()
+    return imine
         
-class BenzeneBlock(Molecule):
-    
-    def __init__(self, ff, name=""):
-        from lattice.benzene import main as lattice
-        posList, nList, zList = lattice()
-        if not name:
-            name = "bblock"
-        posList = np.array(posList)
-#        if ff.name == "amber":
-#            idList = np.concatenate((np.full(6,3, dtype=int), np.full(4,33, dtype=int)))
-#        else:
-#            print("Invalid ff assignment for BenzeneBlock")
-        Molecule.__init__(self, ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
-        Molecule._configure(self)
+def build_benzene_block(ff, name=""):
+
+    from lattice.benzene import main as lattice
+    posList, nList, zList = lattice()
+    if not name:
+        name = "bblock"
+    posList = np.array(posList)
+    bblock = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    bblock._configure()
+    return bblock
         
-class CH(Molecule):
+def build_ch(ff, name="CH"):
     
-    def __init__(self, ff, name="CH"):
-        posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
-        nList = [[1],[0]]
-#        if ff.name == "amber":
-#            idList = np.array([3,33])
-#        else:
-#            "Invalid ff assignment for CH!"
-        Molecule.__init__(self, ff, name, posList, nList, np.array([6,1]), orientation=np.array([1.,0.,0.]))
-        Molecule._configure(self)
+    posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
+    nList = [[1],[0]]
+    ch = Molecule(ff, name, posList, nList, np.array([6,1]), orientation=np.array([1.,0.,0.]))
+    ch._configure()
+    return ch
         
-class CC(Molecule):
+def build_cc(ff, name="CC"):
     
-    def __init__(self, ff, name="CC"):
-        posList = np.array([[0.,0.,0.], [1.42,0.,0.]])
-        nList = [[1],[0]]
-#        if ff.name == "amber":
-#            idList = np.array([3,3])
-#        else:
-#            "Invalid ff assignment for CC!"
-        Molecule.__init__(self, ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
-        Molecule._configure(self)
-        
+    posList = np.array([[0.,0.,0.], [1.42,0.,0.]])
+    nList = [[1],[0]]
+    cc = Molecule(ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
+    cc._configure()
+    return cc  
     
             
-_latticeDict = {"graphene":Graphene, "cnt":CarbonNT, "amine":Amine, "imine":Imine, "chain":imineChain}
+_latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
+                "imine":build_imine, "chain":build_imine_chain}
 lattices = _latticeDict.keys()
 
 def build(lattice, ff=defaultFF, **kwargs):
