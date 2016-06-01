@@ -2,11 +2,10 @@
 """
 Created on Thu May 26 14:19:51 2016
 
-@author: alex
+@author: Alex Kerr
 """
 
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 setup(name='kappa',
       version='0.2.1',
@@ -15,5 +14,9 @@ setup(name='kappa',
       author_email='ajkerr0@gmail.com',
       url='https://github.com/ajkerr0/kappa',
       packages=find_packages(),
+      install_requires=[
+      'numpy',
+      'matplotlib'
+      ],
       )
 
