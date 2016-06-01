@@ -8,6 +8,7 @@ Created on Mon Mar 21 13:09:30 2016
 import numpy as np
 #from numpy import array,full
 from forcefield import forcefieldList
+from elements import ELEMENTS
 
 #default values
 defaultFF = forcefieldList[0]()  #Amber
@@ -55,7 +56,47 @@ class Molecule:
         orient = rotMat*orient
         self.posList = pos.T.A  #turn it back into np array format
         self.orientation = orient.T.A[0]
-            
+
+    def pdb(self):
+        """Creates a .pdb (protein data bank) type list for use with molecular dynamics packages"""
+        pdb_lines = []
+        atom_lines = []
+        conect_lines = []
+        for i in range(len(self.posList)):
+            serial = i
+            name = ELEMENTS[self.zList[i]]
+            altloc = " "
+            resname = "UNK"
+            chainid = " "
+            resseq = 1
+            icode = " "
+            x = self.posList[i][0]
+            y = self.posList[i][1]
+            z = self.posList[i][2]
+            occupancy = 1.00
+            tempfactor = 0.00
+            element = ELEMENTS[self.zList[i]]
+            charge = "  "
+            # bonds = [[""],[""],[""],[""]]
+            for j in range(len(self.bondList)):
+                counteachbond = 0
+                if self.bondList[j][0] == i:
+                    counteachbond += 1
+                    bonds[counteachbond]=self.bondList[j][1] # generate correct bond format
+                    if counteachbond > 4:
+                        print("Too many bonds for standard pdb specs.")
+                        raise SystemExit
+            atom_header = "ATOM  {0:>5} {1:>4}{2}{3:>3} {4}{5:>4}{6}   {7:>7}{8:>7}{9:>7}{10:>6}{11:>6}          " \
+                          "{12:>2}{13:>2}".format(serial,name,altloc,resname,chainid,resseq,icode,x,y,z,
+                                                  occupancy,tempfactor,element,charge)
+            conect_header = "CONECT {0:>5}{1[0]:>5}{1[1]:>5}{1[2]:>5}{1[3]:>5}".format(serial,bonds)
+            atom_lines.append(atom_header)
+            conect_lines.append(conect_header)
+        pdb_lines = atom_lines + conect_lines
+        pdb_lines.append("TER")
+        pdb_lines.append("END")
+        return pdb_lines
+
     def _configure_structure_lists(self):
         """Find the unique bonds, bond angles, dihedral angles, and improper torsionals in the molecule."""
         bondList = []

@@ -32,12 +32,15 @@ def _path_exists(path):
 def _file_exists(path):
     return os.path.isfile(path)
 
-def save(molecule):
+def save(molecule,type="raw"):
     """Save a given system into /kerrNM/systems/"""
     path = "./save_file/" + molecule.name
     _path_exists(path)
-    pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
-    
+    if type == "raw":
+        pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
+    elif type == "pdb":
+        pass
+
 def load(name):
     """Load a molecule given a name"""
     return pickle.load(open("./save_file/"+name+"/mol.p", "rb"))
@@ -192,8 +195,8 @@ def chain(molList, indexList, name=""):
     molChain._configure_parameters()
         
     return molChain
-    
-    
+
+
         
         
         
