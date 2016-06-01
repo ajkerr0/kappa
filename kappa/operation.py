@@ -2,7 +2,9 @@
 """
 Created on Tue Mar 22 17:52:49 2016
 
-@author: alex
+@author: Alex Kerr
+
+Define a set of operations for use on Molecule objects that we don't want being methods.
 """
 
 import os
@@ -23,6 +25,7 @@ vdy = np.array([0.0,dy,0.0])
 vdz = np.array([0.0,0.0,dz])
 
 def _path_exists(path):
+    """Make a path if it doesn't exist"""
     try:
         os.makedirs(path)
     except OSError as exception:
@@ -30,20 +33,21 @@ def _path_exists(path):
             raise
             
 def _file_exists(path):
+    """Return True if file path exists, False otherwise"""
     return os.path.isfile(path)
 
 def save(molecule):
-    """Save a given system into /kerrNM/systems/"""
+    """Save a pickled molecule into /kerrNM/systems/"""
     path = "./save_file/" + molecule.name
     _path_exists(path)
     pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
     
 def load(name):
-    """Load a molecule given a name"""
+    """Load a pickled molecule given a name"""
     return pickle.load(open("./save_file/"+name+"/mol.p", "rb"))
     
 def _calculate_hessian(molecule):
-    """Return the Hessian matrix for the given molecule."""
+    """Return the Hessian matrix for the given molecule after calculation."""
     
     N = len(molecule)
     
@@ -80,6 +84,8 @@ def _calculate_hessian(molecule):
     return H
     
 def hessian(molecule):
+    """Return the Hessian for a molecule; if it doesn't exist calculate it otherwise load it
+    from the numpy format."""
     path = "./save_file/" + molecule.name + "/hessian.npy"
     if _file_exists("./save_file/" + molecule.name + "/hessian.npy"):
         print("Loading Hessian matrix from file...")
@@ -92,6 +98,7 @@ def hessian(molecule):
         return H
     
 def evecs(hessian):
+    """Return the eigenvalues and eigenvectors associated with a given Hessian matrix."""
     w,vr = np.linalg.eig(hessian)   
     return w,vr
     
@@ -168,6 +175,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
     return molecule1, nextIndex1
     
 def chain(molList, indexList, name=""):
+    """Return a molecule as a chain of inputted molecules."""
     
     #check validity of args
     ##

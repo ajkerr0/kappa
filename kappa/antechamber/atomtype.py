@@ -2,7 +2,10 @@
 """
 Created on Fri Apr 29 13:38:20 2016
 
-@author: alex
+@author: Alex Kerr
+
+Define functions used to parse Forcefield atomtype files.
+Rules are defined by 'ANTECHAMBER, AN ACCESSORY SOFTWARE PACKAGE FOR MOLECULE MECHANICAL CALCULATIONS' by Wang et al. (2000)
 """
 
 import csv
@@ -14,6 +17,7 @@ atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16]
                  "Br":[35], "I":[53], "XX":[6,7,8,15,16], "XA":[8,16], "XB":[7,15], "XD":[15,16]}
 
 def main(molecule):
+    """Main module execution."""
     
     file_ = molecule.ff.atomtypeFile
     
@@ -21,7 +25,7 @@ def main(molecule):
     lines = []
     for line in reader:
         #populate lineList
-        #this is because reader object cycles only once
+        #this is because reader object cycles only once; was a surprising bug
         lines.append(line)
     
     typeList = []
@@ -41,7 +45,7 @@ def main(molecule):
     return typeList
         
 def atomic_num(entry, num):
-    """Given two integers, return True if they match/False otherwise"""
+    """Return True if two given integers match, False otherwise"""
     entry = int(entry)
     if entry == num:
         return True
@@ -49,7 +53,7 @@ def atomic_num(entry, num):
         return False
 
 def neighbors(entry, nList):
-    """Given neighbor list, return True if the number of neighbors matches the entry, False otherwise"""
+    """Return True if the number of neighbors matches the entry, False otherwise."""
     entry = int(entry)
     if entry == len(nList):
         return True
@@ -57,7 +61,7 @@ def neighbors(entry, nList):
         return False
 
 def hneighbors(entry, hcount):
-    """Given two integers, return True if they match/False otherwise"""
+    """Return True if two given integers match, False otherwise"""
     entry = int(entry)
     if entry == hcount:
         return True
@@ -65,7 +69,7 @@ def hneighbors(entry, hcount):
         return False
 
 def wneighbors(entry, wcount):
-    """Given two integers, return True if they match/False otherwise"""
+    """Return True if two given integers match, False otherwise"""
     entry = int(entry)
     if entry == wcount:
         return True
@@ -73,7 +77,7 @@ def wneighbors(entry, wcount):
         return False
 
 def atomic_prop(entry, molTuple):
-    """Given F5 entry and list of atomic properties, return true if atom fits F5 entry, False otherwise"""
+    """Return true if atom fits F5 (atomic property) entry, False otherwise"""
     molecule, atomIndex = molTuple
     
     #determine atom properties
@@ -106,7 +110,8 @@ def atomic_prop(entry, molTuple):
         return False
         
 def chem_env(entry, molTuple):
-    """Given subtle chemical environment and atomIndex/molecule, determine if atom matches that environment."""
+    """Return True if the atom matches the F6 (subtle chemical environment) entry, False otherwise"""
+    
     mol, atomIndex = molTuple
     
     #turn text entry into list of paths
@@ -177,11 +182,6 @@ def chem_env(entry, molTuple):
                     charLoc += -1   
                 
                 #finally check atomic number
-#                print atomIndex
-#                print path
-#                print pathEntry
-#                print charLoc
-#                print pathEntry[0:charLoc+1] + "lol"
                 atomicNum = atomicSymDict[pathEntry[0:charLoc+1]]
                 
                 if mol.zList[truePath[count]] in atomicNum:
@@ -204,6 +204,7 @@ def chem_env(entry, molTuple):
         return False
 
 def path_parser(pathString, masterList, pathList):
+    """A recursive function to parse F6 path entries."""
     #split string by commas that are not within parentheses
     #Avinash Raj on StackOverflow: http://stackoverflow.com/a/26634150
     pathString = re.split(r',\s*(?![^()]*\))', pathString)
@@ -226,6 +227,7 @@ def path_parser(pathString, masterList, pathList):
 funcList = [atomic_num, neighbors, hneighbors, wneighbors, atomic_prop, chem_env]
         
 def parse_line(line, atom, molecule):
+    """Return True and atomtype if atom matches a line entry, False otherwise."""
 
     for entryIndex, entry in enumerate(line[2:]):
         
@@ -249,6 +251,7 @@ def parse_line(line, atom, molecule):
     return match, type_
 
 def find_input(molecule, atomIndex, funcIndex):
+    """Return the corresponding input for given entry checking function index."""
     
     if funcIndex == 0:
         #return the atomic number
@@ -287,6 +290,7 @@ def find_input(molecule, atomIndex, funcIndex):
         return None
         
 def eliminate_subpaths(masterList, path):
+    """Return a path list with the sub paths removed."""
     
     subPaths = [path[0:i] for i in range(len(path)+1)]
     listCopy = masterList[:]

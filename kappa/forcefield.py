@@ -2,7 +2,10 @@
 """
 Created on Mon Mar 21 13:16:37 2016
 
-@author: alex
+@author: Alex Kerr
+
+Define general Forcefield class, and specific forcefields (AMBER, etc.) that inherit
+the general one.
 """
 
 import numpy as np
@@ -13,12 +16,27 @@ from . import package_dir
 global_cutoff = 5.0 #angstroms
 
 class Forcefield:
+    """A forcefield that determines how atoms interact
     
-    def __init__(self, name, energyUnits, lengthUnits,
+    Args:
+        name (str): Human readable string that identifies the forcefield.
+        eunits (float): The units of energy used in the ff, relative to kcal/mol.
+        lunits (float): The units of length used in the ff, relative to angstroms
+        lengths (bool): Boolean that determines if bond length interactions exist,
+            that is energy that is quadratic in the bond lengths.
+        angles (bool): Boolean that determines if bond angle interactions exist,
+            energy that is quadraic in the bond angles.
+        dihs (bool): Determines dihedral angle interactions,
+            energy is an effective Fourier series of the angle(s).
+        lj (bool): Determines Lennard-Jones non-bonded interactions.
+        es (bool): Determines electrostatic point charge interactions.
+        tersoff (bool): Determines Tersoff-type interactions."""
+    
+    def __init__(self, name, eunits, lunits,
                  lengths, angles, dihs, lj, es, tersoff):
         self.name = name
-        self.eUnits = energyUnits    #relative to kcal/mol
-        self.lUnits = lengthUnits    #relative to angstroms
+        self.eunits = eunits    #relative to kcal/mol
+        self.lunits = lunits    #relative to angstroms
         ##########
         self.lengths = lengths       #bond length interaction
         self.angles = angles         #bond angle interaction
@@ -28,6 +46,8 @@ class Forcefield:
         self.tersoff = tersoff       #tersoff interaction        
         
 class Amber(Forcefield):
+    """Amber forcefield inheriting from Forcefield, 
+    as presented by Cornell et al. (1994)"""
     
     def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
         Forcefield.__init__(self, "amber", 1.0, 1.0,
@@ -40,7 +60,7 @@ class Amber(Forcefield):
         self.atomtypeFile = "AMBER_kerr_edit.txt"
         
     def _configure_parameters(self, molecule):
-        """Store parameters in bonds, angles, dihedrals, etc. along with non-bonded iteractions."""
+        """Assign parameters for bonds, angles, dihedrals, etc. along with non-bonded iteractions."""
         idList = molecule.idList
         uIDList = np.unique(idList)
         uiddim = len(uIDList)
@@ -84,6 +104,7 @@ class Amber(Forcefield):
         molecule.vnList, molecule.nnList, molecule.gammaList = vnList, nnList, gnList
             
 class Tersoff(Forcefield):
+    """Under construction, a remnant of code past."""
     
     def __init__(self, name="tersoff", energyUnits=0.043, lengthUnits=1.0):
         Forcefield.__init__(self,name,energyUnits,lengthUnits)

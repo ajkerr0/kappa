@@ -2,7 +2,9 @@
 """
 Created on Mon Mar 21 13:09:30 2016
 
-@author: alex
+@author: Alex Kerr
+
+Define the Molecule class and a set of functions that `build' preset molecules.
 """
 
 import numpy as np
@@ -23,8 +25,18 @@ vdy = np.array([0.0,dy,0.0])
 vdz = np.array([0.0,0.0,dz])
         
 class Molecule:
-    """A molecule, representing a collection of atoms; requires a forcefield, name, list of positions of the atoms
-    list of neighbors for each atom, list of atomic numbers (indexed like position list)"""
+    """A molecule, representing a collection of atoms
+    
+    Args:
+        ff (Forcefield): Forcefield that determines how the atoms interact.
+        name (str): Human readable string that identifies the molecule.
+        posList (ndarray): Numpy 2d array (N by 3) that contains the x,y,z coordinates of the atoms.
+        nList (list): List of lists of each neighboring atom that determines bonding, indexed like posList.
+        zList (ndarray): Numpy 1d array (N by 1) of the atomic numbers in the molecule, indexed like posList
+        
+    Keywords:
+        orientation (ndarray): Numpy 1d array (3 by 1) that determines the 'direction' of the molecule.
+            Primarily used for chaining molecules together."""
     
     def __init__(self, ff, name, posList, nList, zList, orientation=None):
         self.ff = ff
@@ -67,7 +79,8 @@ class Molecule:
         self.orientation = orient.T.A[0]
             
     def _configure_structure_lists(self):
-        """Find the unique bonds, bond angles, dihedral angles, and improper torsionals in the molecule."""
+        """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
+        to the molecule instance."""
         bondList = []
         for i,iNList in enumerate(self.nList):
             ineighbors = [j for j in iNList if j > i]
@@ -106,7 +119,8 @@ class Molecule:
         self.imptorsList = np.array(imptorsList)
         
     def _configure_ring_lists(self):
-        """Find all the unique rings in molecule, between sizes minSize and maxSize"""
+        """Assign all of the unique rings to the molecule instance, 
+        between sizes minSize and maxSize."""
         maxSize = 9
         minSize = 3
         pathList = []
@@ -132,7 +146,9 @@ class Molecule:
         self.ringList = np.array(ringList)
         
     def _configure_aromaticity(self):
-        """Determine the aromaticity of each molecule ring, as defined by Antechamber (AR1 is purely aromatic)"""
+        """Assign the aromaticity of each ring in the molecule instance, 
+        as defined by Antechamber (AR1 is purely aromatic).  ringList must
+        be assigned first."""
         #for now define each 6-membered ring as 'AR1'
         aromaticList = []
         for ring in self.ringList:
@@ -143,6 +159,7 @@ class Molecule:
         self.aromaticList = aromaticList
         
     def _configure_atomtypes(self):
+        """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
         from .antechamber.atomtype import main
         self.atomtypes = main(self)
         if "DU" in self.atomtypes:
@@ -154,9 +171,11 @@ class Molecule:
         self.idList = np.array(idList)
         
     def _configure_parameters(self):
+        """Assign the forcefield parameters to the molecule instance."""
         self.ff._configure_parameters(self)
         
     def _configure(self):
+        """Call the `configure' methods."""
         self._configure_structure_lists()
         self._configure_ring_lists()
         self._configure_aromaticity()
@@ -164,6 +183,8 @@ class Molecule:
         self._configure_parameters()
         
     def define_energy_routine(self):
+        """Return the function that would calculate the energy of the
+        molecule instance."""
         
         e_funcs = []
         
@@ -212,6 +233,8 @@ class Molecule:
         return calculate_e    
         
     def define_gradient_routine(self):
+        """Return the function that would calculate the gradients (negative forces)
+        of the atoms in the molecule instance."""
         #this will change if analytical gradients get implemented
         #for now call `define_energy_routine` again, which can be wasteful
         #we're also doing bruteforce gradient calculations (calculating all the energy, not just what bonds are involved)

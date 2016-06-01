@@ -2,7 +2,9 @@
 """
 Created on Tue Mar 22 14:18:45 2016
 
-@author: alex
+@author: Alex Kerr
+
+Define functions that draw molecule objects.
 """
 
 import matplotlib.pyplot as plt
@@ -16,6 +18,7 @@ atomColors = {1:"white",6:"black",7:"skyblue",8:"red",9:"green",15:"orange",16:"
 atomicRadii = {1:25,6:70,7:65,8:60,9:50,15:100,16:100,17:100}
 
 def bonds2d(molecule, sites=False):
+    """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
     figTitle = molecule.name
@@ -56,6 +59,10 @@ def bonds2d(molecule, sites=False):
     plt.show()
 
 def bonds(molecule, sites=False, indices=False):
+    """Draw the molecule's bonds
+    Keywords:
+        sites (bool): Set True to draw atomic sites.  Default is False.
+        indices (bool): Set True to draw atomic site indices near atomic sites. Default is False."""
     
     fig = plt.figure()
     ax=Axes3D(fig)
@@ -110,7 +117,7 @@ def bonds(molecule, sites=False, indices=False):
     plt.show()
     
 def normal_modes(molecule,evec):
-    """Visualize a normal mode of some molecule."""
+    """Draw a visualization of a normal mode of a molecule."""
     
     fig = plt.figure()
     ax=Axes3D(fig)
