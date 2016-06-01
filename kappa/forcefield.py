@@ -16,7 +16,7 @@ from . import package_dir
 global_cutoff = 5.0 #angstroms
 
 class Forcefield:
-    """A forcefield that determines how atoms interact
+    """A classical forcefield that determines how atoms interact
     
     Args:
         name (str): Human readable string that identifies the forcefield.
