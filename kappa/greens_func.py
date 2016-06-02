@@ -21,24 +21,24 @@ def main():
     #get neighbor lists
     nLists = find_neighbors(N)
     
-    #get Kmatrix
+    #get Kmatrix (N x N)
     KMatrix = calculate_K_matrix(N,k0,nLists)
+    print KMatrix
     
-    #get gamma matrix
+    #get gamma matrix (N x N)
     gammaMatrix = calculate_gamma_matrix(N,gamma0)
     
-    #mass matrix now
+    #mass matrix now (N x N)
     MMatrix = calculate_M_matrix(N,m0)
     
     #find eigenvalues and eigenvectors
+    #2N eigenvalues: N lambdha and N lambdha*
+    #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-    
-    #testing val,vec
-    testVec(val,vec)
-    
-    gFxn = calculate_green_function(vec)
-    
-#    print gFxn
+
+#    print val
+#    print vec
+#    print np.shape(vec)
     
 def calculate_green_function(vec):
     """Return the Green function"""
@@ -49,25 +49,6 @@ def calculate_green_function(vec):
     
     
     return gfxn
-    
-def testVec(val,vec):
-    
-#    N = len(vec)/2
-#    
-#    ind = 0
-#    
-#    val=val[ind]
-#    vec=vec[ind]
-#    
-#    print vec
-#    
-#    for entry in vec[-N:]:
-#        print entry*val
-    
-    x = -.0008283 + .068519j
-    val = -.00222166+1.93169j
-    print x*val
-    
     
 def calculate_evec(M,G,K):
     
@@ -81,7 +62,12 @@ def calculate_evec(M,G,K):
     x = np.identity(N)
     x = np.concatenate((x,np.zeros([N,N])),axis=1)
     y = np.concatenate((np.zeros([N,N]),-M),axis=1)
-    z = np.matrix(np.concatenate((x,y),axis=0))   
+    z = np.matrix(np.concatenate((x,y),axis=0))
+    
+    #testing validity of numpy method so we wouldn't need SciPy
+#    w, v = np.linalg.eig(np.linalg.inv(z)*c)
+#    print w
+#    print v
     
     w,vr = linalg.eig(c,b=z,right=True)
     
