@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 """
 Created on Mon Mar 21 13:09:30 2016
 
@@ -58,44 +60,59 @@ class Molecule:
         self.orientation = orient.T.A[0]
 
     def pdb(self):
-        """Creates a .pdb (protein data bank) type list for use with molecular dynamics packages"""
-        pdb_lines = []
+        # Creates a .pdb (protein data bank) type list for use with molecular dynamics packages
+        # self.pdb_lines returns list holding every line of .pdb file
+        self.pdb_lines = []
         atom_lines = []
         conect_lines = []
+        inc_index_bondList = self.bondList + 1  # sets index to same index as "serial"
+        pdb_bonds = []
+        conect_header_bare = "CONECT {0:>5}"
         for i in range(len(self.posList)):
-            serial = i
-            name = ELEMENTS[self.zList[i]]
+            serial = i+1
+            name = ELEMENTS[self.zList[i]].symbol
             altloc = " "
             resname = "UNK"
             chainid = " "
             resseq = 1
             icode = " "
-            x = self.posList[i][0]
-            y = self.posList[i][1]
-            z = self.posList[i][2]
+            x = round(self.posList[i][0],3)
+            y = round(self.posList[i][1],3)
+            z = round(self.posList[i][2],3)
             occupancy = 1.00
             tempfactor = 0.00
-            element = ELEMENTS[self.zList[i]]
+            element = ELEMENTS[self.zList[i]].symbol
             charge = "  "
-            # bonds = [[""],[""],[""],[""]]
-            for j in range(len(self.bondList)):
+            pdb_bonds.append([])
+            for j in range(len(inc_index_bondList)):
                 counteachbond = 0
-                if self.bondList[j][0] == i:
+                if self.bondList[j][0] == i:  # checks first index
                     counteachbond += 1
-                    bonds[counteachbond]=self.bondList[j][1] # generate correct bond format
+                    pdb_bonds[-1].append(self.bondList[j][1]+1) # generate correct bond format
                     if counteachbond > 4:
                         print("Too many bonds for standard pdb specs.")
                         raise SystemExit
+                counteachbond = 0
+                if self.bondList[j][1] == i:  # checks second index
+                    counteachbond += 1
+                    pdb_bonds[-1].append(self.bondList[j][0]+1)  # generate correct bond format
+                    if counteachbond > 4:
+                        print("Too many bonds for standard pdb specs.")
+                        raise SystemExit
+                    # behavior above double counts CONECT bonds, as per PDB specs
             atom_header = "ATOM  {0:>5} {1:>4}{2}{3:>3} {4}{5:>4}{6}   {7:>7}{8:>7}{9:>7}{10:>6}{11:>6}          " \
                           "{12:>2}{13:>2}".format(serial,name,altloc,resname,chainid,resseq,icode,x,y,z,
                                                   occupancy,tempfactor,element,charge)
-            conect_header = "CONECT {0:>5}{1[0]:>5}{1[1]:>5}{1[2]:>5}{1[3]:>5}".format(serial,bonds)
+            conect_header_temp = conect_header_bare
+            for k in range(len(pdb_bonds[i])):  # builds variable size conect header
+                conect_adder = "{1[%d]:>5}" % k
+                conect_header_temp += conect_adder
+            conect_header = conect_header_temp.format(serial,pdb_bonds[i])
             atom_lines.append(atom_header)
             conect_lines.append(conect_header)
-        pdb_lines = atom_lines + conect_lines
-        pdb_lines.append("TER")
-        pdb_lines.append("END")
-        return pdb_lines
+        self.pdb_lines = atom_lines + conect_lines
+        self.pdb_lines.append("TER")
+        self.pdb_lines.append("END")
 
     def _configure_structure_lists(self):
         """Find the unique bonds, bond angles, dihedral angles, and improper torsionals in the molecule."""
@@ -324,8 +341,8 @@ lattices = _latticeDict.keys()
 def build(lattice, ff=defaultFF, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
     return mol
-        
-        
+
+
             
         
         

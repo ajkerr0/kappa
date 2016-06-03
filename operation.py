@@ -39,7 +39,10 @@ def save(molecule,type="raw"):
     if type == "raw":
         pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
     elif type == "pdb":
-        pass
+        f = open(path + "/%s.pdb" % molecule.name,'w')
+        for i in range(len(molecule.pdb_lines)):
+            f.write(molecule.pdb_lines[i] + "\n")
+        f.close()
 
 def load(name):
     """Load a molecule given a name"""
