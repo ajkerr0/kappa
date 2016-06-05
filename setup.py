@@ -16,7 +16,8 @@ setup(name='kappa',
       packages=find_packages(),
       install_requires=[
       'numpy',
-      'matplotlib'
+      'matplotlib',
+      'scipy'
       ],
       )
 
