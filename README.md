@@ -9,7 +9,7 @@ Provide the user the tools to build virtual molecules and chemically functionali
 We also want to give users ways to export their molecules as input for more robust codes, particularly GROMACS.
 
 ### Requirements
-kappa requires the numpy and matplotlib packages.
+kappa requires the numpy, scipy, and matplotlib packages.
 
 ### Install
 Enter directory of the actual package:
