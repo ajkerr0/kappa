@@ -133,8 +133,8 @@ def normal_modes(molecule,evec):
     for index,pos in enumerate(molecule.posList):
         xi,yi,zi = pos
         ui,vi,wi = np.real((evec[3*index],evec[3*index +1],evec[3*index +2]))
-        print xi,yi,zi
-        print ui,vi,wi
+#        print(xi,yi,zi)
+#        print(ui,vi,wi)
         x[index] = xi
         y[index] = yi
         z[index] = zi

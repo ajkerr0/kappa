@@ -59,18 +59,18 @@ def steepest_descent(molecule, calculate_energy, calculate_gradient):
         eList.append(energy)
         #for every multiple of eFreq print status
         if (stepNo+1) % EFREQ == 0:
-            print 'step: ' + str(stepNo+1)
-            print 'energy: ' + str(energy)
-            print 'maxforce: ' + str(maxForce)
+            print('step: ' + str(stepNo+1))
+            print('energy: ' + str(energy))
+            print('maxforce: ' + str(maxForce))
         else:
             pass
         
         #break the iteration if your forces are small enough
         if maxForce < prec:
-            print "Finished!"
-            print 'step: ' + str(stepNo+1)
-            print 'energy: ' + str(energy)
-            print 'maxforce: ' + str(maxForce)
+            print("Finished!")
+            print('step: ' + str(stepNo+1))
+            print('energy: ' + str(energy))
+            print('maxforce: ' + str(maxForce))
             break
         else:
             pass
@@ -110,19 +110,19 @@ def conjugate_gradient(molecule, calculate_energy, calculate_gradient):
         eList.append(energy)
         #for every multiple of eFreq print status
         if (stepNo+1) % EFREQ == 0:
-            print 'step: ' + str(stepNo+1)
-            print 'energy: ' + str(energy)
-            print 'maxforce: ' + str(maxForce)
+            print('step: ' + str(stepNo+1))
+            print('energy: ' + str(energy))
+            print('maxforce: ' + str(maxForce))
         else:
             pass
         
         #break the iteration if your forces are small enough
         if maxForce < prec or stepSize < STEPPREC:
 #        if maxForce < prec:
-            print "Finished!"
-            print 'step: ' + str(stepNo+1)
-            print 'energy: ' + str(energy)
-            print 'maxforce: ' + str(maxForce)
+            print("Finished!")
+            print('step: ' + str(stepNo+1))
+            print('energy: ' + str(energy))
+            print('maxforce: ' + str(maxForce))
             break
         
         gamma = calculate_gamma(gradient,prevGrad)
@@ -151,7 +151,7 @@ def calculate_stepsize(molecule, stepList, e):
     calculate_energy = molecule.define_energy_routine()
     a,b,c,va,vb,vc = initial_bracket(testMolecule, stepList, e)
     if a is False:
-        print a
+#        print(a)
         return 0.0
     step = min_parabola(a,b,c,va,vb,vc)
     

@@ -9,7 +9,7 @@ Define the Molecule class and a set of functions that `build' preset molecules.
 
 import numpy as np
 #from numpy import array,full
-from forcefield import forcefieldList
+from .forcefield import forcefieldList
 
 #default values
 defaultFF = forcefieldList[0]()  #Amber
@@ -280,7 +280,7 @@ class Molecule:
         
 def build_graphene(ff, name="", radius=3):
         
-    from lattice.graphene import main as lattice
+    from .lattice.graphene import main as lattice
     posList,nList = lattice(radius)
     size = len(posList)
     if not name:
@@ -293,7 +293,7 @@ def build_graphene(ff, name="", radius=3):
         
 def build_cnt_armchair(ff, name="", radius=2, length=15):
     
-    from lattice.cntarm import main as lattice
+    from .lattice.cntarm import main as lattice
     posList,nList = lattice(radius,length)
     size = len(posList)
     if not name:
@@ -306,7 +306,7 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
 
 def build_amine(ff, name=""):
     
-    from lattice.amine import main as lattice
+    from .lattice.amine import main as lattice
     posList, nList = lattice()
     if not name:
         name = 'amine'
@@ -342,7 +342,7 @@ def build_imine_chain(ff, name="", count=1):
     
 def build_imine(ff, name=""):
 
-    from lattice.imine import main as lattice
+    from .lattice.imine import main as lattice
     posList, nList, zList = lattice()
     if not name:
         name = 'imine'
@@ -353,7 +353,7 @@ def build_imine(ff, name=""):
         
 def build_benzene_block(ff, name=""):
 
-    from lattice.benzene import main as lattice
+    from .lattice.benzene import main as lattice
     posList, nList, zList = lattice()
     if not name:
         name = "bblock"

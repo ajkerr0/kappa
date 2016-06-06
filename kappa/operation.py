@@ -10,7 +10,7 @@ Define a set of operations for use on Molecule objects that we don't want being 
 import os
 import errno
 from copy import deepcopy
-import cPickle as pickle
+import pickle
 
 import numpy as np
 

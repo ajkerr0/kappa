@@ -84,7 +84,7 @@ class Amber(Forcefield):
                 for i,refi in enumerate(uIDList):
                     paramList[0][i] = paramList[1][refArr[refi]]
             else:
-                print "ERROR IN AMBER PARAMETERS"
+                print("ERROR IN AMBER PARAMETERS")
         for count,bond in enumerate(bondList):
             i,j = bond
             kbList[count],l0List[count] = kbArr[idList[i],idList[j]], l0Arr[idList[i],idList[j]]

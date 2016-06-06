@@ -18,4 +18,4 @@ from .forcefield import *
 from .operation import *
 from .minimize import minimize_energy
 from .antechamber.atomtype import main as atomtype
-import plot
+from . import plot
