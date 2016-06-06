@@ -9,6 +9,8 @@ Demonstrating the Green's function calculation for a 1D system of atoms.
 
 import numpy as np
 import scipy.linalg as linalg
+import scipy.integrate as integrate
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -42,26 +44,48 @@ def main():
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
-    pos = integrate_system(coeff, val, vec)
+    q,t = calculate_position(coeff, val, vec)
+    print(q)
+
+    plot(q,t)
     
-def integrate_system(coeff, val, vec):
+def calculate_position(coeff, val, vec):
     
     N = len(val)/2
+    atom = 0
     
-    #starting at zero
-    t0 = 0.
-    tf = 10.
-    n = 1
-    t = np.linspace(t0, tf, n)
+    ti = 0.
+    tf = 100.
+    num = 1000
+    t = np.linspace(ti, tf, num=num)
     
-    #force
-#    F = np.matrix(np.zeros(N))
-    
-    for step in t:
-        arg = val*step
-        expMat = np.exp(np.matrix(np.diag(arg))*np.matrix(np.ones((6,6))))
+    def integrand(tstep):
+        
+        expMat = np.matrix(np.diag(tstep*val))*np.matrix(np.ones((6,6)))
+        
         gFunc = np.matrix(vec[:N,:])*expMat*coeff
-        print gFunc
+        
+        #now the force
+        force = np.matrix(np.zeros(N)).T
+    
+        #cosine driven force
+        w = 1.5
+        force[0] = np.cos(w*tstep)
+        
+        x = np.array(gFunc*force)
+
+        return x[atom][0].real
+#        return gFunc*force
+    
+    y = np.zeros(num)
+
+    for count, tstep in enumerate(t):
+        
+        y[count] = integrand(tstep)
+        
+    q = integrate.cumtrapz(y,t, initial=0)
+        
+    return q, t
     
         
     
@@ -145,6 +169,13 @@ def find_neighbors(N):
             
     #return as numpy array
     return np.array(nLists)
+    
+def plot(y,x):
+    
+    plt.plot(x,y, 'bo')
+#    plt.ylabel('displacement')
+#    plt.xlabel('time')
+    plt.show()
     
     
 main()
