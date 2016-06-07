@@ -17,7 +17,7 @@ def main():
     
     k0 = 1.
     m0 = 1.
-    gamma0 = 0.1
+    gamma0 = 0.2
     N = 6
     
     #get neighbor lists
@@ -36,11 +36,6 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-    
-    #testing with dummy inputs
-#    i,j = 2, 2
-#    x = (2*MMatrix[i,i]*val[j] + gammaMatrix[i,i])*vec[i,j]
-#    print x
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
@@ -50,30 +45,34 @@ def main():
     
 def calculate_position(coeff, val, vec):
     
-    N = len(val)/2
-    atom = 1
+    N = len(val)//2
+    atom = 0
     ti = 0.
-    tf = 50.
-    num = 500
+    tf = 250.
+    num = 10*int(tf)
     t = np.linspace(ti, tf, num=num)
     
     def integrand(tstep):
         
-        expMat = np.matrix(np.diag(tstep*val))*np.matrix(np.ones((2*N,2*N)))
+        expMat = np.matrix(np.exp(np.diag(tstep*val)))*np.matrix(np.ones((2*N,N)))
         
-        gFunc = np.matrix(vec[:N,:])*expMat*coeff
+        gFunc = np.matrix(vec[:N,:])*np.multiply(expMat,coeff)
         
         #now the force
         force = np.matrix(np.zeros(N)).T
     
         #cosine driven force
-        w = 1.5
+        w = 1.0
         force[0] = 0.5*np.cos(w*tstep)
+        
+        #impulse force
+#        w = 1.
+#        force[0] = np.exp(-w*tstep)
+#        force[N-1] = -force[0]
         
         x = np.array(gFunc*force)
 
         return x[atom][0].real
-#        return gFunc*force
     
     y = np.zeros(num)
 
@@ -82,13 +81,13 @@ def calculate_position(coeff, val, vec):
         y[count] = integrand(tstep)
         
     q = integrate.cumtrapz(y,t, initial=0)
-        
+
     return q, t
     
 def calculate_greens_function(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
     
-    N = len(vec)/2
+    N = len(vec)//2
     
     #need to determine coefficients in eigenfunction/vector expansion
     # need linear solver to solve equations from notes
@@ -103,7 +102,7 @@ def calculate_greens_function(val, vec, massMat, gMat):
     A[N:,:] = np.multiply(A[:N,:], 2*massMat*lamda + gMat*np.ones((N,2*N)))
     
     #now prep B
-    B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
+    B = np.concatenate((np.zeros((N,N),), np.identity(N,)), axis=0)
 
     return np.linalg.solve(A,B)
     
@@ -168,8 +167,8 @@ def find_neighbors(N):
 def plot(y,x):
     
     plt.plot(x,y)
-#    plt.ylabel('displacement')
-#    plt.xlabel('time')
+    plt.ylabel('displacement')
+    plt.xlabel('time')
     plt.show()
     
     
