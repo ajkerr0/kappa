@@ -18,7 +18,7 @@ def main():
     k0 = 1.
     m0 = 1.
     gamma0 = 0.1
-    N = 3
+    N = 6
     
     #get neighbor lists
     nLists = find_neighbors(N)
@@ -45,23 +45,21 @@ def main():
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
     q,t = calculate_position(coeff, val, vec)
-    print(q)
 
     plot(q,t)
     
 def calculate_position(coeff, val, vec):
     
     N = len(val)/2
-    atom = 0
-    
+    atom = 1
     ti = 0.
-    tf = 100.
-    num = 1000
+    tf = 50.
+    num = 500
     t = np.linspace(ti, tf, num=num)
     
     def integrand(tstep):
         
-        expMat = np.matrix(np.diag(tstep*val))*np.matrix(np.ones((6,6)))
+        expMat = np.matrix(np.diag(tstep*val))*np.matrix(np.ones((2*N,2*N)))
         
         gFunc = np.matrix(vec[:N,:])*expMat*coeff
         
@@ -70,7 +68,7 @@ def calculate_position(coeff, val, vec):
     
         #cosine driven force
         w = 1.5
-        force[0] = np.cos(w*tstep)
+        force[0] = 0.5*np.cos(w*tstep)
         
         x = np.array(gFunc*force)
 
@@ -86,9 +84,6 @@ def calculate_position(coeff, val, vec):
     q = integrate.cumtrapz(y,t, initial=0)
         
     return q, t
-    
-        
-    
     
 def calculate_greens_function(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
@@ -172,7 +167,7 @@ def find_neighbors(N):
     
 def plot(y,x):
     
-    plt.plot(x,y, 'bo')
+    plt.plot(x,y)
 #    plt.ylabel('displacement')
 #    plt.xlabel('time')
     plt.show()
