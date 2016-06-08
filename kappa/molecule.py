@@ -228,8 +228,14 @@ class Molecule:
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.degrees(np.arctan2(y,x))
                 return np.sum(self.vnList*(np.ones(len(self.dihedralList)) + np.cos(np.radians(self.nList*omega - self.gnList))))
+                
+            e_funcs.append(e_dihs)
             
-        #non-bonded interactions    
+        #non-bonded interactions
+            
+        if self.ff.tersoff:
+            #tersoff interaction here
+            pass
             
         def calculate_e():
             e = 0.0 #base energy level
