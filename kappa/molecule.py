@@ -41,10 +41,10 @@ class Molecule:
     def __init__(self, ff, name, posList, nList, zList, orientation=None):
         self.ff = ff
         self.name = name
-        self.posList = posList
+        self.posList = np.array(posList)
         self.nList = nList
-        self.zList = zList
-        self.orientation = orientation
+        self.zList = np.array(zList)
+        self.orientation = np.array(orientation)
         
     def __len__(self):
         return len(self.posList)
@@ -227,7 +227,7 @@ class Molecule:
                 m1 = np.cross(n1, poskj/rkj)
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.degrees(np.arctan2(y,x))
-                return np.sum(self.vnList*(np.ones(len(self.dihedralList)) + np.cos(np.radians(self.nList*omega - self.gnList))))
+                return np.sum(self.vnList*(np.ones(len(self.dihedralList)) + np.cos(np.radians(self.nnList*omega - self.gnList))))
                 
             e_funcs.append(e_dihs)
             
