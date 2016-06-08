@@ -1,5 +1,9 @@
 #taken from https://github.com/github/gitignore
 
+#ignore test scripts
+test.py
+kappa_test.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
