@@ -212,15 +212,22 @@ class Molecule:
                 
             e_funcs.append(e_angles)
             
-#        if self.ff.dihs:
+        if self.ff.dihs:
             
-#            idih,jdih,kdih,ldih = dihs[:,0],dihs[:,1],dihs[:,2],dihs[:3]
-#            def e_dihs():
-#                posji = pos[jdih] - pos[idih]
-#                poskj = pos[kdih] - pos[jdih]
-#                poslk = pos[ldih] - pos[kdih]
-#                rkj = np.linalg.norm(poskj,axis=1)
-#                cross12 = 2
+            idih,jdih,kdih,ldih = self.dihedralList[:,0],self.dihedralList[:,1],self.dihedralList[:,2],self.dihedralList[:3]
+            def e_dihs():
+                posji = self.posList[jdih] - self.posList[idih]
+                poskj = self.posList[kdih] - self.posList[jdih]
+                poslk = self.posList[ldih] - self.posList[kdih]
+                rkj = np.linalg.norm(poskj,axis=1)
+                cross12 = np.cross(posji, poskj)
+                cross23 = np.cross(poskj, poslk)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)
+                n2 = cross23/np.linalg.norm(cross23, axis=1)
+                m1 = np.cross(n1, poskj/rkj)
+                x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
+                omega = np.degrees(np.arctan2(y,x))
+                return np.sum(self.vnList*(np.ones(len(self.dihedralList)) + np.cos(np.radians(self.nList*omega - self.gnList))))
             
         #non-bonded interactions    
             
