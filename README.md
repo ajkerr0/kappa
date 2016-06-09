@@ -16,11 +16,11 @@ Enter directory of the actual package:
 
 `$ cd PATH/TO/kappa`
 
-~~Install kappa in your python location:~~
+Install kappa in your python location:
 
-~~`$ python setup.py install`~~
+`$ python setup.py install`
 
-~~If you wish to develop the code yourself:~~
+If you wish to develop the code yourself:
 
 `$ python setup.py develop`
 

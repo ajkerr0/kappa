@@ -8,8 +8,6 @@ import os,sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
-#from distutils.command.install import install
-#from distutils.command.develop import develop
 
 def parse(dir_):
     from subprocess import call
@@ -42,14 +40,10 @@ def path_dec(install_path):
         
 @path_dec("install_lib")
 class CustomInstallCommand(install):
-#    def __init__(self):
-#        self.install_path =  "install_lib"
     pass
 
 @path_dec("egg_path")
 class CustomDevelopCommand(develop):
-#    def __init__(self):
-#        self.install_path =  "egg_path"
     pass
 
 setup(name='kappa',
@@ -59,6 +53,10 @@ setup(name='kappa',
       author_email='ajkerr0@gmail.com',
       url='https://github.com/ajkerr0/kappa',
       packages=find_packages(),
+      package_data={
+      'kappa.antechamber': ['*.txt'],
+      'kappa.param': ['*/*.prm']
+      },
       install_requires=[
       'numpy',
       'matplotlib',

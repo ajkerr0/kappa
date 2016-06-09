@@ -10,7 +10,7 @@ Bring package functionality to user's script namespace when user imports the pac
 import os
 
 #russ on stackoverflow
-package_dir = os.path.dirname(__file__)
+package_dir = os.path.dirname(os.path.abspath(__file__))
 
 #this method may be frowned upon, please someone educate me
 from .molecule import *

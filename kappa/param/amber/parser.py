@@ -5,7 +5,9 @@ Created on Tue Nov 17 13:06:19 2015
 @author: alex
 """
 
+import os
 import csv
+
 import numpy as np
 
 #SEE BELOW
@@ -43,8 +45,9 @@ def parse():
     #electric dipole terms
     #2d
     
-
-    reader = csv.reader(open("./amber99.prm"), delimiter=" ", skipinitialspace=True)
+    path = os.path.dirname(os.path.abspath(__file__))
+    
+    reader = csv.reader(open("%s/amber99.prm" % (path)), delimiter=" ", skipinitialspace=True)
     
     for line in reader:
         
