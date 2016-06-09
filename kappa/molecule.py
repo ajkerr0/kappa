@@ -26,7 +26,7 @@ vdy = np.array([0.0,dy,0.0])
 vdz = np.array([0.0,0.0,dz])
         
 class Molecule:
-    """A molecule, representing a collection of atoms
+    """A molecule, representing a collection of interacting atoms
     
     Args:
         ff (Forcefield): Forcefield that determines how the atoms interact.
@@ -172,7 +172,7 @@ class Molecule:
         self.idList = np.array(idList)
         
     def _configure_parameters(self):
-        """Assign the force parameters to the given molecule."""
+        """Assign the force parameters to the molecule instance."""
         idList = self.idList
         filename = '%s/param/%s' % (package_dir, self.ff.name)
         
@@ -207,7 +207,7 @@ class Molecule:
             self.epvdwArr = epvdwArr[idList]
         
     def _configure(self):
-        """Call the `configure' methods."""
+        """Call the 'configure' methods sequentially."""
         self._configure_structure_lists()
         print(self.bondList)
         print(self.angleList)
