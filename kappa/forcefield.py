@@ -45,41 +45,6 @@ class Forcefield:
         self.es = es                 #electrostatic (point charge), non-bonded interaction
         self.tersoff = tersoff       #tersoff interaction
         
-    def _configure_parameters(self, molecule):
-        """Assign the force parameters to the given molecule."""
-        idList = molecule.idList
-        filename = '%s/param/%s' % (package_dir, self.name)
-        
-        if self.lengths:
-            #assign kr, r0 parameters
-            krArr, r0Arr = np.load(filename+"/kr.npy"), np.load(filename+"/r0.npy")
-            molecule.kr = krArr[idList[molecule.bondList[:,0]],idList[molecule.bondList[:,1]]]
-            molecule.r0 = r0Arr[idList[molecule.bondList[:,0]],idList[molecule.bondList[:,1]]]
-            
-        if self.angles:
-            #assign kt,t0 parameters
-            ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
-            molecule.kt = ktArr[idList[molecule.angleList[:,0]], idList[molecule.angleList[:,1]],
-                                idList[molecule.angleList[:,2]]]
-            molecule.t0 = t0Arr[idList[molecule.angleList[:,0]], idList[molecule.angleList[:,1]],
-                                idList[molecule.angleList[:,2]]]
-                                
-        if self.dihs:
-            #assign, vn, nn, gn parameters
-            vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
-            molecule.vn = vnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
-                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
-            molecule.nn = nnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
-                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
-            molecule.gn = gnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
-                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
-                                
-        if self.lj:
-            #assign Van-dr-Waals parameters
-            rvdw0Arr, epvdwArr = np.load(filename+"/rvdw0.npy"), np.load(filename+"/epvdw.npy")
-            molecule.rvdw0 = rvdw0Arr[idList]
-            molecule.epvdwArr = epvdwArr[idList]
-        
 class Amber(Forcefield):
     """Amber forcefield inheriting from Forcefield, 
     as presented by Cornell et al. (1994)"""
@@ -93,50 +58,6 @@ class Amber(Forcefield):
                                "HO":31,"HS":32,"HA":33, "HC":34,"H1":35, "H2":36,"H3":37,"HP":38,"H4":39,"HS":40,
                                "DU":1}
         self.atomtypeFile = "AMBER_kerr_edit.txt"
-        
-    def _configure_parameters2(self, molecule):
-        """Assign parameters for bonds, angles, dihedrals, etc. along with non-bonded iteractions."""
-        idList = molecule.idList
-        uIDList = np.unique(idList)
-        uiddim = len(uIDList)
-        bondList = molecule.bondList
-        angleList = molecule.angleList
-        dihedralList = molecule.dihedralList
-        fileName = "%s/param/%s" % (package_dir, self.name)
-        refArr = np.load(fileName+"/refArr.npy")
-        r0Arr, epArr = np.load(fileName+"/vdwR.npy"), np.load(fileName+"/vdwE.npy")
-        kbArr, l0Arr = np.load(fileName+"/kb.npy"), np.load(fileName+"/rb0.npy")
-        kaArr, theta0Arr = np.load(fileName+"/ka.npy"), np.load(fileName+"/theta0.npy")
-        vnArr, nArr, gammaArr = np.load(fileName+"/vtors.npy"), np.load(fileName+"/ntors.npy"), np.load(fileName+"/gammators.npy")
-        r0dim, epdim = np.full(len(r0Arr.shape),uiddim,dtype=int), np.full(len(epArr.shape),uiddim,dtype=int)
-        r0Array, epArray = np.zeros(r0dim), np.zeros(epdim)
-        kbList, l0List = np.zeros(len(bondList)), np.zeros(len(bondList))
-        kaList, t0List = np.zeros(len(angleList)), np.zeros(len(angleList))
-        vnList, nnList, gnList = np.zeros(len(dihedralList)), np.zeros(len(dihedralList)), np.zeros(len(dihedralList))
-        paramLists = [[r0Array,r0Arr],[epArray,epArr]]
-        for paramList in paramLists:
-            if len(paramList[0].shape) == 1:
-                for i,refi in enumerate(uIDList):
-                    paramList[0][i] = paramList[1][refArr[refi]]
-            else:
-                print("ERROR IN AMBER PARAMETERS")
-        for count,bond in enumerate(bondList):
-            i,j = bond
-            kbList[count],l0List[count] = kbArr[idList[i],idList[j]], l0Arr[idList[i],idList[j]]
-        for count,angle in enumerate(angleList):
-            i,j,k = angle
-            kaList[count],t0List[count] = kaArr[idList[i],idList[j],idList[k]], theta0Arr[idList[i],idList[j],idList[k]]
-        for count,dihedral in enumerate(dihedralList):
-            i,j,k,l = dihedral
-            idi,idj,idk,idl = idList[i], idList[j], idList[k], idList[l]
-            vnList[count], nnList[count], gnList[count] = vnArr[idi,idj,idk,idl],nArr[idi,idj,idk,idl],gammaArr[idi,idj,idk,idl]
-        maxIndex = np.max(idList)
-        molecule.refList = np.zeros(maxIndex+1)
-        for i,index in enumerate(idList):
-            molecule.refList[index] = i
-        molecule.kbList, molecule.l0List = kbList, l0List
-        molecule.kaList, molecule.t0List = kaList, t0List
-        molecule.vnList, molecule.nnList, molecule.gammaList = vnList, nnList, gnList
             
 class Tersoff(Forcefield):
     """Under construction, a remnant of code past."""

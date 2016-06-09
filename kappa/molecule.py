@@ -8,8 +8,9 @@ Define the Molecule class and a set of functions that `build' preset molecules.
 """
 
 import numpy as np
-#from numpy import array,full
+
 from .forcefield import forcefieldList
+from . import package_dir
 
 #default values
 defaultFF = forcefieldList[0]()  #Amber
@@ -171,8 +172,39 @@ class Molecule:
         self.idList = np.array(idList)
         
     def _configure_parameters(self):
-        """Assign the forcefield parameters to the molecule instance."""
-        self.ff._configure_parameters(self)
+        """Assign the force parameters to the given molecule."""
+        idList = self.idList
+        filename = '%s/param/%s' % (package_dir, self.ff.name)
+        
+        if self.ff.lengths:
+            #assign kr, r0 parameters
+            krArr, r0Arr = np.load(filename+"/kr.npy"), np.load(filename+"/r0.npy")
+            self.kr = krArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            self.r0 = r0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            
+        if self.ff.angles:
+            #assign kt,t0 parameters
+            ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
+            self.kt = ktArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                idList[self.angleList[:,2]]]
+            self.t0 = t0Arr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                idList[self.angleList[:,2]]]
+                                
+        if self.ff.dihs:
+            #assign, vn, nn, gn parameters
+            vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
+            self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+            self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+            self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+                                
+        if self.ff.lj:
+            #assign Van-dr-Waals parameters
+            rvdw0Arr, epvdwArr = np.load(filename+"/rvdw0.npy"), np.load(filename+"/epvdw.npy")
+            self.rvdw0 = rvdw0Arr[idList]
+            self.epvdwArr = epvdwArr[idList]
         
     def _configure(self):
         """Call the `configure' methods."""
@@ -198,7 +230,7 @@ class Molecule:
             def e_lengths():
                 rij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(rij, axis=1)
-                return np.sum(self.kbList*(rij-self.l0List)**2)
+                return np.sum(self.kr*(rij-self.r0)**2)
                 
             e_funcs.append(e_lengths)
             
@@ -212,13 +244,13 @@ class Molecule:
                 rkj = np.linalg.norm(poskj,axis=1)
                 cosTheta = np.einsum('ij,ij->i',posij,poskj)/rij/rkj
                 theta = np.degrees(np.arccos(cosTheta))
-                return np.sum(self.kaList*(theta-self.t0List)**2)
+                return np.sum(self.kt*(theta-self.t0)**2)
                 
             e_funcs.append(e_angles)
             
         if self.ff.dihs:
             
-            idih,jdih,kdih,ldih = self.dihedralList[:,0],self.dihedralList[:,1],self.dihedralList[:,2],self.dihedralList[:3]
+            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:3]
             def e_dihs():
                 posji = self.posList[jdih] - self.posList[idih]
                 poskj = self.posList[kdih] - self.posList[jdih]
@@ -231,7 +263,7 @@ class Molecule:
                 m1 = np.cross(n1, poskj/rkj)
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.degrees(np.arctan2(y,x))
-                return np.sum(self.vnList*(np.ones(len(self.dihedralList)) + np.cos(np.radians(self.nnList*omega - self.gnList))))
+                return np.sum(self.vn*(np.ones(len(self.dihList)) + np.cos(np.radians(self.nn*omega - self.gn))))
                 
             e_funcs.append(e_dihs)
             
