@@ -115,7 +115,7 @@ class Molecule:
                 imptorsList.append([i,j,k,l])
         self.bondList = np.array(bondList)
         self.angleList = np.array(angleList)
-        self.dihedralList = np.array(dihedralList)
+        self.dihList = np.array(dihedralList)
         self.imptorsList = np.array(imptorsList)
         
     def _configure_ring_lists(self):
@@ -177,6 +177,10 @@ class Molecule:
     def _configure(self):
         """Call the `configure' methods."""
         self._configure_structure_lists()
+        print(self.bondList)
+        print(self.angleList)
+        print(self.dihList)
+        print(self.imptorsList)
         self._configure_ring_lists()
         self._configure_aromaticity()
         self._configure_atomtypes()
