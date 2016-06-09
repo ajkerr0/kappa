@@ -8,6 +8,8 @@ import os,sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+#from distutils.command.install import install
+#from distutils.command.develop import develop
 
 def parse(dir_):
     from subprocess import call
@@ -18,29 +20,36 @@ def parse(dir_):
     parser_paths = [path for path in os.listdir(param_dir) if os.path.isdir(os.path.join(param_dir, path))]
     for path in parser_paths:
         call([interpreter, "parser.py"],
-             cwd=os.path.join(dir_, path))
+             cwd=os.path.join(dir_, os.path.join(param_dir,path)))
 
 #Peter Lamut: http://blog.niteoweb.com/setuptools-run-custom-code-in-setup-py/
-def customcmd(command_subclass):
-    """A decorator for subclasses of the setuptools commands, 
-    modifying the run() method so that it parses the force parameter
-    files after installation."""
-    
-    orig_run = command_subclass.run
-    
-    def modified_run(self):
-        orig_run(self)
-        self.execute(parse, (self.install_lib,))
+def path_dec(install_path):
+    def customcmd(command_subclass):
+        """A decorator for subclasses of the setuptools commands, 
+        modifying the run() method so that it parses the force parameter
+        files after installation."""
         
-    command_subclass.run = modified_run
-    return command_subclass
+        orig_run = command_subclass.run
         
-@customcmd
+        def modified_run(self):
+            orig_run(self)
+            self.execute(parse, (getattr(self,install_path),),
+                         msg="\nRunning the parameter parsers")
+            
+        command_subclass.run = modified_run
+        return command_subclass
+    return customcmd
+        
+@path_dec("install_lib")
 class CustomInstallCommand(install):
+#    def __init__(self):
+#        self.install_path =  "install_lib"
     pass
 
-@customcmd
+@path_dec("egg_path")
 class CustomDevelopCommand(develop):
+#    def __init__(self):
+#        self.install_path =  "egg_path"
     pass
 
 setup(name='kappa',
