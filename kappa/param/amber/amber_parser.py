@@ -10,7 +10,7 @@ import numpy as np
 
 #SEE BELOW
 
-def parse_amber():
+def parse():
     
     #max tiny atom id
 #    maxID = 560
@@ -19,26 +19,26 @@ def parse_amber():
     
     #vdw arrays 
     #1d
-    vdwR = np.zeros(size)
-    vdwEp = np.zeros(size)
+    rvdw0 = np.zeros(size)
+    epvdw = np.zeros(size)
     
     #bond length arrays
     #2d
-    kL0 = np.zeros((size,size))
-    rL0 = np.zeros((size,size))
+    kr = np.zeros((size,size))
+    r0 = np.zeros((size,size))
     
     #bond angle arrays
     #3d
     
     #SOLVE MEMORY PROBLEM
-    kA0 = np.zeros((size,size,size))
-    theta0 = np.zeros((size, size, size))
+    kt = np.zeros((size,size,size))
+    t0 = np.zeros((size, size, size))
     
     #torsion angle arrays
     #4d
-    Vtors = np.zeros((size,size, size, size))
-    gammators = np.zeros((size,size, size, size))
-    ntors = np.zeros((size,size, size, size))
+    vn = np.zeros((size,size, size, size))
+    gn = np.zeros((size,size, size, size))
+    nn = np.zeros((size,size, size, size))
     
     #electric dipole terms
     #2d
@@ -54,115 +54,72 @@ def parse_amber():
             
             if first_string == 'vdw':
                 
-                row = ref(int(line[1]))
+                row = int(line[1])
                 
-                vdwR[row] = float(line[2])
-                vdwEp[row] = float(line[3])
+                rvdw0[row] = float(line[2])
+                epvdw[row] = float(line[3])
                 
             elif first_string == 'bond':
                 
-                row = ref(int(line[1]))
-                col = ref(int(line[2]))
+                row = int(line[1])
+                col = int(line[2])
                 
-                kL0[row,col] = float(line[3])
-                kL0[col,row] = float(line[3])
-                rL0[row,col] = float(line[4])
-                rL0[col,row] = float(line[4])
+                kr[row,col] = float(line[3])
+                kr[col,row] = float(line[3])
+                r0[row,col] = float(line[4])
+                r0[col,row] = float(line[4])
                 
             elif first_string == 'angle':
                 
-                row = ref(int(line[1]))
-                col = ref(int(line[2]))
-                lay = ref(int(line[3])) #layer
+                row = int(line[1])
+                col = int(line[2])
+                lay = int(line[3]) #layer
                 
-                kA0[row,col,lay] = float(line[4])
-                kA0[lay,col,row] = float(line[4])
-                theta0[row,col,lay] = float(line[5])
-                theta0[lay,col,row] = float(line[5])
+                kt[row,col,lay] = float(line[4])
+                kt[lay,col,row] = float(line[4])
+                t0[row,col,lay] = float(line[5])
+                t0[lay,col,row] = float(line[5])
                 
             elif first_string == 'torsion':
                 
-                #check to see if there are actually parameters to store
-                if len(line) > 5:
-                    row = ref(int(line[1]))
-                    col = ref(int(line[2]))
-                    lay = ref(int(line[3]))
-                    hyp = ref(int(line[4]))
-                    
-                    Vtors[row,col,lay,hyp] = float(line[5])
-                    Vtors[hyp,lay,col,row] = float(line[5])
-                    gammators[row,col,lay,hyp] = float(line[6])
-                    gammators[hyp,lay,col,row] = float(line[6])
-                    ntors[row,col,lay,hyp] = float(line[7])
-                    ntors[hyp,lay,col,row] = float(line[7])
-                    
-                else:
-                    pass
+                row = int(line[1])
+                col = int(line[2])
+                lay = int(line[3])
+                hyp = int(line[4])
                 
-            elif first_string == 'dipole':
+                vn[row,col,lay,hyp] = float(line[5])
+                vn[hyp,lay,col,row] = float(line[5])
+                gn[row,col,lay,hyp] = float(line[6])
+                gn[hyp,lay,col,row] = float(line[6])
+                nn[row,col,lay,hyp] = float(line[7])
+                nn[hyp,lay,col,row] = float(line[7])
+                    
                 
-                #figure out dipole parameters
+            elif first_string == 'charge':
+                
+                #to be finishes
                 pass
                 
             else:
                 pass
-            
-        else:
-            pass
         
     #save matrices
     
     #vdw arrays
-    np.save("vdwR", vdwR)
-    np.save("vdwE", vdwEp)
+    np.save("rvdw0", rvdw0)
+    np.save("epvdw", epvdw)
     
     #bond length arrays
-    np.save("kb", kL0)
-    np.save("rb0", rL0)
+    np.save("kr", kr)
+    np.save("r0", r0)
     
     #bond angle arrays
-    np.save("ka", kA0)
-    np.save("theta0", theta0)
+    np.save("kt", kt)
+    np.save("t0", t0)
     
     #torsion arrays    
-    np.save("vtors", Vtors)
-    np.save("gammators", gammators)
-    np.save("ntors", ntors)
-    
-    
-    
-def amberID_ref():
-    "Create a reference array for aliasing parameters"
-    
-#    reader = csv.reader(open("./amber99.prm"), delimiter=" ", skipinitialspace=True)
-#            
-#    keyList = []
-#    for count,line in enumerate(reader):
-#        if line:    #if line is not empty    
-#            if line[0] == 'atom':
-#                keyList.append(int(line[1]))
-#            else:
-#                pass  
-#        else:
-#            pass
-#    
-#    amberRef = np.zeros(keyList[-1]+1)    
-#    
-#    for index, key in enumerate(keyList):
-#        amberRef[key] = index
-    amberRef = range(51)
-#    print amberRef
+    np.save("vn", vn)
+    np.save("gn", gn)
+    np.save("nn", nn)
         
-    np.save("refArr",amberRef)
-    
-def ref(key):
-    "Return the corresponding ID for use in tiny parameter arrays"
-    
-    amberRef = np.load("refArr.npy")
-    return amberRef[key]
-    
-        
-#need to run tinyID_ref first in order to save the reference array
-        
-amberID_ref()
-parse_amber()
+parse()

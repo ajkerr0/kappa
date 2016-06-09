@@ -43,7 +43,42 @@ class Forcefield:
         self.dihs = dihs             #dihedral angle interaction
         self.lj = lj                 #lennard-jones, non-bonded interaction
         self.es = es                 #electrostatic (point charge), non-bonded interaction
-        self.tersoff = tersoff       #tersoff interaction        
+        self.tersoff = tersoff       #tersoff interaction
+        
+    def _configure_parameters(self, molecule):
+        """Assign the force parameters to the given molecule."""
+        idList = molecule.idList
+        filename = '%s/param/%s' % (package_dir, self.name)
+        
+        if self.lengths:
+            #assign kr, r0 parameters
+            krArr, r0Arr = np.load(filename+"/kr.npy"), np.load(filename+"/r0.npy")
+            molecule.kr = krArr[idList[molecule.bondList[:,0]],idList[molecule.bondList[:,1]]]
+            molecule.r0 = r0Arr[idList[molecule.bondList[:,0]],idList[molecule.bondList[:,1]]]
+            
+        if self.angles:
+            #assign kt,t0 parameters
+            ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
+            molecule.kt = ktArr[idList[molecule.angleList[:,0]], idList[molecule.angleList[:,1]],
+                                idList[molecule.angleList[:,2]]]
+            molecule.t0 = t0Arr[idList[molecule.angleList[:,0]], idList[molecule.angleList[:,1]],
+                                idList[molecule.angleList[:,2]]]
+                                
+        if self.dihs:
+            #assign, vn, nn, gn parameters
+            vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
+            molecule.vn = vnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
+                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
+            molecule.nn = nnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
+                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
+            molecule.gn = gnArr[idList[molecule.dihList[:,0]], idList[molecule.dihList[:,1]],
+                                idList[molecule.dihList[:,2]], idList[molecule.dihList[:,3]]]
+                                
+        if self.lj:
+            #assign Van-dr-Waals parameters
+            rvdw0Arr, epvdwArr = np.load(filename+"/rvdw0.npy"), np.load(filename+"/epvdw.npy")
+            molecule.rvdw0 = rvdw0Arr[idList]
+            molecule.epvdwArr = epvdwArr[idList]
         
 class Amber(Forcefield):
     """Amber forcefield inheriting from Forcefield, 
@@ -59,7 +94,7 @@ class Amber(Forcefield):
                                "DU":1}
         self.atomtypeFile = "AMBER_kerr_edit.txt"
         
-    def _configure_parameters(self, molecule):
+    def _configure_parameters2(self, molecule):
         """Assign parameters for bonds, angles, dihedrals, etc. along with non-bonded iteractions."""
         idList = molecule.idList
         uIDList = np.unique(idList)
