@@ -17,7 +17,7 @@ def main():
     
     k0 = 1.
     m0 = 1.
-    gamma0 = 0.2
+    gamma0 = 0.1
     N = 6
     
     #get neighbor lists
@@ -46,33 +46,33 @@ def main():
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
-    atom = 0
+    atom = 1
     ti = 0.
-    tf = 250.
+    tf = 200
     num = 10*int(tf)
     t = np.linspace(ti, tf, num=num)
     
     def integrand(tstep):
         
-        expMat = np.matrix(np.exp(np.diag(tstep*val)))*np.matrix(np.ones((2*N,N)))
         
-        gFunc = np.matrix(vec[:N,:])*np.multiply(expMat,coeff)
+        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))))
+        
+        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
         
         #now the force
-        force = np.matrix(np.zeros(N)).T
+        force = np.transpose(np.zeros(N))
     
         #cosine driven force
-        w = 1.0
-        force[0] = 0.5*np.cos(w*tstep)
+#        w = 1.5
+#        force[0] = 0.5*np.cos(w*tstep)
         
         #impulse force
-#        w = 1.
-#        force[0] = np.exp(-w*tstep)
-#        force[N-1] = -force[0]
+        w = 1.
+        force[0] = np.exp(-w*tstep)
+        force[N-1] = -force[0]
         
-        x = np.array(gFunc*force)
-
-        return x[atom][0].real
+        x = np.dot(gFunc,force)
+        return x[atom].real
     
     y = np.zeros(num)
 
@@ -99,7 +99,7 @@ def calculate_greens_function(val, vec, massMat, gMat):
     #adding mass and damping terms to A
     lamda = np.tile(val, (N,1))
 
-    A[N:,:] = np.multiply(A[:N,:], 2*massMat*lamda + gMat*np.ones((N,2*N)))
+    A[N:,:] = np.multiply(A[:N,:], 2*np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
     
     #now prep B
     B = np.concatenate((np.zeros((N,N),), np.identity(N,)), axis=0)
@@ -113,12 +113,12 @@ def calculate_evec(M,G,K):
     a = np.zeros([N,N])
     a = np.concatenate((a,np.identity(N)),axis=1)
     b = np.concatenate((K,G),axis=1)
-    c = np.matrix(np.concatenate((a,b),axis=0))
+    c = np.concatenate((a,b),axis=0)
     
     x = np.identity(N)
     x = np.concatenate((x,np.zeros([N,N])),axis=1)
     y = np.concatenate((np.zeros([N,N]),-M),axis=1)
-    z = np.matrix(np.concatenate((x,y),axis=0))
+    z = np.concatenate((x,y),axis=0)
     
     w,vr = linalg.eig(c,b=z,right=True)
     
@@ -126,12 +126,12 @@ def calculate_evec(M,G,K):
     
 def calculate_M_matrix(N,m):
     """Return the scaled identity matrix (Cartesian coords.)"""
-    return m*np.matrix(np.identity(N))
+    return m*np.identity(N)
     
 def calculate_gamma_matrix(N,g0):
     """Return the damping matrix, assuming only the ends are damped."""
     
-    gMatrix = np.matrix(np.zeros([N,N]))
+    gMatrix = np.zeros([N,N])
     gMatrix[0,0] = g0
     gMatrix[N-1,N-1] = g0
     
@@ -140,7 +140,7 @@ def calculate_gamma_matrix(N,g0):
 def calculate_K_matrix(N,k0,nLists):
     """Return the Hessian of a linear chain of atoms assuming only nearest neighbor interactions."""
     
-    KMatrix = np.matrix(np.zeros([N,N]))
+    KMatrix = np.zeros([N,N])
     
     for i,nList in enumerate(nLists):
         KMatrix[i,i] = k0*len(nList)
