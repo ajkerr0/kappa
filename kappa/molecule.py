@@ -90,29 +90,19 @@ class Molecule:
         angleList = []
         for bond in bondList:
             i,j = bond
-            iNList,jNList = self.nList[i],self.nList[j]
-            jneighbors = [k for k in jNList if k > i]
-            for k in jneighbors:
+            for k in [k for k in self.nList[j] if k > i]:
                 angleList.append([i,j,k])
-            ineighbors = [k for k in iNList if k > j]
-            for k in ineighbors:
+            for k in [k for k in self.nList[i] if k > j]:
                 angleList.append([j,i,k])
         dihedralList = []
-        for bond in bondList:
-            i,j = bond
-            jNList = self.nList[j]
-            jneighbors = [k for k in jNList if k != i]
-            for k in jneighbors:
-                kNList = self.nList[k]
-                kneighbors = [l for l in kNList if l > i and l != j]
-                for l in kneighbors:
-                    dihedralList.append([i,j,k,l])
         imptorsList = []
         for angle in angleList:
-            j,i,k = angle
-            jNList = self.nList[j]
-            jneighbors = [l for l in jNList if l != i and l > k]
-            for l in jneighbors:
+            i,j,k = angle
+            for l in [l for l in self.nList[k] if l != j and l > i]:
+                dihedralList.append([i,j,k,l])
+            for l in [l for l in self.nList[i] if l != j and l > k]:
+                dihedralList.append([l,i,j,k])
+            for l in [l for l in self.nList[j] if l > k]:
                 imptorsList.append([i,j,k,l])
         self.bondList = np.array(bondList)
         self.angleList = np.array(angleList)
@@ -209,10 +199,6 @@ class Molecule:
     def _configure(self):
         """Call the 'configure' methods sequentially."""
         self._configure_structure_lists()
-        print(self.bondList)
-        print(self.angleList)
-        print(self.dihList)
-        print(self.imptorsList)
         self._configure_ring_lists()
         self._configure_aromaticity()
         self._configure_atomtypes()
