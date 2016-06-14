@@ -40,9 +40,10 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-    print(vec)
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
+    
+#    print(coeff)
     
     #checking symmetry of Green's function
 #    check_symmetry(val,vec,coeff)
@@ -56,7 +57,7 @@ def calculate_position(coeff, val, vec):
     N = len(val)//2
     atom = 0
     ti = 0.
-    tf = 100.
+    tf = 250.
     num = 10*int(tf)
     t = np.linspace(ti, tf, num=num)
     
@@ -93,24 +94,6 @@ def calculate_position(coeff, val, vec):
     
     return q, t
     
-def check_symmetry(val,vec,coeff):
-    
-    N = len(val)//2
-    t = 1.
-    j = 2
-    k = 0
-    
-    print(np.dot(np.diag(t*val),np.ones((2*N,N))))    
-    
-    gjk = 0.
-    gkj = 0.
-    for sigma in range(2*N):
-        gjk += vec[:,sigma][j]*coeff[sigma,k]*np.exp(val[sigma]*t)
-        gkj += vec[:,sigma][k]*coeff[sigma,j]*np.exp(val[sigma]*t)
-        
-    print(gjk)
-    print(gkj)
-    
 def calculate_greens_function(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
     
@@ -121,15 +104,16 @@ def calculate_greens_function(val, vec, massMat, gMat):
     # AX = B where X is the matrix of expansion coefficients
     
     A = np.zeros((2*N, 2*N), dtype=complex)
-    A[:N,:] = vec[:N,:]
 
-    #adding mass and damping terms to A
-    lamda = np.tile(val, (N,1))
-
-    A[N:,:] = np.multiply(A[:N,:], 2*np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
-    
+    for m in range(N):
+        for n in range(2*N):
+            A[m,n] = vec[:,n][m]
+            A[m+N,n] = (2*massMat[m,m]*val[n] + gMat[m,m])*vec[:,n][m]
+            
     #now prep B
     B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
+    
+    print(A)
 
     return np.linalg.solve(A,B)
     
