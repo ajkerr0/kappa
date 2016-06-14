@@ -63,9 +63,16 @@ def calculate_position(coeff, val, vec):
     
     def integrand(tstep):
         
-        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))))
+#        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))))
+#        
+#        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
         
-        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
+        gFunc = np.zeros((N,N), dtype=complex)
+        
+        for m in range(N):
+            for n in range(N):
+                for sigma in range(2*N):
+                    gFunc[m,n] += vec[m,sigma]*coeff[sigma,n]*np.exp(val[sigma]*tstep)
         
         #now the force
         force = np.zeros(N)
@@ -104,6 +111,12 @@ def calculate_greens_function(val, vec, massMat, gMat):
     # AX = B where X is the matrix of expansion coefficients
     
     A = np.zeros((2*N, 2*N), dtype=complex)
+    
+    print(vec)
+    #normalize the top half of the eigenvectors
+    for sigma in range(2*N):
+        vec[:N,sigma] = vec[:N,sigma]/np.linalg.norm(vec[:N,sigma])
+    print(vec)
 
     for m in range(N):
         for n in range(2*N):
@@ -112,8 +125,6 @@ def calculate_greens_function(val, vec, massMat, gMat):
             
     #now prep B
     B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
-    
-    print(A)
 
     return np.linalg.solve(A,B)
     
