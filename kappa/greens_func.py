@@ -40,12 +40,10 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-    print(vec)
+#    print(val)
+#    print(vec)
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
-    
-    #checking symmetry of Green's function
-#    check_symmetry(val,vec,coeff)
     
     q,t = calculate_position(coeff, val, vec)
 
@@ -54,62 +52,62 @@ def main():
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
-    atom = 0
+#    atom = 3
     ti = 0.
-    tf = 100.
-    num = 10*int(tf)
-    t = np.linspace(ti, tf, num=num)
+    tf = 200.
+    num = 5*int(tf)
+    tList = np.linspace(ti, tf, num=num)
     
-    def integrand(tstep):
+    def integrand(t1,t):
         
-        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))))
+        expMat = np.exp(np.dot(np.diag((t-t1)*val),np.ones((2*N,N))), dtype=complex)
         
         gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
+        
+#        print(tstep)
+#        print(gFunc)
         
         #now the force
         force = np.zeros(N)
     
         #cosine driven force
-#        w = 1.5
-#        force[0] = np.cos(w*tstep)
+        w = 1.5
+        force[0] = np.cos(w*t1)
         
         #impulse force
-        w = 0.005
-        force[0] = np.exp(-w*tstep)
-        force[N-1] = -force[0]
+#        w = 1.
+#        force[0] = np.exp(-w*t1)
+#        force[N-1] = -force[0]
         
         x = np.dot(gFunc,force)
-        return x[atom].real
+        return np.real(x)
     
-    y = np.zeros(num)
-    q = np.zeros(num)
+#    y = np.zeros((num))
+    q = np.zeros((num,N))
+    innerNum = 50
 
-    for count, tstep in enumerate(t):
+    for count, t in enumerate(tList):
         
-        y[count] = integrand(tstep)
-#        q[count] = integrate.trapz(y[:count],t[:count])
+        t1List = np.linspace(0,t,num=innerNum)
+        yList = np.zeros((innerNum,N))
+        for t1count,t1 in enumerate(t1List):
+            yList[t1count] = integrand(t1,t)
+            
+        for atom in range(N):
+            q[count,atom] = integrate.trapz(yList[:,atom],t1List)
         
-    q = integrate.cumtrapz(y,t, initial=0)
-    
-    return q, t
-    
-def check_symmetry(val,vec,coeff):
-    
-    N = len(val)//2
-    t = 1.
-    j = 2
-    k = 0
-    
-    print(np.dot(np.diag(t*val),np.ones((2*N,N))))    
-    
-    gjk = 0.
-    gkj = 0.
-    for sigma in range(2*N):
-        gjk += vec[:,sigma][j]*coeff[sigma,k]*np.exp(val[sigma]*t)
-        gkj += vec[:,sigma][k]*coeff[sigma,j]*np.exp(val[sigma]*t)
+#        yList = np.zeros(count+1)
+#        t1List = np.zeros(count+1)
+#        for ycount in range(count+1):
+#            yList[ycount] = integrand(t1List[ycount],t)
+##            yList[ycount] = integrand(t,t1List[ycount])
+#        q[count] = integrate.trapz(yList[:count+1], tList[:count+1])
         
-    print(gjk)
-    print(gkj)
+    return q,tList
+    
+#        for i in range(N):
+#            q[count,i] = integrate.traps(y[:count+1,i],t[:count+1])
+
     
 def calculate_greens_function(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
@@ -193,7 +191,9 @@ def find_neighbors(N):
     
 def plot(y,x):
     
-    plt.plot(x,y)
+    for i in range(np.shape(y)[1]):
+        plt.plot(x,y[:,i] + 2*i*np.ones(len(x)))
+#    plt.plot(x,y)
     plt.ylabel('displacement')
     plt.xlabel('time')
     plt.show()

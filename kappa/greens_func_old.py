@@ -40,13 +40,10 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
+#    print(val)
+#    print(vec)
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
-    
-#    print(coeff)
-    
-    #checking symmetry of Green's function
-#    check_symmetry(val,vec,coeff)
     
     q,t = calculate_position(coeff, val, vec)
 
@@ -55,24 +52,20 @@ def main():
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
-    atom = 0
+#    atom = 0
     ti = 0.
-    tf = 250.
+    tf = 100.
     num = 10*int(tf)
     t = np.linspace(ti, tf, num=num)
     
     def integrand(tstep):
         
-#        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))))
-#        
-#        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
+        expMat = np.exp(np.dot(np.diag(tstep*val),np.ones((2*N,N))), dtype=complex)
         
-        gFunc = np.zeros((N,N), dtype=complex)
+        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
         
-        for m in range(N):
-            for n in range(N):
-                for sigma in range(2*N):
-                    gFunc[m,n] += vec[m,sigma]*coeff[sigma,n]*np.exp(val[sigma]*tstep)
+#        print(tstep)
+#        print(gFunc)
         
         #now the force
         force = np.zeros(N)
@@ -87,17 +80,23 @@ def calculate_position(coeff, val, vec):
         force[N-1] = -force[0]
         
         x = np.dot(gFunc,force)
-        return x[atom].real
+        return np.real(x)
     
-    y = np.zeros(num)
-    q = np.zeros(num)
+    y = np.zeros((num,N))
+    q = np.zeros((num,N))
+    
+#    help(integrate.simps)
 
     for count, tstep in enumerate(t):
         
+#        y[count] = integrand(tstep-tf)
         y[count] = integrand(tstep)
-#        q[count] = integrate.trapz(y[:count],t[:count])
         
-    q = integrate.cumtrapz(y,t, initial=0)
+#        for i in range(N):
+#            q[count,i] = integrate.simps(y[:count+1,i],t[:count+1], even='last')
+    
+    for i in range(N):
+        q[:,i] = integrate.cumtrapz(y[:,i],t,initial=0)
     
     return q, t
     
@@ -111,18 +110,13 @@ def calculate_greens_function(val, vec, massMat, gMat):
     # AX = B where X is the matrix of expansion coefficients
     
     A = np.zeros((2*N, 2*N), dtype=complex)
-    
-    print(vec)
-    #normalize the top half of the eigenvectors
-    for sigma in range(2*N):
-        vec[:N,sigma] = vec[:N,sigma]/np.linalg.norm(vec[:N,sigma])
-    print(vec)
+    A[:N,:] = vec[:N,:]
 
-    for m in range(N):
-        for n in range(2*N):
-            A[m,n] = vec[:,n][m]
-            A[m+N,n] = (2*massMat[m,m]*val[n] + gMat[m,m])*vec[:,n][m]
-            
+    #adding mass and damping terms to A
+    lamda = np.tile(val, (N,1))
+
+    A[N:,:] = np.multiply(A[:N,:], 2*np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
+    
     #now prep B
     B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
 
@@ -188,7 +182,8 @@ def find_neighbors(N):
     
 def plot(y,x):
     
-    plt.plot(x,y)
+    for i in range(np.shape(y)[1]):
+        plt.plot(x,y[:,i] + 2*(i)*np.ones(len(x)))
     plt.ylabel('displacement')
     plt.xlabel('time')
     plt.show()
