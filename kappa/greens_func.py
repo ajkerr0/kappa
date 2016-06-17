@@ -11,6 +11,7 @@ import numpy as np
 import scipy.linalg as linalg
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
 def main():
@@ -25,7 +26,7 @@ def main():
     
     #get Kmatrix (N x N)
     KMatrix = calculate_K_matrix(N,k0,nLists)
-#    KMatrix[2,2] += .001
+#    KMatrix[2,2] += 0.001
 #    print(KMatrix)
     #zero-mode coefficient doesn't vanish?
     
@@ -52,10 +53,9 @@ def main():
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
-#    atom = 3
     ti = 0.
-    tf = 200.
-    num = 5*int(tf)
+    tf = 100.
+    num = 3*int(tf-ti)
     tList = np.linspace(ti, tf, num=num)
     
     def integrand(t1,t):
@@ -84,10 +84,11 @@ def calculate_position(coeff, val, vec):
     
 #    y = np.zeros((num))
     q = np.zeros((num,N))
-    innerNum = 50
+#    innerNum = 200
 
     for count, t in enumerate(tList):
         
+        innerNum = 3*int(t)
         t1List = np.linspace(0,t,num=innerNum)
         yList = np.zeros((innerNum,N))
         for t1count,t1 in enumerate(t1List):
