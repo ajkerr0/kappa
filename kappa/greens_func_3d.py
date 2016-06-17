@@ -11,7 +11,7 @@ import numpy as np
 import scipy.linalg as linalg
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
-
+import matplotlib.animation as animation
 
 
 def main():
@@ -24,11 +24,13 @@ def main():
     #get neighbor lists
     nLists = find_neighbors(N)
     
+    #pick dimension of chain
+    dim = 0   #x
+#    dim = 1   #y
+#    dim = 2   #z
+    
     #get Kmatrix (N x N)
-    KMatrix = calculate_K_matrix(N,k0,nLists)
-#    KMatrix[2,2] += 0.001
-#    print(KMatrix)
-    #zero-mode coefficient doesn't vanish?
+    KMatrix = calculate_K_matrix(N,dim,k0,nLists)
     
     
     #get gamma matrix (N x N)
@@ -163,15 +165,15 @@ def calculate_gamma_matrix(N,g0):
     
     return gMatrix
     
-def calculate_K_matrix(N,k0,nLists):
+def calculate_K_matrix(N,dim,k0,nLists):
     """Return the Hessian of a linear chain of atoms assuming only nearest neighbor interactions."""
     
-    KMatrix = np.zeros([N,N])
+    KMatrix = np.zeros([3*N,3*N])
     
-    for i,nList in enumerate(nLists):
-        KMatrix[i,i] = k0*len(nList)
-        for neighbor in nList:
-            KMatrix[i,neighbor] = -k0
+#    for i,nList in enumerate(nLists):
+#        KMatrix[i,i] = k0*len(nList)
+#        for neighbor in nList:
+#            KMatrix[i,neighbor] = -k0
     
     return KMatrix
     
