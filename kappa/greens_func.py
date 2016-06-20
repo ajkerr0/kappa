@@ -71,13 +71,13 @@ def calculate_position(coeff, val, vec):
         force = np.zeros(N)
     
         #cosine driven force
-        w = 1.5
-        force[0] = np.cos(w*t1)
+#        w = 1.5
+#        force[0] = np.cos(w*t1)
         
         #impulse force
-#        w = 1.
-#        force[0] = np.exp(-w*t1)
-#        force[N-1] = -force[0]
+        w = 1.
+        force[0] = np.exp(-w*t1)
+        force[N-1] = -force[0]
         
         x = np.dot(gFunc,force)
         return np.real(x)
@@ -125,7 +125,7 @@ def calculate_greens_function(val, vec, massMat, gMat):
     #adding mass and damping terms to A
     lamda = np.tile(val, (N,1))
 
-    A[N:,:] = np.multiply(A[:N,:], 2*np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
+    A[N:,:] = np.multiply(A[:N,:], np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
     
     #now prep B
     B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)

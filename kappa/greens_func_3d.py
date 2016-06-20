@@ -11,6 +11,7 @@ import numpy as np
 import scipy.linalg as linalg
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 
 
@@ -24,14 +25,8 @@ def main():
     #get neighbor lists
     nLists = find_neighbors(N)
     
-    #pick dimension of chain
-    dim = 0   #x
-#    dim = 1   #y
-#    dim = 2   #z
-    
     #get Kmatrix (N x N)
-    KMatrix = calculate_K_matrix(N,dim,k0,nLists)
-    
+    KMatrix = calculate_K_matrix(N,k0,nLists)
     
     #get gamma matrix (N x N)
     gammaMatrix = calculate_gamma_matrix(N,gamma0)
@@ -75,6 +70,7 @@ def calculate_position(coeff, val, vec):
         #cosine driven force
         w = 1.5
         force[0] = np.cos(w*t1)
+        force[1] = np.cos(w*t1)
         
         #impulse force
 #        w = 1.
@@ -127,7 +123,7 @@ def calculate_greens_function(val, vec, massMat, gMat):
     #adding mass and damping terms to A
     lamda = np.tile(val, (N,1))
 
-    A[N:,:] = np.multiply(A[:N,:], 2*np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
+    A[N:,:] = np.multiply(A[:N,:], np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
     
     #now prep B
     B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
@@ -154,26 +150,34 @@ def calculate_evec(M,G,K):
     
 def calculate_M_matrix(N,m):
     """Return the scaled identity matrix (Cartesian coords.)"""
-    return m*np.identity(N)
+    return m*np.identity(3*N)
     
 def calculate_gamma_matrix(N,g0):
     """Return the damping matrix, assuming only the ends are damped."""
     
-    gMatrix = np.zeros([N,N])
+    gMatrix = np.zeros([3*N,3*N])
     gMatrix[0,0] = g0
-    gMatrix[N-1,N-1] = g0
+    gMatrix[1,1] = g0
+    gMatrix[2,2] = g0
+    gMatrix[3*N-1,3*N-1] = g0
+    gMatrix[3*N-2,3*N-2] = g0
+    gMatrix[3*N-3,3*N-3] = g0
     
     return gMatrix
     
-def calculate_K_matrix(N,dim,k0,nLists):
+def calculate_K_matrix(N,k0,nLists):
     """Return the Hessian of a linear chain of atoms assuming only nearest neighbor interactions."""
     
     KMatrix = np.zeros([3*N,3*N])
     
-#    for i,nList in enumerate(nLists):
-#        KMatrix[i,i] = k0*len(nList)
-#        for neighbor in nList:
-#            KMatrix[i,neighbor] = -k0
+    for i,nList in enumerate(nLists):
+        KMatrix[3*i  ,3*i  ] = k0*len(nList)
+        KMatrix[3*i+1,3*i+1] = k0*len(nList)
+        KMatrix[3*i+2,3*i+2] = k0*len(nList)
+        for neighbor in nList:
+            KMatrix[3*i  ,3*neighbor] = -k0
+            KMatrix[3*i+1,3*neighbor+1] = -k0
+            KMatrix[3*i+2,3*neighbor+2] = -k0
     
     return KMatrix
     
