@@ -8,12 +8,33 @@ Define general Forcefield class, and specific forcefields (AMBER, etc.) that inh
 the general one.
 """
 
-import numpy as np
+from weakref import WeakKeyDictionary
 
-from . import package_dir
+import numpy as np
 
 #forcefield class definitions
 global_cutoff = 5.0 #angstroms
+
+class Interaction:
+    """A descriptor for forcefield interactions."""    
+    
+    def __init__(self):
+        self._values = WeakKeyDictionary()
+        
+    def __get__(self, ffinstance, instance_type):
+        return self._values.get(ffinstance)
+        
+    def __set__(self, ffinstance, value):
+        if value is not True and value is not False:
+            print(value)
+            raise ValueError('Interaction must be True or False')
+#        if value:
+#            if self._value is False:
+#                ffinstance
+#            self._values[ffinstance] = value
+#        print('Setting %s interaction to %s' % (ffinstance,value))
+        self._values[ffinstance] = value
+
 
 class Forcefield:
     """A classical forcefield that determines how atoms interact
@@ -31,6 +52,14 @@ class Forcefield:
         lj (bool): Determines Lennard-Jones non-bonded interactions.
         es (bool): Determines electrostatic point charge interactions.
         tersoff (bool): Determines Tersoff-type interactions."""
+        
+    #Interaction descriptors
+    lengths = Interaction()
+    angles = Interaction()
+    dihs = Interaction()
+    lj = Interaction()
+    es = Interaction()
+    tersoff = Interaction()
     
     def __init__(self, name, eunits, lunits,
                  lengths, angles, dihs, lj, es, tersoff):
@@ -50,8 +79,8 @@ class Amber(Forcefield):
     as presented by Cornell et al. (1994)"""
     
     def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
-        super().__init__(self, "amber", 1.0, 1.0,
-                            lengths, angles, dihs, lj, False, False)
+        super().__init__("amber", 1.0, 1.0,
+                         lengths, angles, dihs, lj, False, False)
         self.atomTypeIDDict = {"CT":1, "C":2,  "CA":3,  "CM":4, "CC":5,  "CV":6, "CW":7, "CR":8, "CB":9, "C*":10, "CZ":3,
                                "CN":11,"CK":12,"CQ":13, "N":14, "NA":15, "NB":16,"NC":17,"N*":18,"N2":19,"N3":20, "NT":19,
                                "OW":21,"OH":22,"OS":23, "O":24, "O2":25, "S":26, "SH":27,"P":28, "H":29, "HW":30, 
@@ -145,5 +174,3 @@ class Tersoff(Forcefield):
             e *= 0.5
             
             return e
-
-forcefieldList = [Amber, Tersoff]

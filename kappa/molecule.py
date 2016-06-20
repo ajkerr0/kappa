@@ -9,11 +9,7 @@ Define the Molecule class and a set of functions that `build' preset molecules.
 
 import numpy as np
 
-from .forcefield import forcefieldList
 from . import package_dir
-
-#default values
-defaultFF = forcefieldList[0]()  #Amber
 
 #change in position for the finite difference equations
 ds = 1e-5
@@ -418,7 +414,7 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "imine":build_imine, "chain":build_imine_chain}
 lattices = _latticeDict.keys()
 
-def build(lattice, ff=defaultFF, **kwargs):
+def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
     return mol
         
