@@ -50,7 +50,7 @@ class Amber(Forcefield):
     as presented by Cornell et al. (1994)"""
     
     def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
-        Forcefield.__init__(self, "amber", 1.0, 1.0,
+        super().__init__(self, "amber", 1.0, 1.0,
                             lengths, angles, dihs, lj, False, False)
         self.atomTypeIDDict = {"CT":1, "C":2,  "CA":3,  "CM":4, "CC":5,  "CV":6, "CW":7, "CR":8, "CB":9, "C*":10, "CZ":3,
                                "CN":11,"CK":12,"CQ":13, "N":14, "NA":15, "NB":16,"NC":17,"N*":18,"N2":19,"N3":20, "NT":19,
@@ -63,7 +63,7 @@ class Tersoff(Forcefield):
     """Under construction, a remnant of code past."""
     
     def __init__(self, name="tersoff", energyUnits=0.043, lengthUnits=1.0):
-        Forcefield.__init__(self,name,energyUnits,lengthUnits)
+        super().__init__(self, "tersoff", 0.043, 1.0)
         
     def configure_parameters(self, molecule):
         pass
