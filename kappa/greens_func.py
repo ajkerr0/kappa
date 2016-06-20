@@ -41,8 +41,6 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-#    print(val)
-#    print(vec)
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
@@ -82,10 +80,8 @@ def calculate_position(coeff, val, vec):
         x = np.dot(gFunc,force)
         return np.real(x)
     
-#    y = np.zeros((num))
     q = np.zeros((num,N))
-#    innerNum = 200
-
+    
     for count, t in enumerate(tList):
         
         innerNum = 3*int(t)
@@ -97,17 +93,7 @@ def calculate_position(coeff, val, vec):
         for atom in range(N):
             q[count,atom] = integrate.trapz(yList[:,atom],t1List)
         
-#        yList = np.zeros(count+1)
-#        t1List = np.zeros(count+1)
-#        for ycount in range(count+1):
-#            yList[ycount] = integrand(t1List[ycount],t)
-##            yList[ycount] = integrand(t,t1List[ycount])
-#        q[count] = integrate.trapz(yList[:count+1], tList[:count+1])
-        
     return q,tList
-    
-#        for i in range(N):
-#            q[count,i] = integrate.traps(y[:count+1,i],t[:count+1])
 
     
 def calculate_greens_function(val, vec, massMat, gMat):

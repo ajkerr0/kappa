@@ -20,7 +20,7 @@ def main():
     k0 = 1.
     m0 = 1.
     gamma0 = 0.1
-    N = 6
+    N = 3
     
     #get neighbor lists
     nLists = find_neighbors(N)
@@ -38,20 +38,21 @@ def main():
     #2N eigenvalues: N lambdha and N lambdha*
     #2N eigenvectors of length 2N
     val,vec = calculate_evec(MMatrix,gammaMatrix,KMatrix)
-#    print(val)
-#    print(vec)
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
     q,t = calculate_position(coeff, val, vec)
+    
+#    print(np.shape(q))
 
-    plot(q,t)
+#    plot(q,t)
+    animate(N,q,t)
     
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
     ti = 0.
-    tf = 100.
+    tf = 50.
     num = 3*int(tf-ti)
     tList = np.linspace(ti, tf, num=num)
     
@@ -60,9 +61,6 @@ def calculate_position(coeff, val, vec):
         expMat = np.exp(np.dot(np.diag((t-t1)*val),np.ones((2*N,N))), dtype=complex)
         
         gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
-        
-#        print(tstep)
-#        print(gFunc)
         
         #now the force
         force = np.zeros(N)
@@ -80,9 +78,7 @@ def calculate_position(coeff, val, vec):
         x = np.dot(gFunc,force)
         return np.real(x)
     
-#    y = np.zeros((num))
     q = np.zeros((num,N))
-#    innerNum = 200
 
     for count, t in enumerate(tList):
         
@@ -95,17 +91,7 @@ def calculate_position(coeff, val, vec):
         for atom in range(N):
             q[count,atom] = integrate.trapz(yList[:,atom],t1List)
         
-#        yList = np.zeros(count+1)
-#        t1List = np.zeros(count+1)
-#        for ycount in range(count+1):
-#            yList[ycount] = integrand(t1List[ycount],t)
-##            yList[ycount] = integrand(t,t1List[ycount])
-#        q[count] = integrate.trapz(yList[:count+1], tList[:count+1])
-        
     return q,tList
-    
-#        for i in range(N):
-#            q[count,i] = integrate.traps(y[:count+1,i],t[:count+1])
 
     
 def calculate_greens_function(val, vec, massMat, gMat):
@@ -200,10 +186,45 @@ def plot(y,x):
     
     for i in range(np.shape(y)[1]):
         plt.plot(x,y[:,i] + 2*i*np.ones(len(x)))
-#    plt.plot(x,y)
     plt.ylabel('displacement')
     plt.xlabel('time')
     plt.show()
+    
+def animate(N,q,t):
+    """From 'simple_3danim.py' from matplotlib main site examples."""
+    
+    #choose equilibrium positions
+    for i in range(N):
+        q[:,3*i] += 2*i*np.ones(len(t))
+    
+    def update_lines(num, dataLines, lines):
+        for line, data in zip(lines, dataLines):
+            # NOTE: there is no .set_data() for 3 dim data...
+            line.set_data(data[0:2, :num])
+            line.set_3d_properties(data[2, :num])
+            
+        
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    
+    #reshape data
+    data = np.zeros((N,3,len(t)))
+    for i in range(len(t)):
+        for j in range(N):
+            data[j,0:3,i] = q[i,3*j:3*j+3]
+    
+    # Creating fifty line objects.
+    # NOTE: Can't pass empty arrays into 3d version of plot()
+    lines = [ax.scatter(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
+    
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    
+    line_ani = animation.FuncAnimation(fig, update_lines, 25, fargs=(data, lines),
+                                   interval=50, blit=False)
+                                   
+    plt.show(fig)
     
     
 main()
