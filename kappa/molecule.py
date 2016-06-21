@@ -388,18 +388,6 @@ def build_polyethylene(ff, name="", count=1):
     molList.append(build_ch(ff))
     return chain(molList, indexList)
     
-    
-#    if count==1:
-#        mol = molList[0]
-#        molList.append(build)
-#        mol = chain()
-#        return mol
-#    elif count > 1:
-#        for i in range(count-1):
-#            pass
-#    else:
-#        raise ValueError("count needs to be an integer greater than 0")
-    
 def build_imine(ff, name=""):
 
     from .lattice.imine import main as lattice

@@ -143,7 +143,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
         elif neighbor < index2:
             molecule1.nList[index1].append(neighbor + size1)
         else:
-            print("An atom can't neighbor itself!")
+            raise ValueError("An atom can't neighbor itself")
     for index,nList in enumerate(molecule2.nList):
         if index != index2:
             newNList = []

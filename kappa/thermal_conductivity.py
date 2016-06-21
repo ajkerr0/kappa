@@ -9,15 +9,7 @@ Demonstrating the Green's function calculation for a 1D system of atoms.
 
 import numpy as np
 import scipy.linalg as linalg
-import scipy.integrate as integrate
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.animation as animation
-
-ti = 0.
-tf = 50.
-mult = 3
-
 
 def main():
     
@@ -45,59 +37,42 @@ def main():
 
     coeff = calculate_greens_function(val, vec, MMatrix, gammaMatrix)
     
-    print(coeff)
+    kap = calculate_thermal_conductivity(coeff, val, vec, gammaMatrix, KMatrix)
+    
+    print(kap)
+    
+def calculate_thermal_conductivity(coeff, val, vec, gMat, kMat):
+    """Return the thermal conductivity coefficient from one particle to another."""
+    
+    i = 1
+    j = 2
+    
+    #driven atom
+    #assuming same drag constant as other driven atom
+    driver = 0
+    
     print(vec)
     
-#    q,t = calculate_position(coeff, val, vec)
+    kap = 0.j
     
-#    print(np.shape(q))
-
-#    plot(q,t)
-#    animate(N,q,t)
-    
-def calculate_position(coeff, val, vec):
-    
-    N = len(val)//2
-    num = mult*int(tf-ti)
-    tList = np.linspace(ti, tf, num=num)
-    
-    def integrand(t1,t):
+    for sigma in range(len(val)):
         
-        expMat = np.exp(np.dot(np.diag((t-t1)*val),np.ones((2*N,N))), dtype=complex)
-        
-        gFunc = np.dot(vec[:N,:],np.multiply(expMat,coeff))
-        
-        #now the force
-        force = np.zeros(N)
-    
-        #cosine driven force
-        w = 1.5
-        force[0] = np.cos(w*t1)
-#        force[1] = np.cos(w*t1)
-        
-        #impulse force
-#        w = 1.
-#        force[0] = np.exp(-w*t1)
-#        force[N-1] = -force[0]
-        
-        x = np.dot(gFunc,force)
-        return np.real(x)
-    
-    q = np.zeros((num,N))
-
-    for count, t in enumerate(tList):
-        
-        innerNum = mult*int(t-tList[0])
-        t1List = np.linspace(0,t,num=innerNum)
-        yList = np.zeros((innerNum,N))
-        for t1count,t1 in enumerate(t1List):
-            yList[t1count] = integrand(t1,t)
+        for tau in range(len(val)):
             
-        for atom in range(N):
-            q[count,atom] = integrate.trapz(yList[:,atom],t1List)
-        
-    return q,tList
-
+            try:
+                valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
+            except ZeroDivisionError:
+                print("Encountered the error")
+                continue
+            
+#            print(coeff[sigma,driver]*coeff[tau,driver])
+#            print(vec[i,sigma])
+            a = coeff[sigma,driver]*coeff[tau,driver]*vec[i,sigma]*vec[j,tau]*valTerm
+#            print(a)
+            kap += a
+    
+#    return kap*2*gMat[driver,driver]*kMat[i,j]
+    return kap
     
 def calculate_greens_function(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
@@ -194,43 +169,6 @@ def plot(y,x):
     plt.ylabel('displacement')
     plt.xlabel('time')
     plt.show()
-    
-def animate(N,q,t):
-    """From 'simple_3danim.py' from matplotlib main site examples."""
-    
-    #choose equilibrium positions
-    for i in range(N):
-        q[:,3*i] += 5*i*np.ones(len(t))
-    
-    def update_lines(num, dataLines, lines):
-        for line, data in zip(lines, dataLines):
-            # NOTE: there is no .set_data() for 3 dim data...
-            line.set_data(data[0:2, :num])
-            line.set_3d_properties(data[2, :num])
-            
-        
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    
-    #reshape data
-    data = np.zeros((N,3,len(t)))
-    for i in range(len(t)):
-        for j in range(N):
-            data[j,0:3,i] = q[i,3*j:3*j+3]
-    
-    # Creating fifty line objects.
-    # NOTE: Can't pass empty arrays into 3d version of plot()
-#    lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o')[0] for dat in data]
-    lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o')[0] for dat in data]
-    
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    
-    line_ani = animation.FuncAnimation(fig, update_lines, mult*int(tf-ti), fargs=(data, lines),
-                                   interval=100, blit=False)
-                                   
-    plt.show(fig)
     
     
 main()
