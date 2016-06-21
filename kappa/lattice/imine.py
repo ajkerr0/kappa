@@ -18,7 +18,7 @@ def main():
     return posList,nList,zList
     
 def generate_imine_sites():
-    """Generate the locations for the atoms in the imine group"""
+    """Return the locations for the atoms in the imine group"""
     
     #atomic distance (angstroms)
     a = 1.45

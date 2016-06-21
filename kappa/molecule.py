@@ -319,7 +319,6 @@ def build_graphene(ff, name="", radius=3):
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
     graphene = Molecule(ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-    graphene._configure()
     return graphene
         
 def build_cnt_armchair(ff, name="", radius=2, length=15):
@@ -332,7 +331,6 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
     cnt = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-    cnt._configure()
     return cnt
 
 def build_amine(ff, name=""):
@@ -344,7 +342,6 @@ def build_amine(ff, name=""):
     posList = np.array(posList)
     zList = np.array([6,7,1,1])
     amine = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
-    amine._configure()
     return amine
         
 def build_imine_chain(ff, name="", count=1):
@@ -366,10 +363,42 @@ def build_imine_chain(ff, name="", count=1):
     molList.append(ch)
     indexList.append((5,0))
     
-    from operation import chain
+    from .operation import chain
     imineChain = chain(molList,indexList)
     
     return imineChain
+    
+def build_polyethylene(ff, name="", count=1):
+    
+    from .lattice.polyethylene import main as lattice
+    posList, nList, zList = lattice()
+    if not name:
+        name = 'polyethylene'
+    posList = np.array(posList)
+    polyeth = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    
+    from .operation import chain
+    molList = [polyeth]
+    indexList = [(15,0)]
+    
+    for i in range(count-1):
+        molList.append(polyeth)
+        indexList.append((15,0))
+    
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
+    
+#    if count==1:
+#        mol = molList[0]
+#        molList.append(build)
+#        mol = chain()
+#        return mol
+#    elif count > 1:
+#        for i in range(count-1):
+#            pass
+#    else:
+#        raise ValueError("count needs to be an integer greater than 0")
     
 def build_imine(ff, name=""):
 
@@ -379,7 +408,6 @@ def build_imine(ff, name=""):
         name = 'imine'
     posList = np.array(posList)
     imine = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
-    imine._configure()
     return imine
         
 def build_benzene_block(ff, name=""):
@@ -390,7 +418,6 @@ def build_benzene_block(ff, name=""):
         name = "bblock"
     posList = np.array(posList)
     bblock = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
-    bblock._configure()
     return bblock
         
 def build_ch(ff, name="CH"):
@@ -398,7 +425,6 @@ def build_ch(ff, name="CH"):
     posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
     nList = [[1],[0]]
     ch = Molecule(ff, name, posList, nList, np.array([6,1]), orientation=np.array([1.,0.,0.]))
-    ch._configure()
     return ch
         
 def build_cc(ff, name="CC"):
@@ -406,16 +432,15 @@ def build_cc(ff, name="CC"):
     posList = np.array([[0.,0.,0.], [1.42,0.,0.]])
     nList = [[1],[0]]
     cc = Molecule(ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
-    cc._configure()
-    return cc  
-    
+    return cc
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
-                "imine":build_imine, "chain":build_imine_chain}
+                "imine":build_imine, "imine_chain":build_imine_chain, "polyeth":build_polyethylene}
 lattices = _latticeDict.keys()
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
+    mol._configure()
     return mol
         
         

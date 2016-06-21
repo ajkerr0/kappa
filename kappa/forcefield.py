@@ -44,7 +44,7 @@ class Forcefield:
         self.tersoff = tersoff       #tersoff interaction
         
 class Amber(Forcefield):
-    """Amber forcefield inheriting from Forcefield, 
+    """Amber forcefield inheriting from Forcefield,
     as presented by Cornell et al. (1994)"""
     
     def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
