@@ -38,7 +38,7 @@ def minimize_energy(molecule):
 def steepest_descent(molecule, calculate_energy, calculate_gradient):
     """Return minimized molecule using steepest descent method."""
     
-    prec = FORCEPREC/molecule.ff.eUnits
+    prec = FORCEPREC/molecule.ff.eunits
     energy = calculate_energy()
     gradient, maxForce, totalMag = calculate_gradient()
     eList = [energy]
@@ -80,7 +80,7 @@ def steepest_descent(molecule, calculate_energy, calculate_gradient):
 def conjugate_gradient(molecule, calculate_energy, calculate_gradient):
     """Return minimized molecule using the conjugate-gradient method"""
     
-    prec = FORCEPREC/molecule.ff.eUnits
+    prec = FORCEPREC/molecule.ff.eunits
     energy = calculate_energy()
     gradient, maxForce, totalMag = calculate_gradient()
     eList = [energy]
