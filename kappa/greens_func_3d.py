@@ -14,13 +14,17 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 
+ti = 0.
+tf = 50.
+mult = 3
+
 
 def main():
     
     k0 = 1.
     m0 = 1.
     gamma0 = 0.1
-    N = 3
+    N = 6
     
     #get neighbor lists
     nLists = find_neighbors(N)
@@ -51,9 +55,7 @@ def main():
 def calculate_position(coeff, val, vec):
     
     N = len(val)//2
-    ti = 0.
-    tf = 50.
-    num = 3*int(tf-ti)
+    num = mult*int(tf-ti)
     tList = np.linspace(ti, tf, num=num)
     
     def integrand(t1,t):
@@ -68,7 +70,7 @@ def calculate_position(coeff, val, vec):
         #cosine driven force
         w = 1.5
         force[0] = np.cos(w*t1)
-        force[1] = np.cos(w*t1)
+#        force[1] = np.cos(w*t1)
         
         #impulse force
 #        w = 1.
@@ -82,7 +84,7 @@ def calculate_position(coeff, val, vec):
 
     for count, t in enumerate(tList):
         
-        innerNum = 3*int(t)
+        innerNum = mult*int(t-tList[0])
         t1List = np.linspace(0,t,num=innerNum)
         yList = np.zeros((innerNum,N))
         for t1count,t1 in enumerate(t1List):
@@ -195,7 +197,7 @@ def animate(N,q,t):
     
     #choose equilibrium positions
     for i in range(N):
-        q[:,3*i] += 2*i*np.ones(len(t))
+        q[:,3*i] += 5*i*np.ones(len(t))
     
     def update_lines(num, dataLines, lines):
         for line, data in zip(lines, dataLines):
@@ -215,14 +217,15 @@ def animate(N,q,t):
     
     # Creating fifty line objects.
     # NOTE: Can't pass empty arrays into 3d version of plot()
-    lines = [ax.scatter(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
+#    lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o')[0] for dat in data]
+    lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o')[0] for dat in data]
     
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     
-    line_ani = animation.FuncAnimation(fig, update_lines, 25, fargs=(data, lines),
-                                   interval=50, blit=False)
+    line_ani = animation.FuncAnimation(fig, update_lines, mult*int(tf-ti), fargs=(data, lines),
+                                   interval=100, blit=False)
                                    
     plt.show(fig)
     
