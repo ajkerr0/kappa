@@ -8,33 +8,10 @@ Define general Forcefield class, and specific forcefields (AMBER, etc.) that inh
 the general one.
 """
 
-from weakref import WeakKeyDictionary
-
 import numpy as np
 
 #forcefield class definitions
 global_cutoff = 5.0 #angstroms
-
-class Interaction:
-    """A descriptor for forcefield interactions."""    
-    
-    def __init__(self):
-        self._values = WeakKeyDictionary()
-        
-    def __get__(self, ffinstance, instance_type):
-        return self._values.get(ffinstance)
-        
-    def __set__(self, ffinstance, value):
-        if value is not True and value is not False:
-            print(value)
-            raise ValueError('Interaction must be True or False')
-#        if value:
-#            if self._value is False:
-#                ffinstance
-#            self._values[ffinstance] = value
-#        print('Setting %s interaction to %s' % (ffinstance,value))
-        self._values[ffinstance] = value
-
 
 class Forcefield:
     """A classical forcefield that determines how atoms interact
@@ -52,14 +29,6 @@ class Forcefield:
         lj (bool): Determines Lennard-Jones non-bonded interactions.
         es (bool): Determines electrostatic point charge interactions.
         tersoff (bool): Determines Tersoff-type interactions."""
-        
-    #Interaction descriptors
-    lengths = Interaction()
-    angles = Interaction()
-    dihs = Interaction()
-    lj = Interaction()
-    es = Interaction()
-    tersoff = Interaction()
     
     def __init__(self, name, eunits, lunits,
                  lengths, angles, dihs, lj, es, tersoff):
