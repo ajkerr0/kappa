@@ -130,7 +130,6 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
     #shift molecule 2 into position
     pos1, pos2 = molecule1.posList, molecule2.posList
     z1, z2 = molecule1.zList, molecule2.zList
-    id1, id2 = molecule1.idList, molecule2.idList
     displaceVec = pos1[index1] - pos2[index2]
     molecule2.translate(displaceVec)
     
@@ -160,17 +159,14 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
     #add atoms
     pos2 = np.delete(pos2, index2, 0)
     z2 = np.delete(z2, index2, 0)
-    id2 = np.delete(id2, index2, 0)
     del molecule2.nList[index2]
     
     pos1 = np.concatenate((pos1,pos2), axis=0)
     z1 = np.append(z1,z2)
-    id1 = np.append(id1,id2)
     molecule1.nList.extend(molecule2.nList)
     
     molecule1.posList = pos1
     molecule1.zList = z1
-    molecule1.idList = id1
     
     return molecule1, nextIndex1
     
@@ -195,9 +191,6 @@ def chain(molList, indexList, name=""):
     if not name:
         name = molList[0].name
     molChain.name = name
-    
-    molChain._configure_structure_lists()
-    molChain._configure_parameters()
         
     return molChain
     
