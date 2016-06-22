@@ -308,6 +308,69 @@ class Molecule:
             
         return calculate_grad
         
+    def define_analyt_gradient(self):
+        """Return the function that would calculate the gradients (negative forces)
+        of the atoms; calculated analytically"""
+        
+        grad_funcs = []
+        
+        if self.ff.lengths:
+            
+            ibonds,jbonds = self.bondList[:,0], self.bondList[:,1]
+            def grad_lengths():
+                posij = self.posList[ibonds] - self.posList[jbonds]
+                rij = np.linalg.norm(posij, axis=1)
+                return 2.*self.kr*(rij-self.r0)*posij/rij
+                
+        if self.ff.angles:
+            
+            iangles,jangles,kangles = self.angleList[:,0], self.angleList[:,1], self.angleList[:,2]
+            def grad_angles():
+                posij = self.posList[iangles] - self.posList[jangles]
+                poskj = self.posList[kangles] - self.posList[jangles]
+                rij, rkj = np.linalg.norm(posij,axis=1), np.linalg.norm(poskj,axis=1)
+                cosTheta = np.einsum('ij,ij->i',posij,poskj)/(rij*rkj)
+                sqrtCos = np.sqrt(np.ones(len(cosTheta))-cosTheta**2)
+                dtdri = (posij*cosTheta/rij - poskj/rkj)/(rij*sqrtCos)
+                dtdrk = (poskj*cosTheta/rkj - posij/rij)/(rkj*sqrtCos)
+                theta = np.degrees(np.arccos(cosTheta))
+                dudri = 2.*self.kt*(theta - self.t0)*dtdri
+                dudrj = -2.*self.kt*(theta - self.t0)*(dtdri + dtdrk)
+                dudrk = 2.*self.kt*(theta - self.t0)*dtdrk
+                return dudri + dudrj + dudrk
+                
+        if self.ff.dihs:
+            
+            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:3]
+            def grad_dihs():
+                posij = self.posList[idih] - self.posList[jdih]
+                poskj = self.posList[kdih] - self.posList[jdih]
+                poskl = self.posList[kdih] - self.posList[ldih]
+                rkj = np.linalg.norm(poskj, axis=1)
+                cross12 = np.cross(-posij, poskj)
+                cross23 = np.cross(poskj, -poskl)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)
+                n2 = cross23/np.linalg.norm(cross23, axis=1)
+                m1 = np.cross(n1, poskj/rkj)
+                x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
+                omega = np.degrees(np.arctan2(y,x))
+                dotijkj = np.einsum('ij,ij->i',posij,poskj)/(rkj**2)
+                dotklkj = np.einsum('ij,ij->i',poskl,poskj)/(rkj**2)
+                dwdri = -cross12*rkj/(np.linalg.norm(cross12, axis=1)**2)
+                dwdrl = -cross23*-rkj/(np.linalg.norm(cross23, axis=1)**2)
+                dwdrj = (dotijkj - np.ones(len(rkj)))*dwdri - dotklkj*dwdrl
+                dwdrk = (dotklkj - np.ones(len(rkj)))*dwdrl - dotijkj*dwdri
+                return -self.nn*self.vn*np.sin(self.nn*omega - self.gn)*(dwdri+dwdrj+dwdrk+dwdrl)
+                
+        def calculate_grad():
+            grad = np.zeros((len(self),3))
+            for grad_func in grad_funcs:
+                grad += grad_func()
+            return grad
+            
+        return calculate_grad
+        
+        
         
 def build_graphene(ff, name="", radius=3):
         
