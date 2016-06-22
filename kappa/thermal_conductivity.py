@@ -44,16 +44,14 @@ def main():
 def calculate_thermal_conductivity(coeff, val, vec, gMat, kMat):
     """Return the thermal conductivity coefficient from one particle to another."""
     
-    i = 1
+    i = 0
     j = 2
     
     #driven atom
     #assuming same drag constant as other driven atom
     driver = 0
     
-    print(vec)
-    
-    kap = 0.j
+    kap = 0.
     
     for sigma in range(len(val)):
         
@@ -67,9 +65,8 @@ def calculate_thermal_conductivity(coeff, val, vec, gMat, kMat):
             
 #            print(coeff[sigma,driver]*coeff[tau,driver])
 #            print(vec[i,sigma])
-            a = coeff[sigma,driver]*coeff[tau,driver]*vec[i,sigma]*vec[j,tau]*valTerm
-#            print(a)
-            kap += a
+            for dim in range(3):
+                kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
     
 #    return kap*2*gMat[driver,driver]*kMat[i,j]
     return kap
