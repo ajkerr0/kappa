@@ -53,7 +53,7 @@ def _calculate_hessian(molecule):
     
     H = np.zeros([3*N,3*N])
     
-    calculate_energy = molecule.ff.define_energy_routine(molecule)
+    calculate_energy = molecule.define_energy_routine()
     
     for i in range(N):
         

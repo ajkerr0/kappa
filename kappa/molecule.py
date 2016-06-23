@@ -303,12 +303,13 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
+            print(gradient)
             
             return gradient, maxForce, totalMag
             
         return calculate_grad
         
-    def define_analyt_gradient(self):
+    def define_gradient_routine2(self):
         """Return the function that would calculate the gradients (negative forces)
         of the atoms; calculated analytically"""
         
@@ -319,8 +320,11 @@ class Molecule:
             ibonds,jbonds = self.bondList[:,0], self.bondList[:,1]
             def grad_lengths():
                 posij = self.posList[ibonds] - self.posList[jbonds]
+                print(posij)
                 rij = np.linalg.norm(posij, axis=1)
                 return 2.*self.kr*(rij-self.r0)*posij/rij
+                
+            grad_funcs.append(grad_lengths)
                 
         if self.ff.angles:
             
@@ -338,6 +342,8 @@ class Molecule:
                 dudrj = -2.*self.kt*(theta - self.t0)*(dtdri + dtdrk)
                 dudrk = 2.*self.kt*(theta - self.t0)*dtdrk
                 return dudri + dudrj + dudrk
+                
+            grad_funcs.append(grad_angles)
                 
         if self.ff.dihs:
             
@@ -362,11 +368,17 @@ class Molecule:
                 dwdrk = (dotklkj - np.ones(len(rkj)))*dwdrl - dotijkj*dwdri
                 return -self.nn*self.vn*np.sin(self.nn*omega - self.gn)*(dwdri+dwdrj+dwdrk+dwdrl)
                 
+            grad_funcs.append(grad_dihs)
+                
         def calculate_grad():
             grad = np.zeros((len(self),3))
             for grad_func in grad_funcs:
                 grad += grad_func()
-            return grad
+            magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
+            maxForce = np.amax(magList)
+            totalMag = np.linalg.norm(magList)
+#            print(grad)
+            return grad, maxForce, totalMag
             
         return calculate_grad
         

@@ -16,10 +16,10 @@ GLIMIT = 100.0
 TINY = 1e-20
 
 #minimization parameters
-N = 500            #Maximum number of minimization steps
-EFREQ = 25         #Period between printing updates
+N = 3            #Maximum number of minimization steps
+EFREQ = 1         #Period between printing updates
 FORCEPREC = 0.001  #kcal/mol/angstroms
-STEPPREC = 1e-18
+STEPPREC = 1e-10
 
 
 def minimize_energy(molecule):
@@ -28,7 +28,8 @@ def minimize_energy(molecule):
     print("Preparing %s for energy minimization..." % (molecule.name))
     
     calculate_energy = molecule.define_energy_routine()
-    calculate_gradient = molecule.define_gradient_routine()
+#    calculate_gradient = molecule.define_gradient_routine()
+    calculate_gradient = molecule.define_gradient_routine2()
     
 #    minimizer = steepest_descent
     minimizer = conjugate_gradient
