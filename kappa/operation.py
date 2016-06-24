@@ -191,6 +191,7 @@ def chain(molList, indexList, name=""):
     if not name:
         name = molList[0].name
     molChain.name = name
+    molChain._configure()
         
     return molChain
     
