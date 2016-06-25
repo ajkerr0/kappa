@@ -318,18 +318,30 @@ class Molecule:
         if self.ff.lengths:
             
             ibonds,jbonds = self.bondList[:,0], self.bondList[:,1]
-            def grad_lengths():
+            def grad_lengths(grad):
+#                grad = np.zeros((len(self),3))
                 posij = self.posList[ibonds] - self.posList[jbonds]
-                print(posij)
                 rij = np.linalg.norm(posij, axis=1)
-                return 2.*self.kr*(rij-self.r0)*posij/rij
+                lengthTerm = 2.*(self.kr*(rij-self.r0)/rij)[:,None]*posij
+                for icount,ibond in enumerate(ibonds):
+                    grad[ibond] += lengthTerm[icount]
+                for jcount,jbond in enumerate(jbonds):
+                    grad[jbond] += -lengthTerm[jcount]
+#                print(lengthTerm)
+#                print(ibonds)
+#                print(jbonds)
+#                print(grad[ibonds])
+#                print(grad[jbonds])
+#                grad[ibonds] += lengthTerm
+#                grad[jbonds] += -lengthTerm
+#                return grad
                 
             grad_funcs.append(grad_lengths)
                 
         if self.ff.angles:
             
             iangles,jangles,kangles = self.angleList[:,0], self.angleList[:,1], self.angleList[:,2]
-            def grad_angles():
+            def grad_angles(grad):
                 posij = self.posList[iangles] - self.posList[jangles]
                 poskj = self.posList[kangles] - self.posList[jangles]
                 rij, rkj = np.linalg.norm(posij,axis=1), np.linalg.norm(poskj,axis=1)
@@ -348,7 +360,7 @@ class Molecule:
         if self.ff.dihs:
             
             idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:3]
-            def grad_dihs():
+            def grad_dihs(grad):
                 posij = self.posList[idih] - self.posList[jdih]
                 poskj = self.posList[kdih] - self.posList[jdih]
                 poskl = self.posList[kdih] - self.posList[ldih]
@@ -373,11 +385,12 @@ class Molecule:
         def calculate_grad():
             grad = np.zeros((len(self),3))
             for grad_func in grad_funcs:
-                grad += grad_func()
+                grad_func(grad)
+#                grad += grad_func()
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print(grad)
+            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad

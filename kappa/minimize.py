@@ -16,7 +16,7 @@ GLIMIT = 100.0
 TINY = 1e-20
 
 #minimization parameters
-N = 3            #Maximum number of minimization steps
+N = 1            #Maximum number of minimization steps
 EFREQ = 1         #Period between printing updates
 FORCEPREC = 0.001  #kcal/mol/angstroms
 STEPPREC = 1e-10
