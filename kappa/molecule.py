@@ -347,13 +347,18 @@ class Molecule:
                 rij, rkj = np.linalg.norm(posij,axis=1), np.linalg.norm(poskj,axis=1)
                 cosTheta = np.einsum('ij,ij->i',posij,poskj)/(rij*rkj)
                 sqrtCos = np.sqrt(np.ones(len(cosTheta))-cosTheta**2)
-                dtdri = (posij*cosTheta/rij - poskj/rkj)/(rij*sqrtCos)
-                dtdrk = (poskj*cosTheta/rkj - posij/rij)/(rkj*sqrtCos)
+                dtdri = (posij*(cosTheta/rij)[:,None] - poskj/rkj[:,None])/(rij*sqrtCos)[:,None]
+                dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/rij[:,None])/(rkj*sqrtCos)[:,None]
                 theta = np.degrees(np.arccos(cosTheta))
-                dudri = 2.*self.kt*(theta - self.t0)*dtdri
-                dudrj = -2.*self.kt*(theta - self.t0)*(dtdri + dtdrk)
-                dudrk = 2.*self.kt*(theta - self.t0)*dtdrk
-                return dudri + dudrj + dudrk
+                dudri = 2.*self.kt*(theta - self.t0)[:,None]*dtdri
+                dudrj = -2.*self.kt*(theta - self.t0)[:,None]*(dtdri + dtdrk)
+                dudrk = 2.*self.kt*(theta - self.t0)[:,None]*dtdrk
+                for icount,iangle in enumerate(iangles):
+                    grad[iangle] = dudri
+                for jcount,jangle in enumerate(jangles):
+                    grad[jangle] = dudrj
+                for kcount,kangle in enumerate(kangles):
+                    grad[kangle] = dudrk
                 
             grad_funcs.append(grad_angles)
                 
