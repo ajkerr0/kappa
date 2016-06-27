@@ -425,6 +425,21 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
     zList = np.full(size, 6, dtype=int) #full of carbons
     cnt = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
     return cnt
+    
+def build_dingus(ff, name="", count=5, angle=160.):
+    
+    from .lattice.dingus import main as lattice
+    posList,nList,zList = lattice(count,angle)
+    if not name:
+        name = 'dingus_N%s' % (str(len(posList)))
+    posList = np.array(posList)
+    dingus = Molecule(ff, name, posList, nList, zList)
+    
+    dingus._configure_structure_lists()
+    if ff.name == "amber":
+        dingus.idList = np.full(len(dingus),3, dtype=np.int8)
+    dingus._configure_parameters()
+    return dingus
 
 def build_amine(ff, name=""):
     

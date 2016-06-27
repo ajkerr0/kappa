@@ -8,28 +8,20 @@ Created on Tue Feb 16 10:05:49 2016
 import numpy as np
 import copy
 
-from create import nm
-
-def main():
+def main(count,angle):
     """Main program execution"""
     
-    posList,nList = create_dingus_lattice()
+    posList,nList,zList = create_dingus_lattice(count,angle)
     
-#    dingus = build_system_dingus(posList,nList)
+    return posList,nList,zList
     
-    return posList,nList
-    
-def create_dingus_lattice():
+def create_dingus_lattice(n,theta):
     """Return the lattice points for the dingus molecule, testing bond angle forces 
     for a chain of 'CA' atoms, initially at 150 degrees"""
     
     #lattice constant
     a = 1.4   
     
-    #number of atoms in the chain
-    n = 6
-    #initial bond angles
-    theta = 160
     theta = theta*np.pi/180.0
     
     startPos = np.array([0.,0.,0.])
@@ -51,7 +43,8 @@ def create_dingus_lattice():
     else:
         nLists.append([])
         
-    return posList,nLists
+    print(nLists)
+    return posList,nLists,np.full(n,6,dtype=int)
     
 #if __name__ == "__main__":
 #    main()
