@@ -350,15 +350,15 @@ class Molecule:
                 dtdri = (posij*(cosTheta/rij)[:,None] - poskj/rkj[:,None])/(rij*sqrtCos)[:,None]
                 dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/rij[:,None])/(rkj*sqrtCos)[:,None]
                 theta = np.degrees(np.arccos(cosTheta))
-                dudri = 2.*self.kt*(theta - self.t0)[:,None]*dtdri
-                dudrj = -2.*self.kt*(theta - self.t0)[:,None]*(dtdri + dtdrk)
-                dudrk = 2.*self.kt*(theta - self.t0)[:,None]*dtdrk
+                dudri = 2.*(self.kt*(theta - self.t0))[:,None]*dtdri
+                dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
+                dudrk = 2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
                 for icount,iangle in enumerate(iangles):
-                    grad[iangle] = dudri
+                    grad[iangle] = dudri[icount]
                 for jcount,jangle in enumerate(jangles):
-                    grad[jangle] = dudrj
+                    grad[jangle] = dudrj[jcount]
                 for kcount,kangle in enumerate(kangles):
-                    grad[kangle] = dudrk
+                    grad[kangle] = dudrk[kcount]
                 
             grad_funcs.append(grad_angles)
                 
