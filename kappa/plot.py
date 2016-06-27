@@ -16,6 +16,9 @@ plt.close("all")
 
 atomColors = {1:"white",6:"black",7:"skyblue",8:"red",9:"green",15:"orange",16:"yellow",17:"green"}
 atomicRadii = {1:25,6:70,7:65,8:60,9:50,15:100,16:100,17:100}
+radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
+for key,value in atomicRadii.items():
+    radList[key] = value
 
 def bonds2d(molecule, sites=False):
     """Draw a 2d 'overhead' view of a molecule."""
@@ -28,28 +31,16 @@ def bonds2d(molecule, sites=False):
     
     for bond in molecule.bondList:
         i,j = bond
-        posi,posj = posList[i],posList[j]
-        xi,yi,_ = posi
-        xj,yj,_ = posj
-        plt.plot([xi,xj],[yi,yj], color='k', zorder=-1)
+        plt.plot([posList[i][0],posList[j][0]],
+                 [posList[i][1],posList[j][1]], 
+                 color='k', zorder=-1)
         
-    xList = np.zeros(length)
-    yList = np.zeros(length)
-    sList = np.zeros(length)
     cList = np.zeros([length,3])
     
     if sites:
-        for count,pos in enumerate(posList):
-            x,y,_ = pos
-            Z = molecule.zList[count]
-            s = atomicRadii[Z]
-            c = colors.hex2color(colors.cnames[atomColors[Z]])
-            xList[count] = x
-            yList[count] = y
-            sList[count] = s
-            cList[count] = c
-            
-        plt.scatter(xList,yList,s=sList,c=cList)
+        for count in range(len(molecule)):
+            cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
+        plt.scatter(posList[:,0],posList[:,1],s=radList[molecule.zList],c=cList)
     
     fig.suptitle(figTitle, fontsize=18)
     plt.axis('equal')
@@ -74,31 +65,20 @@ def bonds(molecule, sites=False, indices=False):
 
     for bond in molecule.bondList:
         i,j = bond
-        posi,posj = posList[i],posList[j]
-        xi,yi,zi = posi
-        xj,yj,zj = posj
-        ax.plot([xi,xj],[yi,yj],[zi,zj], color='k', zorder=-1)
+        ax.plot([posList[i][0],posList[j][0]],
+                [posList[i][1],posList[j][1]],
+                [posList[i][2],posList[j][2]],
+                color='k', zorder=-1)
         
-    xList = np.zeros(length)
-    yList = np.zeros(length)
-    zList = np.zeros(length)
-    sList = np.zeros(length)
     cList = np.zeros([length,3])
     
     if sites:
-        for count,pos in enumerate(posList):
-            x,y,z = pos
-            Z = molecule.zList[count]
-            s = atomicRadii[Z]
-            c = colors.hex2color(colors.cnames[atomColors[Z]])
-            xList[count] = x
-            yList[count] = y
-            zList[count] = z
-            sList[count] = s
-            cList[count] = c
+        for count in range(len(molecule)):
+            cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
             
-        ax.scatter(xList,yList,zList,s=sList,c=cList,marker='o',depthshade=False)
-#        ax.scatter(xList,yList,zList,s=sList,c=cList,marker='o')
+        ax.scatter(posList[:,0],posList[:,1],posList[:,2],
+                   s=radList[molecule.zList],c=cList,
+                   marker='o',depthshade=False)
     
     if indices:
         ds = 0.1
