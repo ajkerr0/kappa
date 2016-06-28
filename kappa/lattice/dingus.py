@@ -43,7 +43,6 @@ def create_dingus_lattice(n,theta):
     else:
         nLists.append([])
         
-    print(nLists)
     return posList,nLists,np.full(n,6,dtype=int)
     
 #if __name__ == "__main__":

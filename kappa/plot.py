@@ -32,7 +32,7 @@ def bonds2d(molecule, sites=False):
     for bond in molecule.bondList:
         i,j = bond
         plt.plot([posList[i][0],posList[j][0]],
-                 [posList[i][1],posList[j][1]], 
+                 [posList[i][1],posList[j][1]],
                  color='k', zorder=-1)
         
     cList = np.zeros([length,3])

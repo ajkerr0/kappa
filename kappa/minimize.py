@@ -16,7 +16,7 @@ GLIMIT = 100.0
 TINY = 1e-20
 
 #minimization parameters
-N = 1            #Maximum number of minimization steps
+N = 10            #Maximum number of minimization steps
 EFREQ = 1         #Period between printing updates
 FORCEPREC = 0.001  #kcal/mol/angstroms
 STEPPREC = 1e-10
@@ -52,7 +52,7 @@ def steepest_descent(molecule, calculate_energy, calculate_gradient):
         stepSize = calculate_stepsize(molecule, -gradient/totalMag, energy)
         
         #take step
-        molecule.posList += stepSize*-gradient/totalMag        
+        molecule.posList += stepSize*-gradient/totalMag      
         
         energy = calculate_energy()
         gradient, maxForce, totalMag = calculate_gradient()
@@ -63,8 +63,6 @@ def steepest_descent(molecule, calculate_energy, calculate_gradient):
             print('step: ' + str(stepNo+1))
             print('energy: ' + str(energy))
             print('maxforce: ' + str(maxForce))
-        else:
-            pass
         
         #break the iteration if your forces are small enough
         if maxForce < prec:
@@ -73,8 +71,6 @@ def steepest_descent(molecule, calculate_energy, calculate_gradient):
             print('energy: ' + str(energy))
             print('maxforce: ' + str(maxForce))
             break
-        else:
-            pass
 
     return molecule, eList
     
@@ -114,8 +110,6 @@ def conjugate_gradient(molecule, calculate_energy, calculate_gradient):
             print('step: ' + str(stepNo+1))
             print('energy: ' + str(energy))
             print('maxforce: ' + str(maxForce))
-        else:
-            pass
         
         #break the iteration if your forces are small enough
         if maxForce < prec or stepSize < STEPPREC:

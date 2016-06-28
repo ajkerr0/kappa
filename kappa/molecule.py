@@ -319,7 +319,6 @@ class Molecule:
             
             ibonds,jbonds = self.bondList[:,0], self.bondList[:,1]
             def grad_lengths(grad):
-#                grad = np.zeros((len(self),3))
                 posij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(posij, axis=1)
                 lengthTerm = 2.*(self.kr*(rij-self.r0)/rij)[:,None]*posij
@@ -327,14 +326,8 @@ class Molecule:
                     grad[ibond] += lengthTerm[icount]
                 for jcount,jbond in enumerate(jbonds):
                     grad[jbond] += -lengthTerm[jcount]
-#                print(lengthTerm)
-#                print(ibonds)
-#                print(jbonds)
-#                print(grad[ibonds])
-#                print(grad[jbonds])
 #                grad[ibonds] += lengthTerm
 #                grad[jbonds] += -lengthTerm
-#                return grad
                 
             grad_funcs.append(grad_lengths)
                 
@@ -350,9 +343,9 @@ class Molecule:
                 dtdri = (posij*(cosTheta/rij)[:,None] - poskj/rkj[:,None])/(rij*sqrtCos)[:,None]
                 dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/rij[:,None])/(rkj*sqrtCos)[:,None]
                 theta = np.degrees(np.arccos(cosTheta))
-                dudri = 2.*(self.kt*(theta - self.t0))[:,None]*dtdri
+                dudri =  2.*(self.kt*(theta - self.t0))[:,None]*dtdri
                 dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
-                dudrk = 2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
+                dudrk =  2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
                 for icount,iangle in enumerate(iangles):
                     grad[iangle] = dudri[icount]
                 for jcount,jangle in enumerate(jangles):
@@ -400,7 +393,10 @@ class Molecule:
             
         return calculate_grad
         
-        
+class Interface():
+    """A molecular interface, want to calculate thermal conductivity across them
+
+    """      
         
 def build_graphene(ff, name="", radius=3):
         
