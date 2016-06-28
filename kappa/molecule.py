@@ -33,7 +33,13 @@ class Molecule:
         
     Keywords:
         orientation (ndarray): Numpy 1d array (3 by 1) that determines the 'direction' of the molecule.
-            Primarily used for chaining molecules together."""
+            Primarily used for chaining molecules together.
+            
+    Forcefield Parameters (if applicable):
+        kb (ndarray): Array of harmonic bond stretching spring constants indexed like bondList.
+        b0 (ndarray): Array of harmonic bond stretching equilibrium displacements indexed like bondList.
+        kt (ndarray): Array of harmonic bond bending spring constants indexed like angleList.
+        t0 (ndarray): Array of harmonic bond bending equilibirum displacements indexed like angleList."""
     
     def __init__(self, ff, name, posList, nList, zList, orientation=None):
         self.ff = ff
