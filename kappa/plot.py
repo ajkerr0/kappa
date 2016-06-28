@@ -96,6 +96,9 @@ def bonds(molecule, sites=False, indices=False):
     
     plt.show()
     
+def faces():
+    pass
+    
 def normal_modes(molecule,evec):
     """Draw a visualization of a normal mode of a molecule."""
     

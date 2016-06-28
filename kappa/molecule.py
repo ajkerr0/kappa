@@ -29,7 +29,7 @@ class Molecule:
         name (str): Human readable string that identifies the molecule.
         posList (ndarray): Numpy 2d array (N by 3) that contains the x,y,z coordinates of the atoms.
         nList (list): List of lists of each neighboring atom that determines bonding, indexed like posList.
-        zList (ndarray): Numpy 1d array (N by 1) of the atomic numbers in the molecule, indexed like posList
+        zList (ndarray): Numpy 1d array (1 by N) of the atomic numbers in the molecule, indexed like posList
         
     Keywords:
         orientation (ndarray): Numpy 1d array (3 by 1) that determines the 'direction' of the molecule.
@@ -48,6 +48,7 @@ class Molecule:
         self.nList = nList
         self.zList = np.array(zList)
         self.orientation = np.array(orientation)
+        self.faces = []
         
     def __len__(self):
         return len(self.posList)
@@ -200,15 +201,15 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
-        print('Configuring the bond topology...')
+        print('Configuring bond topology...')
         self._configure_structure_lists()
-        print('Configuring the rings...')
+        print('Configuring rings...')
         self._configure_ring_lists()
-        print('Configuring the aromaticity...')
+        print('Configuring aromaticity...')
         self._configure_aromaticity()
-        print('Configuring the atomtypes...')
+        print('Configuring atomtypes...')
         self._configure_atomtypes()
-        print('Configuring the forcefield parameters...')
+        print('Configuring forcefield parameters...')
         self._configure_parameters()
         
     def define_energy_routine(self):
@@ -405,9 +406,27 @@ class Molecule:
         return calculate_grad
         
 class Interface():
-    """A molecular interface, want to calculate thermal conductivity across them
+    """A molecular interface, calculate thermal conductivity across it.
+    
+    Args:
+        atoms (array-like): Array of atom indices that compose the interface.
+        norm (array-like): 3x1 array of the vector normal to the interface.
+        mol (Molecule): Molecule object that the interface is in.
+    Attributes:
+        atoms: See above.
+        norm: See above.
+        pos (1x3 ndarray): The position of the interface in 3D space, calculated from the geometric center
+            of the interfacial atoms
+        open (1xN ndarray): Array of boolean values used to denote whether the atoms in the interface
+            are 'open' or 'occupied' by an attachment."""
 
-    """      
+    def __init__(self, atoms, norm, mol):
+        self.atoms = atoms
+        self.norm = norm
+        #define interface position to be at the geometric center of its atoms
+        self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
+        self.open = np.ones(len(atoms), dtype=bool)
+        mol.faces.append(self)
         
 def build_graphene(ff, name="", radius=3):
         
@@ -539,7 +558,7 @@ def build_cc(ff, name="CC"):
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
                 "imine":build_imine, "imine_chain":build_imine_chain, "polyeth":build_polyethylene}
-lattices = _latticeDict.keys()
+lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
