@@ -26,8 +26,8 @@ def parse():
     
     #bond length arrays
     #2d
-    kr = np.zeros((size,size))
-    r0 = np.zeros((size,size))
+    kb = np.zeros((size,size))
+    b0 = np.zeros((size,size))
     
     #bond angle arrays
     #3d
@@ -67,10 +67,10 @@ def parse():
                 row = int(line[1])
                 col = int(line[2])
                 
-                kr[row,col] = float(line[3])
-                kr[col,row] = float(line[3])
-                r0[row,col] = float(line[4])
-                r0[col,row] = float(line[4])
+                kb[row,col] = float(line[3])
+                kb[col,row] = float(line[3])
+                b0[row,col] = float(line[4])
+                b0[col,row] = float(line[4])
                 
             elif first_string == 'angle':
                 
@@ -113,8 +113,8 @@ def parse():
     np.save("epvdw", epvdw)
     
     #bond length arrays
-    np.save("kr", kr)
-    np.save("r0", r0)
+    np.save("kb", kb)
+    np.save("b0", b0)
     
     #bond angle arrays
     np.save("kt", kt)

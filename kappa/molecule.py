@@ -164,9 +164,9 @@ class Molecule:
         
         if self.ff.lengths:
             #assign kr, r0 parameters
-            krArr, r0Arr = np.load(filename+"/kr.npy"), np.load(filename+"/r0.npy")
-            self.kr = krArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
-            self.r0 = r0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            kbArr, b0Arr = np.load(filename+"/kb.npy"), np.load(filename+"/b0.npy")
+            self.kb = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            self.b0 = b0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
             
         if self.ff.angles:
             #assign kt,t0 parameters
@@ -212,7 +212,7 @@ class Molecule:
             def e_lengths():
                 rij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(rij, axis=1)
-                return np.sum(self.kr*(rij-self.r0)**2)
+                return np.sum(self.kb*(rij-self.b0)**2)
                 
             e_funcs.append(e_lengths)
             
@@ -321,7 +321,7 @@ class Molecule:
             def grad_lengths(grad):
                 posij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(posij, axis=1)
-                lengthTerm = 2.*(self.kr*(rij-self.r0)/rij)[:,None]*posij
+                lengthTerm = 2.*(self.kb*(rij-self.b0)/rij)[:,None]*posij
                 for icount,ibond in enumerate(ibonds):
                     grad[ibond] += lengthTerm[icount]
                 for jcount,jbond in enumerate(jbonds):
