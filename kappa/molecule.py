@@ -200,10 +200,15 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
+        print('Configuring the bond topology...')
         self._configure_structure_lists()
+        print('Configuring the rings...')
         self._configure_ring_lists()
+        print('Configuring the aromaticity...')
         self._configure_aromaticity()
+        print('Configuring the atomtypes...')
         self._configure_atomtypes()
+        print('Configuring the forcefield parameters...')
         self._configure_parameters()
         
     def define_energy_routine(self):
