@@ -70,17 +70,16 @@ class Molecule:
         angle = np.deg2rad(angle)
         #rotation matrix construction
         ux, uy, uz = axis
-        sin, cos = np.sin(angle), np.cos(angle)
+        sin, cos = np.sin(-angle), np.cos(-angle)
         rotMat = np.array([[cos+ux*ux*(1.-cos), ux*uy*(1.-cos)-uz*sin, ux*uz*(1.-cos)+uy*sin], 
                            [uy*ux*(1.-cos)+uz*sin, cos+uy*uy*(1.-cos), uy*uz*(1.-cos)-ux*sin], 
                            [uz*ux*(1.-cos)-uy*sin, uz*uy*(1.-cos)+ux*sin, cos+uz*uz*(1.-cos)]])              
-        #rotate points & orientation
-        pos = np.matrix(self.posList).T
-        pos = rotMat*pos
-        orient = np.matrix(self.orientation).T
-        orient = rotMat*orient
-        self.posList = pos.T.A  #turn it back into np array format
-        self.orientation = orient.T.A[0]
+        #rotate points & orientation & interfaces
+        self.posList = np.transpose(np.dot(rotMat,np.transpose(self.posList)))
+        self.orientation = np.transpose(np.dot(rotMat,np.transpose(self.orientation)))
+        for face in self.faces:
+            face.pos = np.transpose(np.dot(rotMat, np.transpose(face.pos)))
+            face.norm = np.transpose(np.dot(rotMat, np.transpose(face.norm)))
             
     def _configure_structure_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
