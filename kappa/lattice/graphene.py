@@ -39,15 +39,38 @@ def main(radius):
     #return list of nearest neighbors, to be used to calculate TB potential
     nList = find_neighbors(a, honeyLattice)
     
-    #RESIZING, NEED TO MODULATE LATER
-    #position for minimum energy for 2-body problem, calculated by Dr. Mullen
+    #position for minimum energy for 2-body problem
 #    rmin = 1.4472
     rmin = 1.45
+    
+    #find the interfaces
+    faceList = find_interfaces(honeyLattice)
     
     #return final, resized position list
     finalSheet = resize(rmin, honeyLattice)
 
-    return finalSheet, nList
+    return finalSheet, nList, faceList
+    
+def find_interfaces(posList):
+    
+    posList = np.array(posList)
+    
+    #find maximum, minimum x-positions
+    xmax = np.amax(posList[:,0])
+    xmin = np.amin(posList[:,0])
+    
+    #add atoms on right, left edges
+    dx = 0.5
+    rface = []
+    lface = []
+    for count,pos in enumerate(posList):
+        if pos[0] > xmax-dx:
+            rface.append(count)
+        if pos[0] < xmin+dx:
+            lface.append(count)
+    
+    return [rface,lface]
+    
 
 def triangular_lattice(a, triRadius):
     """Create a triangular lattice in a rectangular shape with length specified by triRadius"""

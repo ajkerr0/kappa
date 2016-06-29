@@ -431,13 +431,18 @@ class Interface():
 def build_graphene(ff, name="", radius=3):
         
     from .lattice.graphene import main as lattice
-    posList,nList = lattice(radius)
+    posList,nList,faceList = lattice(radius)
     size = len(posList)
     if not name:
         name = 'graphene_N%s' % (str(size))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
     graphene = Molecule(ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+
+    #add faces
+    Interface(faceList[0],np.array([1.,0.,0.]), graphene)
+    Interface(faceList[1], np.array([-1.,0.,0.]), graphene)
+
     return graphene
         
 def build_cnt_armchair(ff, name="", radius=2, length=15):
