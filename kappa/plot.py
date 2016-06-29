@@ -20,7 +20,7 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds2d(molecule, sites=False):
+def bonds2d(molecule, sites=False, faces=True):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -41,6 +41,11 @@ def bonds2d(molecule, sites=False):
         for count in range(len(molecule)):
             cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
         plt.scatter(posList[:,0],posList[:,1],s=radList[molecule.zList],c=cList)
+        
+    if faces:
+        for face in molecule.faces:
+            plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15.)
+            plt.scatter(posList[face.atoms][:,0], posList[face.atoms][:,1], s=50., c='red')
     
     fig.suptitle(figTitle, fontsize=18)
     plt.axis('equal')
@@ -96,7 +101,7 @@ def bonds(molecule, sites=False, indices=False):
     
     plt.show()
     
-def faces():
+def faces(molecule):
     pass
     
 def normal_modes(molecule,evec):
