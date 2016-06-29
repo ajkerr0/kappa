@@ -448,13 +448,18 @@ def build_graphene(ff, name="", radius=3):
 def build_cnt_armchair(ff, name="", radius=2, length=15):
     
     from .lattice.cntarm import main as lattice
-    posList,nList = lattice(radius,length)
+    posList,nList,faceList = lattice(radius,length)
     size = len(posList)
     if not name:
         name = 'cnt_R%s_L%s' % (str(radius), str(length))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
     cnt = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    
+    #add faces
+    Interface(faceList[0], np.array([0.,1.,0.]), cnt)
+    Interface(faceList[1], np.array([0.,-1.,0.]), cnt)
+    
     return cnt
     
 def build_dingus(ff, name="", count=5, angle=160.):

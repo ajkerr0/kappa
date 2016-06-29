@@ -30,7 +30,10 @@ def main(radius, length):
     #return hexagonal lattice position list, using triangular lattice base
     hexList = hexagonal_lattice(a, triList)
     
-    #position for minimum energy for 2-body problem, calculated by Dr. Mullen
+    #find interfaces
+    faceList = find_interfaces(hexList)
+    
+    #position for minimum energy for 2-body problem
     rmin = 1.40
     
     #return resized position list
@@ -42,12 +45,27 @@ def main(radius, length):
     #return list of nearest neighbors, to be used to calculate TB potential
     nList = find_neighbors(a, rmin, finalSheet)
     
-#    molecule = build_system_cntarm(finalSheet, findNeighbors)
+    return finalSheet, nList, faceList
     
-#    nm.plot_molecule_bonds(molecule,indices=False)
+def find_interfaces(posList):
     
+    posList = np.array(posList)
     
-    return finalSheet, nList
+    #find max, min y-positions
+    ymax = np.amax(posList[:,1])
+    ymin = np.amin(posList[:,1])
+    
+    #add atoms on top, bottom edges
+    dx = 0.5
+    tface = []
+    bface = []
+    for count,pos in enumerate(posList):
+        if pos[1] > ymax-dx:
+            tface.append(count)
+        if pos[1] < ymin+dx:
+            bface.append(count)
+            
+    return [tface,bface]
 
 def triangular_lattice(a, triRadius, length):
     '''Create a triangular lattice in a rectangular shape with length specified by triRadius
