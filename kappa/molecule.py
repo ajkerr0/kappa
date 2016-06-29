@@ -485,6 +485,9 @@ def build_amine(ff, name=""):
     posList = np.array(posList)
     zList = np.array([6,7,1,1])
     amine = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    
+    Interface([0], np.array([-1.,0.,0.]), amine)
+    
     return amine
         
 def build_imine_chain(ff, name="", count=1):
@@ -520,6 +523,9 @@ def build_polyethylene(ff, name="", count=1):
     posList = np.array(posList)
     polyeth = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
     
+    Interface([0], np.array([-1.,0.,0.]), polyeth)
+    Interface([15], np.array([1.,0.,0.]), polyeth)
+    
     from .operation import chain
     molList = [polyeth]
     indexList = [(15,0)]
@@ -539,6 +545,10 @@ def build_imine(ff, name=""):
         name = 'imine'
     posList = np.array(posList)
     imine = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    
+    Interface([3], np.array([-1.,0.,0.]), imine)
+    Interface([4], np.array([1.,0.,0.]), imine)    
+    
     return imine
         
 def build_benzene_block(ff, name=""):
@@ -549,6 +559,10 @@ def build_benzene_block(ff, name=""):
         name = "bblock"
     posList = np.array(posList)
     bblock = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    
+    Interface([0], np.array([-1.,0.,0.]), bblock)
+    Interface([5], np.array([1.,0.,0.]), bblock)    
+    
     return bblock
         
 def build_ch(ff, name="CH"):
@@ -556,6 +570,10 @@ def build_ch(ff, name="CH"):
     posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
     nList = [[1],[0]]
     ch = Molecule(ff, name, posList, nList, np.array([6,1]), orientation=np.array([1.,0.,0.]))
+
+    Interface([0], np.array([-1.,0.,0.]), ch)
+    Interface([1], np.array([1.,0.,0.]), ch)    
+    
     return ch
         
 def build_cc(ff, name="CC"):
@@ -563,6 +581,10 @@ def build_cc(ff, name="CC"):
     posList = np.array([[0.,0.,0.], [1.42,0.,0.]])
     nList = [[1],[0]]
     cc = Molecule(ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
+    
+    Interface([0], np.array([-1.,0.,0.]), cc)
+    Interface([1], np.array([1.,0.,0.]), cc)  
+    
     return cc
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
