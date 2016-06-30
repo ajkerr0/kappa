@@ -46,7 +46,7 @@ def bonds2d(molecule, sites=False, faces=True):
         for face in molecule.faces:
             plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15.)
             plt.scatter(posList[face.atoms][:,0], posList[face.atoms][:,1], s=50., c='red')
-            plt.quiver(face.pos[0], face.pos[1], face.pos[0]+(5.*face.norm[0]), face.pos[1]+(5.*face.norm[1]),
+            plt.quiver(face.pos[0], face.pos[1], 5.*face.norm[0], 5.*face.norm[1],
                       color='r', headwidth=2, units='x')
     
     fig.suptitle(figTitle, fontsize=18)
