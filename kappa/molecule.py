@@ -572,8 +572,7 @@ def build_ch(ff, name="CH"):
     nList = [[1],[0]]
     ch = Molecule(ff, name, posList, nList, np.array([6,1]))
 
-    Interface([0], np.array([-1.,0.,0.]), ch)
-    Interface([1], np.array([1.,0.,0.]), ch)    
+    Interface([0], np.array([-1.,0.,0.]), ch)    
     
     return ch
         
