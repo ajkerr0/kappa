@@ -30,10 +30,6 @@ class Molecule:
         posList (ndarray): Numpy 2d array (N by 3) that contains the x,y,z coordinates of the atoms.
         nList (list): List of lists of each neighboring atom that determines bonding, indexed like posList.
         zList (ndarray): Numpy 1d array (1 by N) of the atomic numbers in the molecule, indexed like posList
-        
-    Keywords:
-        orientation (ndarray): Numpy 1d array (3 by 1) that determines the 'direction' of the molecule.
-            Primarily used for chaining molecules together.
             
     Forcefield Parameters (if applicable):
         kb (ndarray): Array of harmonic bond stretching spring constants indexed like bondList.
@@ -41,13 +37,12 @@ class Molecule:
         kt (ndarray): Array of harmonic bond bending spring constants indexed like angleList.
         t0 (ndarray): Array of harmonic bond bending equilibirum displacements indexed like angleList."""
     
-    def __init__(self, ff, name, posList, nList, zList, orientation=None):
+    def __init__(self, ff, name, posList, nList, zList):
         self.ff = ff
         self.name = name
         self.posList = np.array(posList)
         self.nList = nList
         self.zList = np.array(zList)
-        self.orientation = np.array(orientation)
         self.faces = []
         
     def __len__(self):
@@ -74,9 +69,8 @@ class Molecule:
         rotMat = np.array([[cos+ux*ux*(1.-cos), ux*uy*(1.-cos)-uz*sin, ux*uz*(1.-cos)+uy*sin], 
                            [uy*ux*(1.-cos)+uz*sin, cos+uy*uy*(1.-cos), uy*uz*(1.-cos)-ux*sin], 
                            [uz*ux*(1.-cos)-uy*sin, uz*uy*(1.-cos)+ux*sin, cos+uz*uz*(1.-cos)]])              
-        #rotate points & orientation & interfaces
+        #rotate points & interfaces
         self.posList = np.transpose(np.dot(rotMat,np.transpose(self.posList)))
-        self.orientation = np.transpose(np.dot(rotMat,np.transpose(self.orientation)))
         for face in self.faces:
             face.pos = np.transpose(np.dot(rotMat, np.transpose(face.pos)))
             face.norm = np.transpose(np.dot(rotMat, np.transpose(face.norm)))
@@ -84,7 +78,6 @@ class Molecule:
     def invert(self):
         """Invert the molecule across the origin."""
         self.posList = -self.posList
-        self.orientation = -self.orientation
         for face in self.faces:
             face.pos = -face.pos
             face.norm = -face.norm
@@ -444,7 +437,7 @@ def build_graphene(ff, name="", radius=3):
         name = 'graphene_N%s' % (str(size))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
-    graphene = Molecule(ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    graphene = Molecule(ff, name, posList, nList, zList)
 
     #add faces
     Interface(faceList[0],np.array([1.,0.,0.]), graphene)
@@ -461,7 +454,7 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
         name = 'cnt_R%s_L%s' % (str(radius), str(length))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
-    cnt = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    cnt = Molecule( ff, name, posList, nList, zList)
     
     #add faces
     Interface(faceList[0], np.array([0.,1.,0.]), cnt)
@@ -492,7 +485,7 @@ def build_amine(ff, name=""):
         name = 'amine'
     posList = np.array(posList)
     zList = np.array([6,7,1,1])
-    amine = Molecule( ff, name, posList, nList, zList, orientation=np.array([0.,1.,0.]))
+    amine = Molecule( ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), amine)
     
@@ -529,7 +522,7 @@ def build_polyethylene(ff, name="", count=1):
     if not name:
         name = 'polyethylene'
     posList = np.array(posList)
-    polyeth = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    polyeth = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), polyeth)
     Interface([15], np.array([1.,0.,0.]), polyeth)
@@ -552,7 +545,7 @@ def build_imine(ff, name=""):
     if not name:
         name = 'imine'
     posList = np.array(posList)
-    imine = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    imine = Molecule(ff, name, posList, nList, zList)
     
     Interface([3], np.array([-1.,0.,0.]), imine)
     Interface([4], np.array([1.,0.,0.]), imine)    
@@ -566,7 +559,7 @@ def build_benzene_block(ff, name=""):
     if not name:
         name = "bblock"
     posList = np.array(posList)
-    bblock = Molecule(ff, name, posList, nList, zList, orientation=np.array([1.,0.,0.]))
+    bblock = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), bblock)
     Interface([5], np.array([1.,0.,0.]), bblock)    
@@ -577,7 +570,7 @@ def build_ch(ff, name="CH"):
     
     posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
     nList = [[1],[0]]
-    ch = Molecule(ff, name, posList, nList, np.array([6,1]), orientation=np.array([1.,0.,0.]))
+    ch = Molecule(ff, name, posList, nList, np.array([6,1]))
 
     Interface([0], np.array([-1.,0.,0.]), ch)
     Interface([1], np.array([1.,0.,0.]), ch)    
@@ -588,7 +581,7 @@ def build_cc(ff, name="CC"):
     
     posList = np.array([[0.,0.,0.], [1.42,0.,0.]])
     nList = [[1],[0]]
-    cc = Molecule(ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
+    cc = Molecule(ff, name, posList, nList, np.array([6,6]))
     
     Interface([0], np.array([-1.,0.,0.]), cc)
     Interface([1], np.array([1.,0.,0.]), cc)

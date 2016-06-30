@@ -120,7 +120,6 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         nextIndex1 = nextIndex1 + size1
     
     #rotate molecule2
-#    axis = np.cross(molecule2.orientation, molecule1.orientation)
     norm1, norm2 = molecule1.faces[face1].norm, molecule2.faces[face2].norm
     #check to see if they
     axis = np.cross(norm1, norm2)
