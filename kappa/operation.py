@@ -166,6 +166,29 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
                     newNList.append(neighbor + size1)
             molecule2.nList[index] = newNList
             
+    #remove faces if they are 1-atom
+#    for face in (molecule1.faces[face1], molecule2.faces[face2]):
+#        if len(face.atoms) == 1:
+    if len(molecule1.faces[face1].atoms) == 1:
+        del molecule1.faces[face1]
+    if len(molecule2.faces[face2].atoms) == 1:
+        del molecule2.faces[face2]
+            
+    #add interfaces to base molecule
+    for face in molecule2.faces:
+        #change the indices of the atoms
+        newAtoms = []
+        for oldatom in face.atoms:
+            if oldatom == index2:
+                newAtoms.append(index1)
+            elif oldatom > index2:
+                newAtoms.append(oldatom + size1 - 1)
+            else:
+                newAtoms.append(oldatom + size1)
+        face.atoms = newAtoms
+        #add to molecule1.faces
+        molecule1.faces.append(face)
+            
     #add atoms
     pos2 = np.delete(pos2, index2, 0)
     z2 = np.delete(z2, index2, 0)

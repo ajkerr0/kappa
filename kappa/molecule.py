@@ -57,6 +57,8 @@ class Molecule:
     def translate(self, transVec):
         """Translate the entire molecule by a given translation vector."""
         self.posList += np.tile(transVec, (len(self),1))
+        for face in self.faces:
+            face.pos += transVec
         
     def rotate(self, axis, angle):
         """Rotate the molecule about a given axis by a given angle."""
