@@ -7,6 +7,8 @@ Created on Tue Mar 22 14:18:45 2016
 Define functions that draw molecule objects.
 """
 
+import copy
+
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.mplot3d import Axes3D
@@ -103,8 +105,46 @@ def bonds(molecule, sites=False, indices=False):
     
     plt.show()
     
-def faces(molecule):
-    pass
+def face(molecule, facenum):
+    """Plot the given interface of the molecule"""
+    
+    mol = copy.deepcopy(molecule)
+    face = mol.faces[facenum]
+    
+    fig = plt.figure()
+    
+    #rotate molecule to 'camera' position
+    axis = np.cross(face.norm, np.array([0.,0.,1.]))
+    mag = np.linalg.norm(axis)
+    if mag < 1e-10:
+        #check for parallel/anti-parallel
+        dot = np.dot(face.norm, np.array([0.,0.,1.]))
+        if dot < 0.:
+            #don't rotate
+            pass
+        if dot >0.:
+            #flip the molecule
+            mol.invert()
+    else:
+        angle = np.degrees(np.arcsin(mag))
+        mol.rotate(axis,angle)
+        
+    #center interface
+    mol.translate(-face.pos)
+    
+    plt.scatter(mol.posList[face.atoms][:,0], mol.posList[face.atoms][:,1], s=30., c='red')
+    ds = .2
+
+#    ds = np.full(len(face.atoms), ds)   
+#    plt.text(mol.posList[face.atoms][:,0]+ds, mol.posList[face.atoms][:,1]+ds, str(face.atoms))
+    for atom in face.atoms:
+        plt.text(mol.posList[atom][0]+ds, mol.posList[atom][1]+ds, str(atom), color='blue')
+    
+    fig.suptitle("Interface %s of Molecule %s" % (str(facenum), map(str, face.atoms)), fontsize=18)
+    plt.axis('equal')
+    
+    plt.show()
+    
     
 def normal_modes(molecule,evec):
     """Draw a visualization of a normal mode of a molecule."""
