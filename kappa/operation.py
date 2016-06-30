@@ -102,7 +102,7 @@ def evecs(hessian):
     w,vr = np.linalg.eig(hessian)   
     return w,vr
     
-def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
+def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     """Return a single molecule which is the combination of 2 inputed molcules where indices
     1 and 2 are the same atom effectively."""
     
@@ -120,10 +120,21 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1):
         nextIndex1 = nextIndex1 + size1
     
     #rotate molecule2
-    axis = np.cross(molecule2.orientation, molecule1.orientation)
+#    axis = np.cross(molecule2.orientation, molecule1.orientation)
+    norm1, norm2 = molecule1.faces[face1].norm, molecule2.faces[face2].norm
+    #check to see if they
+    axis = np.cross(norm1, norm2)
     mag = np.linalg.norm(axis)
-    if mag > 1e-10:
-        axis = axis/mag
+    if mag < 1e-10:
+        #check for parallel/anti-parallel
+        dot = np.dot(norm1,norm2)
+        if dot < 0.:
+            #don't rotate
+            pass
+        if dot >0.:
+            #flip the molecule
+            molecule2.invert()
+    else:
         angle = np.degrees(np.arcsin(mag))
         molecule2.rotate(axis,angle)
     
@@ -178,6 +189,9 @@ def chain(molList, indexList, name=""):
     
     molChain = molList[0]
     i,j = indexList[0]
+    for count,face in enumerate(molChain.faces):
+        if i in face.atoms:
+            iface = count
     
     for molNum, mol in enumerate(molList[1:]):
         
@@ -186,7 +200,10 @@ def chain(molList, indexList, name=""):
         else:
             nextI = 0
         j = indexList[molNum][1]
-        molChain, i = _combine(molChain, mol, i, j, nextI)
+        for count, face in enumerate(mol.faces):
+            if j in face.atoms:
+                jface = count
+        molChain, i = _combine(molChain, mol, i, j, nextI, iface, jface)
         
     if not name:
         name = molList[0].name

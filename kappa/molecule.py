@@ -81,6 +81,14 @@ class Molecule:
             face.pos = np.transpose(np.dot(rotMat, np.transpose(face.pos)))
             face.norm = np.transpose(np.dot(rotMat, np.transpose(face.norm)))
             
+    def invert(self):
+        """Invert the molecule across the origin."""
+        self.posList = -self.posList
+        self.orientation = -self.orientation
+        for face in self.faces:
+            face.pos = -face.pos
+            face.norm = -face.norm
+            
     def _configure_structure_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
         to the molecule instance."""
@@ -421,7 +429,7 @@ class Interface():
 
     def __init__(self, atoms, norm, mol):
         self.atoms = atoms
-        self.norm = norm
+        self.norm = np.array(norm)/np.linalg.norm(np.array(norm))
         #define interface position to be at the geometric center of its atoms
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
         self.open = np.ones(len(atoms), dtype=bool)
@@ -583,7 +591,7 @@ def build_cc(ff, name="CC"):
     cc = Molecule(ff, name, posList, nList, np.array([6,6]), orientation=np.array([1.,0.,0.]))
     
     Interface([0], np.array([-1.,0.,0.]), cc)
-    Interface([1], np.array([1.,0.,0.]), cc)  
+    Interface([1], np.array([1.,0.,0.]), cc)
     
     return cc
             
