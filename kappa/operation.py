@@ -24,6 +24,9 @@ vdx = np.array([dx,0.0,0.0])
 vdy = np.array([0.0,dy,0.0])
 vdz = np.array([0.0,0.0,dz])
 
+amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
+           15:30.79, 16:32.065, 17:35.45}
+
 def _path_exists(path):
     """Make a path if it doesn't exist"""
     try:
@@ -233,6 +236,24 @@ def chain(molList, indexList, name=""):
     molChain._configure()
         
     return molChain
+    
+def calculate_thermal_conductivity(mol):
+    
+    gamma = 0.1
+    
+    kMatrix = hessian(mol)
+    
+    gMatrix = calculate_gamma_mat(gamma)
+    
+    mMatrix = calculate_mass_mat()
+    
+    val, vec = calculate_evec(kMatrix, gMatrix, mMatrix)
+    
+    coeff = calculate_coeff(val, vec, mMatrix, gMatrix)
+    
+    kappa = calculate_kappa(coeff, val, vec, gMatrix, kMatrix)
+    
+    
     
     
         
