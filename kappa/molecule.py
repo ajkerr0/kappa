@@ -596,6 +596,7 @@ lattices = list(_latticeDict.keys())
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
     mol._configure()
+    mol.posList *= mol.ff.lunits
     return mol
         
         

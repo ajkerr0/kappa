@@ -61,7 +61,7 @@ class Tersoff(Forcefield):
     """Under construction, a remnant of code past."""
     
     def __init__(self, name="tersoff", energyUnits=0.043, lengthUnits=1.0):
-        super().__init__(self, "tersoff", 0.043, 1.0)
+        super().__init__(self, "tersoff", 0.0433634, 1.0)
         
     def configure_parameters(self, molecule):
         pass
