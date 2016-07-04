@@ -133,7 +133,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         if dot < 0.:
             #don't rotate
             pass
-        if dot >0.:
+        if dot > 0.:
             #flip the molecule
             molecule2.invert()
     else:
@@ -143,6 +143,8 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     #shift molecule 2 into position
     pos1, pos2 = molecule1.posList, molecule2.posList
     z1, z2 = molecule1.zList, molecule2.zList
+    facetrack1 = molecule1.facetrack
+    facetrack2 = np.full(len(molecule2), face1, dtype=np.int8)
     displaceVec = pos1[index1] - pos2[index2]
     molecule2.translate(displaceVec)
     
@@ -169,9 +171,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
                     newNList.append(neighbor + size1)
             molecule2.nList[index] = newNList
             
-    #remove faces if they are 1-atom
-#    for face in (molecule1.faces[face1], molecule2.faces[face2]):
-#        if len(face.atoms) == 1:
+    #remove faces if they are composed of a single atom
     if len(molecule1.faces[face1].atoms) == 1:
         del molecule1.faces[face1]
     if len(molecule2.faces[face2].atoms) == 1:
@@ -195,10 +195,12 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     #add atoms
     pos2 = np.delete(pos2, index2, 0)
     z2 = np.delete(z2, index2, 0)
+    facetrack2 = np.delete(facetrack2, index2, 0)
     del molecule2.nList[index2]
     
     pos1 = np.concatenate((pos1,pos2), axis=0)
     z1 = np.append(z1,z2)
+    facetrack1 = np.append(facetrack1, facetrack2)
     molecule1.nList.extend(molecule2.nList)
     
     molecule1.posList = pos1
