@@ -69,7 +69,7 @@ def bonds(molecule, sites=False, indices=False):
     figTitle = molecule.name
     plotSize = 5
     
-    posList = molecule.posList
+    posList = molecule.posList/molecule.ff.lunits
     length = len(posList)
 
     for bond in molecule.bondList:
