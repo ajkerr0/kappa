@@ -490,7 +490,7 @@ def build_amine(ff, name=""):
     zList = np.array([6,7,1,1])
     amine = Molecule( ff, name, posList, nList, zList)
     
-    Interface([0], np.array([-1.,0.,0.]), amine)
+    Interface([0], np.array([0.,-1.,0.]), amine)
     
     return amine
         
