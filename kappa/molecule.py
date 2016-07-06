@@ -174,27 +174,36 @@ class Molecule:
         
         if self.ff.lengths:
             #assign kr, r0 parameters
-            kbArr, b0Arr = np.load(filename+"/kb.npy"), np.load(filename+"/b0.npy")
-            self.kb = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
-            self.b0 = b0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            try:
+                kbArr, b0Arr = np.load(filename+"/kb.npy"), np.load(filename+"/b0.npy")
+                self.kb = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+                self.b0 = b0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
+            except IndexError:
+                self.kb, self.b0 = [], []
             
         if self.ff.angles:
             #assign kt,t0 parameters
-            ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
-            self.kt = ktArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
-                                idList[self.angleList[:,2]]]
-            self.t0 = t0Arr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
-                                idList[self.angleList[:,2]]]
+            try:
+                ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
+                self.kt = ktArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                    idList[self.angleList[:,2]]]
+                self.t0 = t0Arr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                    idList[self.angleList[:,2]]]
+            except IndexError:
+                self.kt, self.t0 = [],[]
                                 
         if self.ff.dihs:
             #assign, vn, nn, gn parameters
-            vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
-            self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-            self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-            self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+            try:
+                vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
+                self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+                self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+                self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+            except IndexError:
+                self.vn, self.nn, self.gn = [], [], []
                                 
         if self.ff.lj:
             #assign Van-dr-Waals parameters
