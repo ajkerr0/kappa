@@ -117,6 +117,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     molecule2 = deepcopy(oldMolecule2)
     
     size1 = len(molecule1)
+    facesize1 = len(molecule1.faces)    
     
     #anticipate new index1
     if nextIndex1 == index2:
@@ -181,7 +182,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
             
     #add interfaces to base molecule
     for face in molecule2.faces:
-        #change the indices of the atoms
+        #change the indices of the interfacial atoms
         newAtoms = []
         for oldatom in face.atoms:
             if oldatom == index2:
@@ -191,8 +192,15 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
             else:
                 newAtoms.append(oldatom + size1)
         face.atoms = newAtoms
+        #add interface paths
+        #start with path of base interface
+        newPath = molecule1.faces[face1].path[:]
+        #add the path of the added interface with indices incremented by size of molecule1
+        newPath.extend([x+facesize1 for x in face.path])
+        face.path = newPath
         #add to molecule1.faces
         molecule1.faces.append(face)
+        
         
     ##############
     #complete new molecule
