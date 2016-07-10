@@ -176,6 +176,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         del molecule1.faces[face1]
     if len(molecule2.faces[face2].atoms) == 1:
         del molecule2.faces[face2]
+        #give the atoms of mol 2 the facetracking of previous interface
             
     #add interfaces to base molecule
     for face in molecule2.faces:
@@ -205,6 +206,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     
     molecule1.posList = pos1
     molecule1.zList = z1
+    molecule1.facetrack = facetrack1
     
     return molecule1, nextIndex1
     
