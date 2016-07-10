@@ -109,6 +109,10 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     """Return a single molecule which is the combination of 2 inputed molcules where indices
     1 and 2 are the same atom effectively."""
     
+    #start combine process
+    
+    #create copies of molecules
+    #not necessary
     molecule1 = deepcopy(oldMolecule1)
     molecule2 = deepcopy(oldMolecule2)
     
@@ -121,6 +125,9 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         nextIndex1 = nextIndex1 + size1 - 1
     else:
         nextIndex1 = nextIndex1 + size1
+    
+    ###########
+    #change the positions of the atoms of the added molecule
     
     #rotate molecule2
     norm1, norm2 = molecule1.faces[face1].norm, molecule2.faces[face2].norm
@@ -148,7 +155,8 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     displaceVec = pos1[index1] - pos2[index2]
     molecule2.translate(displaceVec)
     
-    #adjust for new molecules
+    ###########
+    #change the attributes of the molecules
     
     #adjust neighbor lists
     #add neighbors to atom1
@@ -185,18 +193,24 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         face.atoms = newAtoms
         #add to molecule1.faces
         molecule1.faces.append(face)
-            
-    #add atoms
+        
+    ##############
+    #complete new molecule
+        
+    #delete the attributes regarding atom of index2
+    #because that atom doesn't exist anymore        
     pos2 = np.delete(pos2, index2, 0)
     z2 = np.delete(z2, index2, 0)
     facetrack2 = np.delete(facetrack2, index2, 0)
     del molecule2.nList[index2]
     
+    #add atoms/attributes to molecule1
     pos1 = np.concatenate((pos1,pos2), axis=0)
     z1 = np.append(z1,z2)
     facetrack1 = np.append(facetrack1, facetrack2)
     molecule1.nList.extend(molecule2.nList)
     
+    #assign attributes
     molecule1.posList = pos1
     molecule1.zList = z1
     molecule1.facetrack = facetrack1
