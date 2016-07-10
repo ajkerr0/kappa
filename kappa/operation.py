@@ -171,13 +171,6 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
                     newNList.append(neighbor + size1)
             molecule2.nList[index] = newNList
             
-    #remove faces if they are composed of a single atom
-    if len(molecule1.faces[face1].atoms) == 1:
-        del molecule1.faces[face1]
-    if len(molecule2.faces[face2].atoms) == 1:
-        del molecule2.faces[face2]
-        #give the atoms of mol 2 the facetracking of previous interface
-            
     #add interfaces to base molecule
     for face in molecule2.faces:
         #change the indices of the atoms
