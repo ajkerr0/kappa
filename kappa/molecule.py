@@ -304,10 +304,8 @@ class Molecule:
             
                 ipos += vdx
                 vPlusX = calculate_e()
-#                print vPlusX
                 ipos += -2.0*vdx
                 vMinusX = calculate_e()
-#                print vMinusX
                 ipos += vdx+vdy
                 vPlusY = calculate_e()
                 ipos += -2.0*vdy
@@ -430,7 +428,9 @@ class Interface():
         pos (1x3 ndarray): The position of the interface in 3D space, calculated from the geometric center
             of the interfacial atoms
         open (1xN ndarray): Array of boolean values used to denote whether the atoms in the interface
-            are 'open' or 'occupied' by an attachment."""
+            are 'open' or 'occupied' by an attachment.
+        path (list): List of the path to this interface."""
+        
 
     def __init__(self, atoms, norm, mol):
         self.atoms = atoms
@@ -439,6 +439,7 @@ class Interface():
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
         self.open = np.ones(len(atoms), dtype=bool)
         mol.faces.append(self)
+        self.path = [len(mol.faces)]
         
 def build_graphene(ff, name="", radius=3):
         
