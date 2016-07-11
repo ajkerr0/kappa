@@ -507,7 +507,7 @@ def build_amine(ff, name=""):
 def build_imine_chain(ff, name="", count=1):
     
     molList = [build_imine(ff)]
-    indexList = [(4,0)]
+    indexList = [(1,0)]
     
     benz = build_benzene_block(ff)
     cc = build_cc(ff)
@@ -560,8 +560,8 @@ def build_imine(ff, name=""):
     posList = np.array(posList)
     imine = Molecule(ff, name, posList, nList, zList)
     
-    Interface([3], np.array([-1.,0.,0.]), imine)
-    Interface([4], np.array([1.,0.,0.]), imine)    
+    Interface([0], np.array([-1.,0.,0.]), imine)
+    Interface([1], np.array([1.,0.,0.]), imine)    
     
     return imine
         

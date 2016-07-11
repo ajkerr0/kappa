@@ -33,12 +33,12 @@ def generate_imine_sites():
     
     T2pos = Cpos + np.array([a,0.,0.])
     
-    return [Npos,Cpos,Hpos,Tpos,T2pos]
+    return [Tpos, T2pos, Npos, Cpos, Hpos]
     
 def get_neighbors():
     
-    nList = [[1,3],[0,2,4],[1],[0],[1]]
-    zList = np.array([7,6,1,6,6])
+    nList = [[2],[3],[0,3],[1,2,4],[3]]
+    zList = np.array([6,6,7,6,1])
     
     return nList,zList
     
