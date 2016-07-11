@@ -152,7 +152,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     pos1, pos2 = molecule1.posList, molecule2.posList
     z1, z2 = molecule1.zList, molecule2.zList
     facetrack1 = molecule1.facetrack
-    facetrack2 = np.full(len(molecule2), face1, dtype=np.int8)
+    facetrack2 = molecule2.facetrack
     displaceVec = pos1[index1] - pos2[index2]
     molecule2.translate(displaceVec)
     
@@ -179,6 +179,15 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
                 else:
                     newNList.append(neighbor + size1)
             molecule2.nList[index] = newNList
+            
+    #adjust facetracking
+    #where facetrack is -1, change it to interface num
+    whereNegOne = np.where(facetrack2==-1)
+    facetrack2[whereNegOne] = np.full(len(whereNegOne), face1, dtype=np.int8)
+    #everywhere else, add the number of interfaces in mol1
+    whereNotNegOne = np.where(facetrack2!=-1)
+    facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + facesize1*np.full(len(whereNotNegOne),
+                                                                                1, dtype=np.int8)
             
     #add interfaces to base molecule
     for face in molecule2.faces:
