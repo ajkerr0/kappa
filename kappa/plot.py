@@ -22,7 +22,7 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds2d(molecule, sites=False, faces=True):
+def bonds(molecule, sites=False, faces=True):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -58,7 +58,7 @@ def bonds2d(molecule, sites=False, faces=True):
     
     plt.show()
 
-def bonds(molecule, sites=False, indices=False):
+def bonds3d(molecule, sites=False, indices=False):
     """Draw the molecule's bonds
     Keywords:
         sites (bool): Set True to draw atomic sites.  Default is False.
