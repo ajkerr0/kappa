@@ -45,11 +45,13 @@ def bonds(molecule, sites=False, faces=True):
         plt.scatter(posList[:,0],posList[:,1],s=radList[molecule.zList],c=cList)
         
     if faces:
-        for face in molecule.faces:
+        for i,face in enumerate(molecule.faces):
             plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15.)
             plt.scatter(posList[face.atoms][:,0], posList[face.atoms][:,1], s=50., c='red')
             plt.quiver(face.pos[0], face.pos[1], 5.*face.norm[0], 5.*face.norm[1],
                       color='r', headwidth=2, units='x')
+            plt.annotate(i, (face.pos[0]-.35*face.norm[0], face.pos[1]-.35*face.norm[1]), 
+                         color='r', fontsize=20)
     
     fig.suptitle(figTitle, fontsize=18)
     plt.axis('equal')
