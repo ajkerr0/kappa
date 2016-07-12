@@ -213,15 +213,15 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
-        print('Configuring bond topology...')
+#        print('Configuring bond topology...')
         self._configure_structure_lists()
-        print('Configuring rings...')
+#        print('Configuring rings...')
         self._configure_ring_lists()
-        print('Configuring aromaticity...')
+#        print('Configuring aromaticity...')
         self._configure_aromaticity()
-        print('Configuring atomtypes...')
+#        print('Configuring atomtypes...')
         self._configure_atomtypes()
-        print('Configuring forcefield parameters...')
+#        print('Configuring forcefield parameters...')
         self._configure_parameters()
         
     def define_energy_routine(self):
@@ -438,8 +438,8 @@ class Interface():
         #define interface position to be at the geometric center of its atoms
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
         self.open = np.ones(len(atoms), dtype=bool)
-        mol.faces.append(self)
         self.path = [len(mol.faces)]
+        mol.faces.append(self)
         
 def build_graphene(ff, name="", radius=3):
         

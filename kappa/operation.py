@@ -126,7 +126,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
         nextIndex1 = nextIndex1 + size1 - 1
     else:
         nextIndex1 = nextIndex1 + size1
-    
+        
     ###########
     #change the positions of the atoms of the added molecule
     
@@ -181,13 +181,15 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
             molecule2.nList[index] = newNList
             
     #adjust facetracking
-    #where facetrack is -1, change it to interface num
-    whereNegOne = np.where(facetrack2==-1)
-    facetrack2[whereNegOne] = np.full(len(whereNegOne), face1, dtype=np.int8)
-    #everywhere else, add the number of interfaces in mol1
+    #where factrack ISN'T -1, add the number of interfaces in mol1
     whereNotNegOne = np.where(facetrack2!=-1)
     facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + facesize1*np.full(len(whereNotNegOne),
                                                                                 1, dtype=np.int8)
+    #where facetrack is -1, change it to interface num
+    whereNegOne = np.where(facetrack2==-1)
+    facetrack2[whereNegOne] = np.full(len(whereNegOne), face1, dtype=np.int8)
+
+
             
     #add interfaces to base molecule
     for face in molecule2.faces:
@@ -242,9 +244,6 @@ def chain(molList, indexList, name=""):
     
     molChain = molList[0]
     i,j = indexList[0]
-    for count,face in enumerate(molChain.faces):
-        if i in face.atoms:
-            iface = count
     
     for molNum, mol in enumerate(molList[1:]):
         
@@ -253,6 +252,9 @@ def chain(molList, indexList, name=""):
         else:
             nextI = 0
         j = indexList[molNum][1]
+        for count,face in enumerate(molChain.faces):
+            if i in face.atoms:
+                iface = count
         for count, face in enumerate(mol.faces):
             if j in face.atoms:
                 jface = count
