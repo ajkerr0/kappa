@@ -116,8 +116,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     molecule1 = deepcopy(oldMolecule1)
     molecule2 = deepcopy(oldMolecule2)
     
-    size1 = len(molecule1)
-    facesize1 = len(molecule1.faces)    
+    size1 = len(molecule1)  
     
     #anticipate new index1
     if nextIndex1 == index2:
@@ -181,18 +180,24 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
             molecule2.nList[index] = newNList
             
     #delete single atom interfaces
+    delAccount = 0
     if len(molecule2.faces[face2].atoms) == 1 and len(molecule1.faces[face1].atoms) == 1:
         molecule1.faces[face1].norm = np.array([0.,0.,1.])
         del molecule2.faces[face2]
+        delAccount += 1
     elif len(molecule2.faces[face2].atoms) == 1:
         del molecule2.faces[face2]
+        delAccount += 1
     elif len(molecule1.faces[face1].atoms) == 1:
         del molecule1.faces[face1]
+        delAccount += 1
+        
+    facesize1 = len(molecule1.faces)  
         
     #adjust facetracking
     #where factrack ISN'T -1, add the number of interfaces in mol1
     whereNotNegOne = np.where(facetrack2!=-1)
-    facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + facesize1*np.full(len(whereNotNegOne),
+    facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + (facesize1-delAccount)*np.full(len(whereNotNegOne),
                                                                                 1, dtype=np.int8)
     #where facetrack is -1, change it to interface num
     whereNegOne = np.where(facetrack2==-1)
