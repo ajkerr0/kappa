@@ -48,10 +48,11 @@ def bonds(molecule, faces=True, ftrack=True, sites=False):
         for i,face in enumerate(molecule.faces):
             plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15.)
             plt.scatter(posList[face.atoms][:,0], posList[face.atoms][:,1], s=50., c='red')
-            plt.quiver(face.pos[0], face.pos[1], 5.*face.norm[0], 5.*face.norm[1],
-                      color='r', headwidth=2, units='x')
             plt.annotate(i, (face.pos[0]-.35*face.norm[0], face.pos[1]-.35*face.norm[1]), 
                          color='r', fontsize=20)
+            if np.linalg.norm(face.norm[:2]) > 0.0001:
+                plt.quiver(face.pos[0], face.pos[1], 5.*face.norm[0], 5.*face.norm[1],
+                color='r', headwidth=2, units='x')
                          
     if ftrack:
         for ft,pos in zip(molecule.facetrack, molecule.posList):
