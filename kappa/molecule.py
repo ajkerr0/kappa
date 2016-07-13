@@ -437,7 +437,7 @@ class Interface():
         self.norm = np.array(norm)/np.linalg.norm(np.array(norm))
         #define interface position to be at the geometric center of its atoms
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
-        self.open = np.ones(len(atoms), dtype=bool)
+        self.closed = []
         self.path = [len(mol.faces)]
         mol.faces.append(self)
         
