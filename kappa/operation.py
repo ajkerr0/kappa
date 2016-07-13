@@ -109,6 +109,13 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     """Return a single molecule which is the combination of 2 inputed molcules where indices
     1 and 2 are the same atom effectively."""
     
+    #check validity of parameters
+    if oldMolecule1.zList[index1] != oldMolecule2.zList[index2]:
+        raise ValueError('Two combined atoms must have the same atomic number')
+    if index1 in oldMolecule1.faces[face1].closed or index2 in oldMolecule2.faces[face2].closed:
+        raise ValueError('Atoms to be combined must not be closed')
+    
+    ###################
     #start combine process
     
     #create copies of molecules
@@ -266,8 +273,8 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
 def chain(molList, indexList, name=""):
     """Return a molecule as a chain of inputted molecules."""
     
-    #check validity of args
-    ##
+    if len(molList) != len(indexList)+1:
+        raise ValueError('There should be one more molecule than connections')
     
     molChain = molList[0]
     i,j = indexList[0]
