@@ -4,7 +4,7 @@
 *.npy
 
 #ignore test scripts
-test.py
+kappa/examples/test.py
 kappa_test.py
 
 # Byte-compiled / optimized / DLL files
@@ -96,3 +96,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# ignore pycharm .idea files
+.idea/
