@@ -276,7 +276,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     return molecule1, nextIndex1
     
 def chain(molList, indexList, name=""):
-    """Return a molecule as a chain of inputted molecules."""
+    """Return a single molecule as a chain of the inputted molecules."""
     
     if len(molList) != len(indexList)+1:
         raise ValueError('There should be one more molecule than connections')
