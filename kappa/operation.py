@@ -26,6 +26,8 @@ vdz = np.array([0.0,0.0,dz])
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
+           
+save_dir = "./kappa_save/"
 
 def _path_exists(path):
     """Make a path if it doesn't exist"""
@@ -41,13 +43,13 @@ def _file_exists(path):
 
 def save(molecule):
     """Save a pickled molecule into /kerrNM/systems/"""
-    path = "./save_file/" + molecule.name
+    path = save_dir + molecule.name
     _path_exists(path)
     pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
     
 def load(name):
     """Load a pickled molecule given a name"""
-    return pickle.load(open("./save_file/"+name+"/mol.p", "rb"))
+    return pickle.load(open(save_dir+name+"/mol.p", "rb"))
     
 def _calculate_hessian(molecule):
     """Return the Hessian matrix for the given molecule after calculation."""
@@ -89,7 +91,7 @@ def _calculate_hessian(molecule):
 def hessian(molecule):
     """Return the Hessian for a molecule; if it doesn't exist calculate it otherwise load it
     from the numpy format."""
-    path = "./save_file/" + molecule.name + "/hessian.npy"
+    path = save_dir + molecule.name + "/hessian.npy"
     if _file_exists("./save_file/" + molecule.name + "/hessian.npy"):
         print("Loading Hessian matrix from file...")
         return np.load(path)
