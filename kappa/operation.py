@@ -305,17 +305,45 @@ def calculate_thermal_conductivity(mol):
     
     gamma = 0.1
     
-    kMatrix = hessian(mol)
+    #driven atoms
+    drive1, drive2 = 0, 1
     
-    gMatrix = calculate_gamma_mat(gamma)
+#    kMatrix = hessian(mol)
     
-    mMatrix = calculate_mass_mat()
+    gMatrix = _calculate_gamma_mat(len(mol),gamma, drive1, drive2)
+    
+    mMatrix = _calculate_mass_mat(mol.zList)
     
     val, vec = calculate_evec(kMatrix, gMatrix, mMatrix)
     
     coeff = calculate_coeff(val, vec, mMatrix, gMatrix)
     
     kappa = calculate_kappa(coeff, val, vec, gMatrix, kMatrix)
+    
+
+    
+def _calculate_mass_mat(zList):
+    
+    massList = []
+    
+    for z in zList:
+        massList.append(amuDict[z])
+        
+    diagonal = np.repeat(np.array(massList), 3)
+    
+    return np.diag(diagonal)
+    
+def _calculate_gamma_mat(N,gamma, drive1, drive2):
+    
+    gmat = np.zeros((3*N, 3*N))
+    driveList = [drive1, drive2]
+    
+    for drive_atom in driveList:
+        gmat[3*drive_atom  , 3*drive_atom  ] = gamma
+        gmat[3*drive_atom+1, 3*drive_atom+1] = gamma
+        gmat[3*drive_atom+2, 3*drive_atom+2] = gamma
+        
+    return gmat
     
     
     
