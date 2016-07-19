@@ -109,6 +109,13 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     """Return a single molecule which is the combination of 2 inputed molcules where indices
     1 and 2 are the same atom effectively."""
     
+    #check validity of parameters
+    if oldMolecule1.zList[index1] != oldMolecule2.zList[index2]:
+        raise ValueError('Two combined atoms must have the same atomic number')
+    if index1 in oldMolecule1.faces[face1].closed or index2 in oldMolecule2.faces[face2].closed:
+        raise ValueError('Atoms to be combined must not be closed')
+    
+    ###################
     #start combine process
     
     #create copies of molecules
@@ -117,7 +124,6 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     molecule2 = deepcopy(oldMolecule2)
     
     size1 = len(molecule1)
-    facesize1 = len(molecule1.faces)    
     
     #anticipate new index1
     if nextIndex1 == index2:
@@ -151,8 +157,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     #shift molecule 2 into position
     pos1, pos2 = molecule1.posList, molecule2.posList
     z1, z2 = molecule1.zList, molecule2.zList
-    facetrack1 = molecule1.facetrack
-    facetrack2 = molecule2.facetrack
+    facetrack1, facetrack2 = molecule1.facetrack, molecule2.facetrack
     displaceVec = pos1[index1] - pos2[index2]
     molecule2.translate(displaceVec)
     
@@ -179,38 +184,67 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
                 else:
                     newNList.append(neighbor + size1)
             molecule2.nList[index] = newNList
+     
+    #########      
+    #delete single atom interfaces
             
+    #a number to account for deleted interfaces, for facetracking
+    delAccount = 0
+    #establish the face in which to 'close' the chained atom
+    #default will be face1 unless its deleted below
+    closeFace = molecule1.faces[face1]
+    
+    if len(molecule2.faces[face2].atoms) == 1 and len(molecule1.faces[face1].atoms) == 1:
+        molecule1.faces[face1].norm = np.array([0.,0.,1.])
+        del molecule2.faces[face2]
+        delAccount += 1
+    elif len(molecule2.faces[face2].atoms) == 1:
+        del molecule2.faces[face2]
+        delAccount += 1
+    elif len(molecule1.faces[face1].atoms) == 1:
+        #change closeFace because face1 will be deleted
+        closeFace = molecule2.faces[face2]
+        del molecule1.faces[face1]
+        delAccount += 1
+    
+    closeFace.closed.append(index1)
+    
     #adjust facetracking
     #where factrack ISN'T -1, add the number of interfaces in mol1
+    facesize1 = len(molecule1.faces) 
     whereNotNegOne = np.where(facetrack2!=-1)
-    facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + facesize1*np.full(len(whereNotNegOne),
+    facetrack2[whereNotNegOne] = facetrack2[whereNotNegOne] + (facesize1-delAccount)*np.full(len(whereNotNegOne),
                                                                                 1, dtype=np.int8)
     #where facetrack is -1, change it to interface num
     whereNegOne = np.where(facetrack2==-1)
     facetrack2[whereNegOne] = np.full(len(whereNegOne), face1, dtype=np.int8)
-
-
-            
+      
     #add interfaces to base molecule
-    for face in molecule2.faces:
-        #change the indices of the interfacial atoms
+    for count, face in enumerate(molecule2.faces):
+        #change the indices of the interfacial atoms and 'closed' atoms
         newAtoms = []
+        newClosed = []
         for oldatom in face.atoms:
             if oldatom == index2:
-                newAtoms.append(index1)
+                newIndex = index1
             elif oldatom > index2:
-                newAtoms.append(oldatom + size1 - 1)
+                newIndex = oldatom + size1 - 1
             else:
-                newAtoms.append(oldatom + size1)
+                newIndex = oldatom + size1
+            newAtoms.append(newIndex)
+            if oldatom in face.closed:
+                newClosed.append(newIndex)                
         face.atoms = newAtoms
+        face.closed = newClosed
         #add interface paths
         #start with path of base interface
         newPath = molecule1.faces[face1].path[:]
         #add the path of the added interface with indices incremented by size of molecule1
-        newPath.extend([x+facesize1 for x in face.path])
+        newPath.extend([x+facesize1 for x in range(len(face.path))])
         face.path = newPath
         #add to molecule1.faces
         molecule1.faces.append(face)
+        
         
         
     ##############
@@ -239,8 +273,8 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
 def chain(molList, indexList, name=""):
     """Return a molecule as a chain of inputted molecules."""
     
-    #check validity of args
-    ##
+    if len(molList) != len(indexList)+1:
+        raise ValueError('There should be one more molecule than connections')
     
     molChain = molList[0]
     i,j = indexList[0]

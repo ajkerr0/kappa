@@ -22,7 +22,7 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds(molecule, faces=True, ftrack=True, sites=False):
+def bonds(molecule, faces=True, ftrack=False, sites=False):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -46,12 +46,15 @@ def bonds(molecule, faces=True, ftrack=True, sites=False):
         
     if faces:
         for i,face in enumerate(molecule.faces):
-            plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15.)
-            plt.scatter(posList[face.atoms][:,0], posList[face.atoms][:,1], s=50., c='red')
-            plt.quiver(face.pos[0], face.pos[1], 5.*face.norm[0], 5.*face.norm[1],
-                      color='r', headwidth=2, units='x')
+            openAtoms = [x for x in face.atoms if x not in face.closed]
+            plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15., zorder=-2)
+            plt.scatter(posList[openAtoms][:,0], posList[openAtoms][:,1], s=75., c='red')
+            plt.scatter(posList[face.closed][:,0], posList[face.closed][:,1], s=40, c='purple')
             plt.annotate(i, (face.pos[0]-.35*face.norm[0], face.pos[1]-.35*face.norm[1]), 
                          color='r', fontsize=20)
+            if np.linalg.norm(face.norm[:2]) > 0.0001:
+                plt.quiver(face.pos[0]+.5*face.norm[0], face.pos[1]+.5*face.norm[1], 5.*face.norm[0], 5.*face.norm[1],
+                color='r', headwidth=1, units='width', width=5e-3, headlength=2.5)
                          
     if ftrack:
         for ft,pos in zip(molecule.facetrack, molecule.posList):
