@@ -13,6 +13,7 @@ from copy import deepcopy
 import pickle
 
 import numpy as np
+import scipy.linalg as linalg
 
 #change in position for the finite difference equations
 ds = 1e-7
@@ -107,7 +108,7 @@ def hessian(molecule):
     
 def evecs(hessian):
     """Return the eigenvalues and eigenvectors associated with a given Hessian matrix."""
-    w,vr = np.linalg.eig(hessian)   
+    w,vr = np.linalg.eig(hessian)
     return w,vr
     
 def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
@@ -319,13 +320,112 @@ def calculate_thermal_conductivity(mol):
     
     mMatrix = _calculate_mass_mat(mol.zList)
     
-    val, vec = calculate_evec(kMatrix, gMatrix, mMatrix)
+    val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
-    coeff = calculate_coeff(val, vec, mMatrix, gMatrix)
+    coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
     
-    kappa = calculate_kappa(coeff, val, vec, gMatrix, kMatrix)
+    def _calculate_power(i,j):
+        
+        #driven atom
+        #assuming same drag constant as other driven atom
+        driver = 0
+        
+        kap = 0.
+        
+        for sigma in range(len(val)):
+            
+            for tau in range(len(val)):
+                
+                try:
+                    valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
+                except ZeroDivisionError:
+                    print("Encountered the error")
+                    continue
+                
+#                print(coeff[sigma,driver]*coeff[tau,driver])
+#                print(vec[i,sigma])
+                for dim in range(3):
+                    kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
+        
+#        return kap*2*gMat[driver,driver]*kMat[i,j]
+        return kap
+        
+    kappa = 0.
     
+    #for each interaction that goes through the interface,
+    #add it to the running total kappa
+    
+    print(kappa)
+    
+def _calculate_power(i,j, coeff, val, vec, gMat, kMat):
+    """Calculate the power driven from atom i to atom j"""
+    
+    i = 0
+    j = 2
+    
+    #driven atom
+    #assuming same drag constant as other driven atom
+    driver = 0
+    
+    kap = 0.
+    
+    for sigma in range(len(val)):
+        
+        for tau in range(len(val)):
+            
+            try:
+                valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
+            except ZeroDivisionError:
+                print("Encountered the error")
+                continue
+            
+#            print(coeff[sigma,driver]*coeff[tau,driver])
+#            print(vec[i,sigma])
+            for dim in range(3):
+                kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
+    
+#    return kap*2*gMat[driver,driver]*kMat[i,j]
+    return kap
+    
+def _calculate_coeff(val, vec, massMat, gMat):
+    """Return the 2N x N Green's function coefficient matrix."""
+    
+    N = len(vec)//2
+    
+    #need to determine coefficients in eigenfunction/vector expansion
+    # need linear solver to solve equations from notes
+    # AX = B where X is the matrix of expansion coefficients
+    
+    A = np.zeros((2*N, 2*N), dtype=complex)
+    A[:N,:] = vec[:N,:]
 
+    #adding mass and damping terms to A
+    lamda = np.tile(val, (N,1))
+
+    A[N:,:] = np.multiply(A[:N,:], np.dot(massMat,lamda) + np.dot(gMat,np.ones((N,2*N))))
+    
+    #now prep B
+    B = np.concatenate((np.zeros((N,N)), np.identity(N)), axis=0)
+
+    return np.linalg.solve(A,B)
+    
+def _calculate_thermal_evec(K,G,M):
+    
+    N = len(M)
+    
+    a = np.zeros([N,N])
+    a = np.concatenate((a,np.identity(N)),axis=1)
+    b = np.concatenate((K,G),axis=1)
+    c = np.concatenate((a,b),axis=0)
+    
+    x = np.identity(N)
+    x = np.concatenate((x,np.zeros([N,N])),axis=1)
+    y = np.concatenate((np.zeros([N,N]),-M),axis=1)
+    z = np.concatenate((x,y),axis=0)
+    
+    w,vr = linalg.eig(c,b=z,right=True)
+    
+    return w,vr
     
 def _calculate_mass_mat(zList):
     
