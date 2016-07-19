@@ -56,24 +56,24 @@ def _calculate_hessian(molecule):
     
     H = np.zeros([3*N,3*N])
     
-    calculate_energy = molecule.define_energy_routine()
+    calculate_grad = molecule.define_gradient_routine()
     
     for i in range(N):
         
         ipos = molecule.posList[i]
         
         ipos += vdx
-        _,plusXTestGrad,_,_ = calculate_energy()
+        plusXTestGrad,_,_ = calculate_grad()
         ipos += -2.0*vdx
-        _,minusXTestGrad,_,_ = calculate_energy()
+        minusXTestGrad,_,_ = calculate_grad()
         ipos += vdx + vdy
-        _,plusYTestGrad,_,_ = calculate_energy()
+        plusYTestGrad,_,_ = calculate_grad()
         ipos += -2.0*vdy
-        _,minusYTestGrad,_,_ = calculate_energy()
+        minusYTestGrad,_,_ = calculate_grad()
         ipos += vdy + vdz
-        _,plusZTestGrad,_,_ = calculate_energy()
+        plusZTestGrad,_,_ = calculate_grad()
         ipos += -2.0*vdz
-        _,minusZTestGrad,_,_ = calculate_energy()
+        minusZTestGrad,_,_ = calculate_grad()
         ipos += vdz
         
         xiRow = (plusXTestGrad - minusXTestGrad)/2.0/dx
@@ -308,7 +308,7 @@ def calculate_thermal_conductivity(mol):
     #driven atoms
     drive1, drive2 = 0, 1
     
-#    kMatrix = hessian(mol)
+    kMatrix = hessian(mol)
     
     gMatrix = _calculate_gamma_mat(len(mol),gamma, drive1, drive2)
     
