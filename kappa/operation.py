@@ -342,15 +342,10 @@ def calculate_thermal_conductivity(mol):
                     print("Encountered the error")
                     continue
                 
-#                print(coeff[sigma,driver]*coeff[tau,driver])
-#                print(vec[i,sigma])
                 for dim in range(3):
                     kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
         
-#        return kap*2*gMat[driver,driver]*kMat[i,j]
         return kap
-        
-    kappa = 0.
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
@@ -396,11 +391,19 @@ def calculate_thermal_conductivity(mol):
             if atom in dih:
                 #find the elements of facetrack -1 that are also in dih
                 #if there are any, then add them to interactions
-                pass
-                #interactions.append([atom, element])
+                elements = [x for x in dih if mol.facetrack[x] == -1]
+                for element in elements:
+                    interactions.append([atom, element])
+                    
+    #add nonbonded interactions
+                    
+    #remove duplicate interactions
+                
+    kappa = 0.             
                 
     for interaction in interactions:
-        kappa += _calculate_power(interaction)
+        i,j = interaction
+        kappa += _calculate_power(i,j)
     
     print(kappa)
     
