@@ -313,9 +313,11 @@ def calculate_thermal_conductivity(mol):
     gamma = 0.1
     
     #driven atoms
-    drive1, drive2 = 0, 1
+    drive1, drive2 = 107, 114
+#    drive1, drive2 = 1,2
     
-    kMatrix = hessian(mol)
+#    kMatrix = hessian(mol)
+    kMatrix = _calculate_fake_K_matrix(len(mol), 1., mol.nList)
     
     gMatrix = _calculate_gamma_mat(len(mol),gamma, drive1, drive2)
     
@@ -329,7 +331,7 @@ def calculate_thermal_conductivity(mol):
         
         #driven atom
         #assuming same drag constant as other driven atom
-        driver = 0
+        driver = drive1
         
         kap = 0.
         
@@ -369,7 +371,7 @@ def calculate_thermal_conductivity(mol):
             #goig to assume every molecule i test uses meet this condition, for now
             
     #find all face paths that start at our interfaces
-    face1paths, face2paths = []
+    face1paths, face2paths = [], []
     for face in mol.faces:
         if face1 in face.path:
             face1paths.append(face.path)
@@ -470,6 +472,22 @@ def _calculate_gamma_mat(N,gamma, drive1, drive2):
         gmat[3*drive_atom+2, 3*drive_atom+2] = gamma
         
     return gmat
+    
+def _calculate_fake_K_matrix(N,k0,nLists):
+    """Return the Hessian of a linear chain of atoms assuming only nearest neighbor interactions."""
+    
+    KMatrix = np.zeros([3*N,3*N])
+    
+    for i,nList in enumerate(nLists):
+        KMatrix[3*i  ,3*i  ] = k0*len(nList)
+        KMatrix[3*i+1,3*i+1] = k0*len(nList)
+        KMatrix[3*i+2,3*i+2] = k0*len(nList)
+        for neighbor in nList:
+            KMatrix[3*i  ,3*neighbor] = -k0
+            KMatrix[3*i+1,3*neighbor+1] = -k0
+            KMatrix[3*i+2,3*neighbor+2] = -k0
+    
+    return KMatrix
     
     
     
