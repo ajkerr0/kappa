@@ -98,7 +98,7 @@ def hessian(molecule):
     #if Hessian file exists then load it; otherwise calculate it and save it
     if _file_exists(path + "/hessian.npy"):
         print("Loading Hessian matrix from file...")
-        return np.load(path)
+        return np.load(path + "/hessian.npy")
     else:
         print("Calculating the Hessian matrix for " + molecule.name + "...")
         H = _calculate_hessian(molecule)
