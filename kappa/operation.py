@@ -355,37 +355,54 @@ def calculate_thermal_conductivity(mol):
     #for each interaction that goes through the interface,
     #add it to the running total kappa
     
+    #determine interfaces
+    for count,face in enumerate(mol.faces):
+        if drive1 in face.atoms:
+            face1 = count
+        if drive2 in face.atoms:
+            face2 = count
+            
+    #determine interface path
+    for face in mol.faces:
+        #look for a path that contains both indices
+        if face1 in face.path and face2 in face.path:
+            path = face.path
+        else:
+            #the interfaces are on the 'root' mol
+            pass
+            #goig to assume every molecule i test uses meet this condition, for now
+            
+    #find all face paths that start at our interfaces
+    face1paths, face2paths = []
+    for face in mol.faces:
+        if face1 in face.path:
+            face1paths.append(face.path)
+        if face2 in face.path:
+            face2paths.append(face.path)
+            
+    #find all facetracking numbers used
+    tracknums = []
+    for path in face1paths:
+        tracknums.append(path[-1])
+    for path in face2paths:
+        tracknums.append(path[-1])
+            
+    #find all dihedral interactions that contain an enhancement atom and interface atom
+    #add them to pairings list
+    interactions = []
+    atoms = np.where(mol.facetrack in tracknums)
+    for dih in mol.dihList:
+        for atom in atoms:
+            if atom in dih:
+                #find the elements of facetrack -1 that are also in dih
+                #if there are any, then add them to interactions
+                pass
+                #interactions.append([atom, element])
+                
+    for interaction in interactions:
+        kappa += _calculate_power(interaction)
+    
     print(kappa)
-    
-def _calculate_power(i,j, coeff, val, vec, gMat, kMat):
-    """Calculate the power driven from atom i to atom j"""
-    
-    i = 0
-    j = 2
-    
-    #driven atom
-    #assuming same drag constant as other driven atom
-    driver = 0
-    
-    kap = 0.
-    
-    for sigma in range(len(val)):
-        
-        for tau in range(len(val)):
-            
-            try:
-                valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
-            except ZeroDivisionError:
-                print("Encountered the error")
-                continue
-            
-#            print(coeff[sigma,driver]*coeff[tau,driver])
-#            print(vec[i,sigma])
-            for dim in range(3):
-                kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
-    
-#    return kap*2*gMat[driver,driver]*kMat[i,j]
-    return kap
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
