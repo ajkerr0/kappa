@@ -11,6 +11,7 @@ import os
 import errno
 from copy import deepcopy
 import pickle
+import itertools
 
 import numpy as np
 import scipy.linalg as linalg
@@ -313,7 +314,7 @@ def calculate_thermal_conductivity(mol):
     gamma = 0.1
     
     #driven atoms
-    drive1, drive2 = 107, 114
+    drive1, drive2 = 145,75
 #    drive1, drive2 = 1,2
     
 #    kMatrix = hessian(mol)
@@ -389,7 +390,11 @@ def calculate_thermal_conductivity(mol):
     #add them to pairings list
     interactions = []
 #    atoms = np.where(mol.facetrack in tracknums)
+    print('check2')
     atoms = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums]
+    print(tracknums)
+    print(atoms)
+    print('check3')
     for dih in mol.dihList:
         for atom in atoms:
             if atom in dih:
@@ -402,6 +407,11 @@ def calculate_thermal_conductivity(mol):
     #add nonbonded interactions
                     
     #remove duplicate interactions
+    interactions.sort()
+    interactions = list(k for k,_ in itertools.groupby(interactions))    
+                    
+    print('check4')
+    print(interactions)
                 
     kappa = 0.             
                 
