@@ -388,7 +388,8 @@ def calculate_thermal_conductivity(mol):
     #find all dihedral interactions that contain an enhancement atom and interface atom
     #add them to pairings list
     interactions = []
-    atoms = np.where(mol.facetrack in tracknums)
+#    atoms = np.where(mol.facetrack in tracknums)
+    atoms = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums]
     for dih in mol.dihList:
         for atom in atoms:
             if atom in dih:
