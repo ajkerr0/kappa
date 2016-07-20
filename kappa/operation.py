@@ -59,7 +59,8 @@ def _calculate_hessian(molecule):
     
     H = np.zeros([3*N,3*N])
     
-    calculate_grad = molecule.define_gradient_routine()
+#    calculate_grad = molecule.define_gradient_routine()
+    calculate_grad = molecule.define_gradient_routine2()
     
     for i in range(N):
         
@@ -103,7 +104,7 @@ def hessian(molecule):
         print("Calculating the Hessian matrix for " + molecule.name + "...")
         H = _calculate_hessian(molecule)
         print("Done!")
-        np.save(path, H)
+        np.save(path + "/hessian.npy", H)
         return H
     
 def evecs(hessian):
@@ -339,7 +340,7 @@ def calculate_thermal_conductivity(mol):
                 try:
                     valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
                 except ZeroDivisionError:
-                    print("Encountered the error")
+                    print("The eigenfrequecies caused a divergence")
                     continue
                 
                 for dim in range(3):
