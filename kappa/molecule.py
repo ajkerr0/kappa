@@ -85,6 +85,24 @@ class Molecule:
             face.pos = -face.pos
             face.norm = -face.norm
             
+    def hydrogenate(self):
+        """Attach a hydrogen atom to every open interface atom."""
+        #find all the open atoms
+        openList = []
+        for face in self.faces:
+            openList.extend([x for x in face.atoms if x not in face.closed])
+        ch = build_ch(self.ff)
+        #populate molList
+        molList = [self]
+        for i in range(len(openList)):
+            molList.append(ch)
+        #populate indexList
+        indexList = []
+        for openatom in openList:
+            indexList.append((openatom, 0))
+        from . import chain
+        return chain(molList, indexList, self.name)
+            
     def _configure_structure_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
         to the molecule instance."""
@@ -606,7 +624,7 @@ lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
-    mol._configure()
+#    mol._configure()
     mol.posList *= mol.ff.lunits
     return mol
         
