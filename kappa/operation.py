@@ -392,29 +392,35 @@ def calculate_thermal_conductivity(mol):
             face2paths.append(face.path)
             
     #find all facetracking numbers used
-    tracknums = []
+    tracknums1, tracknums2 = [], []
     for path in face1paths:
-        tracknums.append(path[-1])
+        tracknums1.append(path[-1])
     for path in face2paths:
-        tracknums.append(path[-1])
+        tracknums2.append(path[-1])
             
     #find all dihedral interactions that contain an enhancement atom and interface atom
     #add them to pairings list
     interactions = []
 #    atoms = np.where(mol.facetrack in tracknums)
-    print('check2')
-    atoms = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums]
-    print(tracknums)
-    print(atoms)
-    print('check3')
+#    print('check2')
+    atoms1 = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums1]
+    atoms2 = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums2]
+#    print(tracknums)
+#    print(atoms)
+#    print('check3')
     for dih in mol.dihList:
-        for atom in atoms:
+        for atom in atoms1:
             if atom in dih:
                 #find the elements of facetrack -1 that are also in dih
                 #if there are any, then add them to interactions
                 elements = [x for x in dih if mol.facetrack[x] == -1]
                 for element in elements:
                     interactions.append([atom, element])
+        for atom in atoms2:
+            if atom in dih:
+                elements = [x for x in dih if mol.facetrack[x] == -1]
+                for element in elements:
+                    interactions.append([element, atom])
                     
     #add nonbonded interactions
                     
