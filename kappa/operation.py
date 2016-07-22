@@ -334,22 +334,34 @@ def calculate_thermal_conductivity(mol):
         #assuming same drag constant as other driven atom
         driver = drive1
         
-        kap = 0.
+#        kap = 0.
+#        
+#        for sigma in range(len(val)):
+#            
+#            for tau in range(len(val)):
+#                
+#                try:
+#                    valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
+#                except ZeroDivisionError:
+#                    print("The eigenfrequecies caused a divergence")
+#                    continue
+#                
+#                for dim in range(3):
+#                    kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
+#        
+#        return kap
         
-        for sigma in range(len(val)):
-            
-            for tau in range(len(val)):
-                
-                try:
-                    valTerm = (val[sigma] - val[tau])/(val[sigma] + val[tau])
-                except ZeroDivisionError:
-                    print("The eigenfrequecies caused a divergence")
-                    continue
-                
-                for dim in range(3):
-                    kap += coeff[sigma,3*driver + dim]*coeff[tau,3*driver + dim]*vec[3*i + dim,sigma]*vec[3*j + dim,tau]*valTerm
+        n = len(val)
         
-        return kap
+        term1 = np.tile(coeff[:, driver], (n,1))
+        term2 = np.tile(coeff[:, driver], (1,n))
+        term3 = np.tile(vec[i,:], (n,1))
+        term4 = np.tile(vec[j,:], (1,n))
+        
+        val_sigma = np.tile(val, (n,1))
+        val_tau = np.tile(val, (1,n))
+        
+        return np.sum(term1*term2*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
