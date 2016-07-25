@@ -17,7 +17,7 @@ import numpy as np
 import scipy.linalg as linalg
 
 #change in position for the finite difference equations
-ds = 1e-7
+ds = 1e-6
 dx = ds
 dy = ds
 dz = ds

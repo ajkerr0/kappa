@@ -343,7 +343,7 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print(gradient)
+            print(gradient)
             
             return gradient, maxForce, totalMag
             
@@ -379,19 +379,19 @@ class Molecule:
                 poskj = self.posList[kangles] - self.posList[jangles]
                 rij, rkj = np.linalg.norm(posij,axis=1), np.linalg.norm(poskj,axis=1)
                 cosTheta = np.einsum('ij,ij->i',posij,poskj)/(rij*rkj)
-                sqrtCos = np.sqrt(np.ones(len(cosTheta))-cosTheta**2)
-                dtdri = (posij*(cosTheta/rij)[:,None] - poskj/rkj[:,None])/(rij*sqrtCos)[:,None]
-                dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/rij[:,None])/(rkj*sqrtCos)[:,None]
-                theta = np.degrees(np.arccos(cosTheta))
+                sqrtCos = np.sqrt(np.ones(len(cosTheta), dtype=float)-(cosTheta**2))
+                dtdri = (posij*(cosTheta/rij)[:,None] - poskj/(rkj[:,None]))/((rij*sqrtCos)[:,None])
+                dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/(rij[:,None]))/((rkj*sqrtCos)[:,None])
+                theta = np.rad2deg(np.arccos(cosTheta))
                 dudri =  2.*(self.kt*(theta - self.t0))[:,None]*dtdri
                 dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
                 dudrk =  2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
                 for icount,iangle in enumerate(iangles):
-                    grad[iangle] = dudri[icount]
+                    grad[iangle] += dudri[icount]
                 for jcount,jangle in enumerate(jangles):
-                    grad[jangle] = dudrj[jcount]
+                    grad[jangle] += dudrj[jcount]
                 for kcount,kangle in enumerate(kangles):
-                    grad[kangle] = dudrk[kcount]
+                    grad[kangle] += dudrk[kcount]
                 
             grad_funcs.append(grad_angles)
                 
@@ -428,7 +428,7 @@ class Molecule:
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print(grad)
+            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad
@@ -499,7 +499,7 @@ def build_dingus(ff, name="", count=5, angle=160.):
     posList,nList,zList = lattice(count,angle)
     if not name:
         name = 'dingus_N%s' % (str(len(posList)))
-    posList = np.array(posList)
+    posList = 1.1*np.array(posList)
     dingus = Molecule(ff, name, posList, nList, zList)
     
     dingus._configure_structure_lists()
@@ -624,7 +624,7 @@ lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
-#    mol._configure()
+    mol._configure()
     mol.posList *= mol.ff.lunits
     return mol
         
