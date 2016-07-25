@@ -362,12 +362,8 @@ class Molecule:
                 posij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(posij, axis=1)
                 lengthTerm = 2.*(self.kb*(rij-self.b0)/rij)[:,None]*posij
-                for icount,ibond in enumerate(ibonds):
-                    grad[ibond] += lengthTerm[icount]
-                for jcount,jbond in enumerate(jbonds):
-                    grad[jbond] += -lengthTerm[jcount]
-#                grad[ibonds] += lengthTerm
-#                grad[jbonds] += -lengthTerm
+                grad[ibonds] += lengthTerm
+                grad[jbonds] += -lengthTerm
                 
             grad_funcs.append(grad_lengths)
                 
@@ -386,12 +382,9 @@ class Molecule:
                 dudri =  2.*(self.kt*(theta - self.t0))[:,None]*dtdri
                 dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
                 dudrk =  2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
-                for icount,iangle in enumerate(iangles):
-                    grad[iangle] += dudri[icount]
-                for jcount,jangle in enumerate(jangles):
-                    grad[jangle] += dudrj[jcount]
-                for kcount,kangle in enumerate(kangles):
-                    grad[kangle] += dudrk[kcount]
+                grad[iangles] += dudri
+                grad[jangles] += dudrj
+                grad[kangles] += dudrk
                 
             grad_funcs.append(grad_angles)
                 
@@ -416,7 +409,15 @@ class Molecule:
                 dwdrl = -cross23*-rkj/(np.linalg.norm(cross23, axis=1)**2)
                 dwdrj = (dotijkj - np.ones(len(rkj)))*dwdri - dotklkj*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))*dwdrl - dotijkj*dwdri
-                return -self.nn*self.vn*np.sin(self.nn*omega - self.gn)*(dwdri+dwdrj+dwdrk+dwdrl)
+                uTerm = -self.nn*self.vn*np.sin(self.nn*omega - self.gn)
+                dudri = uTerm[:,None]*dwdri
+                dudrj = uTerm[:,None]*dwdrj
+                dudrk = uTerm[:,None]*dwdrk
+                dudrl = uTerm[:,None]*dwdrl
+                grad[idih] += dudri
+                grad[jdih] += dudrj
+                grad[kdih] += dudrk
+                grad[ldih] += dudrl
                 
             grad_funcs.append(grad_dihs)
                 
