@@ -8,11 +8,33 @@ Contains class definition(s) used to minimize the energy of Molecules
 """
 
 class Minimizer:
+    """A energy minimizer for Molecules
     
-    def __init__(self, method="cg", search="backtrack", numgrad=False):
-        self.method = method
+    Args:
+        n (int): Max number of iterations in minimization run(s).
+    Keywords:
+        descent (str): Method in which the local energy minimum will be approached;
+            must be key in descentDict
+        search (str): Line search method; must be key in searchDict
+        numgrad (bool): True if the gradients are to be calculated numerically;
+            default is False
+        eprec (float): Precision for energy changes when an iteration is made 
+            signalling convergence has occurred
+        fprec (float): Precision for force magnitude signaling
+            convergence has occurred.
+        efreq (int): Iteration period in which information is printed to the user;
+            called frequency despite being inverse frequency."""
+    
+    def __init__(self, n, descent="cg", search="backtrack", 
+                 numgrad=False, eprec=1e-5, fprec=1e-3,
+                 efreq=1):
+        self.n = n
+        self.descent = descent
         self.search = search
         self.numgrad = numgrad
+        self.eprec = eprec
+        self.fprec = fprec
+        self.efreq =  efreq
         
 def steepest_descent():
     pass
@@ -23,5 +45,5 @@ def conjugate_gradient():
 def line_search_backtrack():
     pass
         
-methodDict = {"sd":steepest_descent, "cg":conjugate_gradient}
+descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
