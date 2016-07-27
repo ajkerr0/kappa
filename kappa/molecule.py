@@ -110,7 +110,7 @@ class Molecule:
         for i, ipos in enumerate(self.posList):
             for j in [j for j in range(len(self)) if j > i]:
                 if np.linalg.norm(ipos-self.posList[j], axis=1) < (cutoff + .5) and j not in self.nList[i]:
-                    nbnList.append[i,j]
+                    nbnList.append([i,j])
         self.nbnList = np.array(nbnList)
             
     def _configure_topology_lists(self):
