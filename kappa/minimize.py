@@ -44,9 +44,10 @@ class Minimizer:
         else:
             grad_routine = molecule.define_gradient_routine()
         descentDict[self.descent](molecule, self.n, searchDict[self.search], molecule.define_energy_routine(),
-                                      grad_routine, self.eprec, self.fprec, self.efreq)
+                                  grad_routine, self.efreq,
+                                  self.eprec*molecule.ff.eunits, self.fprec*molecule.ff.eunits/molecule.ff.lunits)
         
-def steepest_descent(mol, n, search, calc_e, calc_grad, eprec, fprec, efreq):
+def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     """Minimize the energy of the inputted molecule via the steepest descent approach."""
     
     energy = calc_e()
@@ -84,7 +85,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, eprec, fprec, efreq):
     
     return mol, eList
     
-def conjugate_gradient(mol, n, search, calc_e, calc_grad, eprec, fprec, efreq):
+def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     """Minimize the energy of the inputted molecule via the conjugate gradient approach."""
     
     energy = calc_e()
