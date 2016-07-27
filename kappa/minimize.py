@@ -7,6 +7,8 @@ Created on Tue Mar 22 17:52:49 2016
 Contains class definition(s) used to minimize the energy of Molecules
 """
 
+import numpy as np
+
 class Minimizer:
     """A energy minimizer for Molecules
     
@@ -41,17 +43,104 @@ class Minimizer:
             grad_routine = molecule.define_gradient_routine()
         else:
             grad_routine = molecule.define_gradient_routine()
-        descentDict[self.descent](molecule, self.n, searchDict[self.search], grad_routine,
-                                     self.eprec, self.fprec, self.efreq)
+        descentDict[self.descent](molecule, self.n, searchDict[self.search], molecule.define_energy_routine(),
+                                      grad_routine, self.eprec, self.fprec, self.efreq)
         
-def steepest_descent(mol, n, search, calc_grad, eprec, fprec, efreq):
-    pass
+def steepest_descent(mol, n, search, calc_e, calc_grad, eprec, fprec, efreq):
+    """Minimize the energy of the inputted molecule via the steepest descent approach."""
     
-def conjugate_gradient(mol, n, search, calc_grad, eprec, fprec, efreq):
-    pass
+    energy = calc_e()
+    gradient, maxForce, totalMag, = calc_grad()
+    eList = [energy]
+    print('energy:   $s' % energy)
+    print('maxforce: $s' % maxForce)
+    
+    for step in range(1, n+1):
+        
+        #calculate the stepsize
+        stepSize = search(mol, -gradient/totalMag, energy)
+        
+        #take the step
+        mol.posList += stepSize*(-gradient/totalMag)
+        
+        #reset quantities
+        energy = calc_e()
+        gradient, maxForce, totalMag = calc_grad()
+        
+        eList.append(energy)
+        #for every multiple of efreq, print the status
+        if step % efreq == 0:
+            print('step:     %s' % step)
+            print('energy:   %s' % energy)
+            print('maxforce: %s' % maxForce)
+            
+        #break the iteration if our forces are small enough
+        if maxForce < fprec:
+            print('#########\nFinished!\n#########')
+            print('step:     %s' % step)
+            print('energy:   %s' % energy)
+            print('maxforce: %s' % maxForce)
+            break
+    
+    return mol, eList
+    
+def conjugate_gradient(mol, n, search, calc_e, calc_grad, eprec, fprec, efreq):
+    """Minimize the energy of the inputted molecule via the conjugate gradient approach."""
+    
+    energy = calc_e()
+    gradient, maxForce, totalMag, = calc_grad()
+    eList = [energy]
+    print('energy:   $s' % energy)
+    print('maxforce: $s' % maxForce)
+    
+    gamma = 0.0
+    prevH = np.zeros([len(mol), 3])
+    
+    for step in range(1, n+1):
+        
+        #get the step direction
+        h = -gradient + gamma*prevH
+        normH = h/np.linalg.norm(np.hstack(h))
+        
+        #calculate the stepsize
+        stepSize = search(mol, normH, energy)
+        
+        #take the step
+        mol.posList += stepSize*(-gradient/totalMag)
+        
+        #reset quantities
+        prevH = h
+        prevGrad = gradient
+        energy = calc_e()
+        gradient, maxForce, totalMag = calc_grad()
+        gamma = calculate_gamma(gradient, prevGrad)
+        
+        eList.append(energy)
+        #for every multiple of efreq, print the status
+        if step % efreq == 0:
+            print('step:     %s' % step)
+            print('energy:   %s' % energy)
+            print('maxforce: %s' % maxForce)
+            
+        #break the iteration if our forces are small enough
+        if maxForce < fprec:
+            print('#########\nFinished!\n#########')
+            print('step:     %s' % step)
+            print('energy:   %s' % energy)
+            print('maxforce: %s' % maxForce)
+            break
+    
+    return mol, eList
 
 def line_search_backtrack():
     pass
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
+
+def calculate_gamma(grad, pgrad):
+    """Return the 'gamma' factor in the conjugate gradient method."""
+    grad = np.hstack(grad)
+    pgrad = np.hstack(pgrad)
+#    return (np.dot(grad-pGrad,grad))/(np.dot(pGrad,pGrad))
+    return (np.dot(grad,grad))/(np.dot(pgrad,pgrad))
