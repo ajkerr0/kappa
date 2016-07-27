@@ -36,10 +36,18 @@ class Minimizer:
         self.fprec = fprec
         self.efreq =  efreq
         
-def steepest_descent():
+    def __call__(self, molecule):
+        if self.numgrad:
+            grad_routine = molecule.define_gradient_routine()
+        else:
+            grad_routine = molecule.define_gradient_routine()
+        descentDict[self.descent](molecule, self.n, searchDict[self.search], grad_routine,
+                                     self.eprec, self.fprec, self.efreq)
+        
+def steepest_descent(mol, n, search, calc_grad, eprec, fprec, efreq):
     pass
     
-def conjugate_gradient():
+def conjugate_gradient(mol, n, search, calc_grad, eprec, fprec, efreq):
     pass
 
 def line_search_backtrack():
