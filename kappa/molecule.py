@@ -103,7 +103,7 @@ class Molecule:
         from . import chain
         return chain(molList, indexList, self.name)
             
-    def _configure_structure_lists(self):
+    def _configure_topology_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
         to the molecule instance."""
         bondList = []
@@ -232,7 +232,7 @@ class Molecule:
     def _configure(self):
         """Call the 'configure' methods sequentially."""
 #        print('Configuring bond topology...')
-        self._configure_structure_lists()
+        self._configure_topology_lists()
 #        print('Configuring rings...')
         self._configure_ring_lists()
 #        print('Configuring aromaticity...')
@@ -503,7 +503,7 @@ def build_dingus(ff, name="", count=5, angle=160.):
     posList = 1.1*np.array(posList)
     dingus = Molecule(ff, name, posList, nList, zList)
     
-    dingus._configure_structure_lists()
+    dingus._configure_topology_lists()
     if ff.name == "amber":
         dingus.idList = np.full(len(dingus),3, dtype=np.int8)
     dingus._configure_parameters()
