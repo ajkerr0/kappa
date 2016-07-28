@@ -6,11 +6,13 @@ Created on Tue Mar 22 17:52:49 2016
 
 Contains class definition(s) used to minimize the energy of Molecules
 """
+
 import sys
-EP = sys.float_info.epsilon
-SQRTEP = EP**.5
 
 import numpy as np
+
+EP = sys.float_info.epsilon
+SQRTEP = EP**.5
 
 class Minimizer:
     """A energy minimizer for Molecules
