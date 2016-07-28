@@ -133,8 +133,27 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     
     return mol, eList
 
-def line_search_backtrack():
-    pass
+def line_search_backtrack(mol, stepList, e, grad, calc_e, calc_grad):
+    """Return the stepsize determined by the backtracking strategies of
+    Armijo and Goldstein."""
+    
+    n = 25
+    alpha = 1e-2
+    tau = 0.5
+    c = 0.5
+    
+    for j in range(n):
+        
+        m = np.dot(np.hstack(stepList),np.hstack(grad))
+        t = -c*m
+        mol.posList += alpha*stepList
+        newE = calc_e()
+        if e - newE >= alpha*t:
+            return alpha
+        else:
+            mol.posList += -alpha*stepList
+            e, grad = newE, calc_grad()
+            alpha *= tau        
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
