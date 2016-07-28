@@ -16,7 +16,7 @@ package_dir = os.path.dirname(os.path.abspath(__file__))
 from .molecule import *
 from .forcefield import *
 from .operation import *
-from .minimize import minimize_energy
+from .minimize import Minimizer
 from .antechamber.atomtype import main as atomtype
 from . import plot
 from .md.generate import *
