@@ -55,16 +55,19 @@ class Minimizer:
 def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     """Minimize the energy of the inputted molecule via the steepest descent approach."""
     
+    #initial guess for stepsize
+    stepSize = 1e-1
+    
     energy = calc_e()
     gradient, maxForce, totalMag, = calc_grad()
     eList = [energy]
-    print('energy:   $s' % energy)
-    print('maxforce: $s' % maxForce)
+    print('energy:   %s' % energy)
+    print('maxforce: %s' % maxForce)
     
     for step in range(1, n+1):
         
         #calculate the stepsize
-        stepSize = search(mol, -gradient/totalMag, energy)
+        stepSize = search(mol, -gradient/totalMag, stepSize, energy, gradient, calc_e, calc_grad)
         
         #take the step
         mol.posList += stepSize*(-gradient/totalMag)
@@ -93,11 +96,15 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
 def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     """Minimize the energy of the inputted molecule via the conjugate gradient approach."""
     
+    #initial guess for stepsize
+    stepSize = 1e-1
+    
+    #starting values
     energy = calc_e()
     gradient, maxForce, totalMag, = calc_grad()
     eList = [energy]
-    print('energy:   $s' % energy)
-    print('maxforce: $s' % maxForce)
+    print('energy:   %s' % energy)
+    print('maxforce: %s' % maxForce)
     
     gamma = 0.0
     prevH = np.zeros([len(mol), 3])
@@ -109,10 +116,10 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
         normH = h/np.linalg.norm(np.hstack(h))
         
         #calculate the stepsize
-        stepSize = search(mol, normH, energy)
+        stepSize = search(mol, normH, stepSize, energy, gradient, calc_e, calc_grad)
         
         #take the step
-        mol.posList += stepSize*(-gradient/totalMag)
+        mol.posList += stepSize*(normH)
         
         #reset quantities
         prevH = h
@@ -130,7 +137,7 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
             
         #break the iteration if our forces are small enough
         if maxForce < fprec:
-            print('#########\nFinished!\n#########')
+            print('###########\n Finished! \n###########')
             print('step:     %s' % step)
             print('energy:   %s' % energy)
             print('maxforce: %s' % maxForce)
@@ -138,35 +145,41 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     
     return mol, eList
 
-def line_search_backtrack(mol, stepList, e, grad, calc_e, calc_grad):
+def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e, calc_grad):
     """Return the stepsize determined by the backtracking strategies of
     Armijo and Goldstein."""
     
-    alpha = 1e-2
     tau = 0.5
     c = 0.5
+    alpha /= tau
     
-    while alpha > SQRTEP:
-        
+    counter = 0
+    while alpha > EP:
         m = np.dot(np.hstack(stepList),np.hstack(grad))
+        if m > 0.:
+            raise ValueError("Step isn't a descent!")
         t = -c*m
+        
         mol.posList += alpha*stepList
         newE = calc_e()
+        mol.posList += -alpha*stepList
         if e - newE >= alpha*t:
+#            print('counter:  %s' % counter)
             return alpha
         else:
-            mol.posList += -alpha*stepList
-            e, grad = newE, calc_grad()
+            grad,_,_ = calc_grad()
             alpha *= tau
-            
-    return SQRTEP
+            counter += 1
+    
+#    print('counter:  %s' % counter)        
+    return EP
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
 
 def calculate_gamma(grad, pgrad):
-    """Return the 'gamma' factor in the conjugate gradient method."""
+    """Return the 'gamma' factor in the conjugate gradient method
+    according to Fletcher and Reeves."""
     grad = np.hstack(grad)
     pgrad = np.hstack(pgrad)
-#    return (np.dot(grad-pgrad,grad))/(np.dot(pgrad,pgrad))
     return (np.dot(grad,grad))/(np.dot(pgrad,pgrad))

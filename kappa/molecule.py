@@ -353,7 +353,7 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-            print(gradient)
+#            print(gradient)
             
             return gradient, maxForce, totalMag
             
