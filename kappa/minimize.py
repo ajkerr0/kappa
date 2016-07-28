@@ -6,6 +6,8 @@ Created on Tue Mar 22 17:52:49 2016
 
 Contains class definition(s) used to minimize the energy of Molecules
 """
+import sys
+EP = sys.float_info.epsilon
 
 import numpy as np
 
@@ -153,7 +155,9 @@ def line_search_backtrack(mol, stepList, e, grad, calc_e, calc_grad):
         else:
             mol.posList += -alpha*stepList
             e, grad = newE, calc_grad()
-            alpha *= tau        
+            alpha *= tau
+            
+    return EP**.5
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
