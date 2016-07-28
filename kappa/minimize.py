@@ -166,5 +166,5 @@ def calculate_gamma(grad, pgrad):
     """Return the 'gamma' factor in the conjugate gradient method."""
     grad = np.hstack(grad)
     pgrad = np.hstack(pgrad)
-#    return (np.dot(grad-pGrad,grad))/(np.dot(pGrad,pGrad))
+#    return (np.dot(grad-pgrad,grad))/(np.dot(pgrad,pgrad))
     return (np.dot(grad,grad))/(np.dot(pgrad,pgrad))
