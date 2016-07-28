@@ -8,6 +8,7 @@ Contains class definition(s) used to minimize the energy of Molecules
 """
 import sys
 EP = sys.float_info.epsilon
+SQRTEP = EP**.5
 
 import numpy as np
 
@@ -139,12 +140,11 @@ def line_search_backtrack(mol, stepList, e, grad, calc_e, calc_grad):
     """Return the stepsize determined by the backtracking strategies of
     Armijo and Goldstein."""
     
-    n = 25
     alpha = 1e-2
     tau = 0.5
     c = 0.5
     
-    for j in range(n):
+    while alpha > SQRTEP:
         
         m = np.dot(np.hstack(stepList),np.hstack(grad))
         t = -c*m
@@ -157,7 +157,7 @@ def line_search_backtrack(mol, stepList, e, grad, calc_e, calc_grad):
             e, grad = newE, calc_grad()
             alpha *= tau
             
-    return EP**.5
+    return SQRTEP
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack}
