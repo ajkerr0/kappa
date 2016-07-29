@@ -237,7 +237,7 @@ class Molecule:
             #assign Van-dr-Waals parameters
             rvdw0Arr, epvdwArr = np.load(filename+"/rvdw0.npy"), np.load(filename+"/epvdw.npy")
             self.rvdw0 = rvdw0Arr[idList]
-            self.epvdwArr = epvdwArr[idList]
+            self.epvdw = epvdwArr[idList]
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
@@ -302,6 +302,15 @@ class Molecule:
             e_funcs.append(e_dihs)
             
         #non-bonded interactions
+            
+        if self.ff.lj:
+            
+            ipairs, jpairs = self.nbnList[:,0], self.nbnList[:,1]
+            def e_lj(grad):
+                posij = self.posList[ipairs] - self.posList[jpairs]
+                rij = np.linalg.norm(posij, axis=1)
+                rTerm = ((self.rvdw0[ipairs] + self.rvdw0[jpairs])/rij)**6
+                return np.sum(np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm**2 - 2*(rTerm)))      
             
         if self.ff.tersoff:
             #tersoff interaction here
@@ -430,6 +439,17 @@ class Molecule:
                 grad[ldih] += dudrl
                 
             grad_funcs.append(grad_dihs)
+            
+        if self.ff.lj:
+            
+            ipairs, jpairs = self.nbnList[:,0], self.nbnList[:,1]
+            def grad_lj(grad):
+                posij = self.posList[ipairs] - self.posList[jpairs]
+                rij = np.linalg.norm(posij, axis=1)
+                rTerm = ((self.rvdw0[ipairs] + self.rvdw0[jpairs])/rij)**6
+                ljTerm = 12.*np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm - rTerm**2)*posij/rij/rij
+                grad[ipairs] += ljTerm
+                grad[jpairs] += -ljTerm
                 
         def calculate_grad():
             grad = np.zeros((len(self),3))
