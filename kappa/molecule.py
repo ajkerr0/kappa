@@ -102,16 +102,6 @@ class Molecule:
             indexList.append((openatom, 0))
         from . import chain
         return chain(molList, indexList, self.name)
-        
-    def _configure_nonbonded_neighbors(self):
-        """Assign lists of non-bonded neighbor pairings; construct the Verlet neighbor lists"""
-        cutoff = 5.*self.ff.lunits
-        nbnList = []
-        for i, ipos in enumerate(self.posList):
-            for j in [j for j in range(len(self)) if j > i]:
-                if np.linalg.norm(ipos-self.posList[j], axis=1) < (cutoff + .5) and j not in self.nList[i]:
-                    nbnList.append([i,j])
-        self.nbnList = np.array(nbnList)
             
     def _configure_topology_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
@@ -142,6 +132,16 @@ class Molecule:
         self.angleList = np.array(angleList)
         self.dihList = np.array(dihedralList)
         self.imptorsList = np.array(imptorsList)
+        
+    def _configure_nonbonded_neighbors(self):
+        """Assign lists of non-bonded neighbor pairings; construct the Verlet neighbor lists"""
+        cutoff = 5.*self.ff.lunits
+        nbnList = []
+        for i, ipos in enumerate(self.posList):
+            for j in [j for j in range(len(self)) if j > i]:
+                if np.linalg.norm(ipos-self.posList[j], axis=1) < (cutoff + .5) and j not in self.nList[i]:
+                    nbnList.append([i,j])
+        self.nbnList = np.array(nbnList)
         
     def _configure_ring_lists(self):
         """Assign all of the unique rings to the molecule instance, 
@@ -243,6 +243,7 @@ class Molecule:
         """Call the 'configure' methods sequentially."""
 #        print('Configuring bond topology...')
         self._configure_topology_lists()
+        self._configure_nonbonded_neighbors()
 #        print('Configuring rings...')
         self._configure_ring_lists()
 #        print('Configuring aromaticity...')

@@ -34,7 +34,7 @@ class Minimizer:
     
     def __init__(self, n, descent="cg", search="backtrack", 
                  numgrad=False, eprec=1e-5, fprec=1e-3,
-                 efreq=1):
+                 efreq=1, nbnfreq=15):
         self.n = n
         self.descent = descent
         self.search = search
@@ -49,10 +49,10 @@ class Minimizer:
         else:
             grad_routine = molecule.define_gradient_routine()
         descentDict[self.descent](molecule, self.n, searchDict[self.search], molecule.define_energy_routine(),
-                                  grad_routine, self.efreq,
+                                  grad_routine, self.efreq, self.nbnfreq,
                                   self.eprec*molecule.ff.eunits, self.fprec*molecule.ff.eunits/molecule.ff.lunits)
         
-def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
+def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
     """Minimize the energy of the inputted molecule via the steepest descent approach."""
     
     #initial guess for stepsize
@@ -72,6 +72,10 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
         #take the step
         mol.posList += stepSize*(-gradient/totalMag)
         
+        #reset nonbonded neighbors
+        if step % nbn == 0:
+            mol._configure_nonbonded_neighbors()
+        
         #reset quantities
         energy = calc_e()
         gradient, maxForce, totalMag = calc_grad()
@@ -85,7 +89,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
             
         #break the iteration if our forces are small enough
         if maxForce < fprec:
-            print('#########\nFinished!\n#########')
+            print('###########\n Finished! \n###########')
             print('step:     %s' % step)
             print('energy:   %s' % energy)
             print('maxforce: %s' % maxForce)
@@ -93,7 +97,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
     
     return mol, eList
     
-def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
+def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
     """Minimize the energy of the inputted molecule via the conjugate gradient approach."""
     
     #initial guess for stepsize
@@ -120,6 +124,10 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, eprec, fprec):
         
         #take the step
         mol.posList += stepSize*(normH)
+        
+        #reset nonbonded neighbors
+        if step % nbn == 0:
+            mol._configure_nonbonded_neighbors()
         
         #reset quantities
         prevH = h
