@@ -113,7 +113,7 @@ def evecs(hessian):
     w,vr = np.linalg.eig(hessian)
     return w,vr
     
-def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
+def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2, copy=True):
     """Return a single molecule which is the combination of 2 inputed molcules where indices
     1 and 2 are the same atom effectively."""
     
@@ -127,8 +127,10 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2):
     #start combine process
     
     #create copies of molecules
-    #not necessary
-    molecule1 = deepcopy(oldMolecule1)
+    if copy:
+        molecule1 = deepcopy(oldMolecule1)
+    else:
+        molecule1 = oldMolecule1
     molecule2 = deepcopy(oldMolecule2)
     
     size1 = len(molecule1)
