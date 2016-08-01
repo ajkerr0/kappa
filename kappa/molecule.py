@@ -92,19 +92,19 @@ class Molecule:
         for face in self.faces:
             openList.extend([x for x in face.atoms if x not in face.closed])
         ch = build_ch(self.ff)
-        mol = self
         #populate indexList
         indexList = []
         for openatom in openList:
             indexList.append((openatom, 0))
-        from . import _combine
+        from .operation import _combine
         for pair in indexList:
             i,j = pair
-            for count,face in enumerate(mol.faces):
+            for count,face in enumerate(self.faces):
                 if i in face.atoms:
                     iface = count
-            mol,_ = _combine(mol, ch, i, j, 0, iface,0)
-        return mol
+            _,_ = _combine(self, ch, i, j, 0,iface,0,copy=False)
+        self._configure()
+        return self
             
     def _configure_topology_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
@@ -142,7 +142,7 @@ class Molecule:
         nbnList = []
         for i, ipos in enumerate(self.posList):
             for j in [j for j in range(len(self)) if j > i]:
-                if np.linalg.norm(ipos-self.posList[j], axis=1) < (cutoff + .5) and j not in self.nList[i]:
+                if np.linalg.norm(ipos-self.posList[j]) < (cutoff + .5) and j not in self.nList[i]:
                     nbnList.append([i,j])
         self.nbnList = np.array(nbnList)
         
