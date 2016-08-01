@@ -42,6 +42,7 @@ class Minimizer:
         self.eprec = eprec
         self.fprec = fprec
         self.efreq =  efreq
+        self.nbnfreq = nbnfreq
         
     def __call__(self, molecule):
         if self.numgrad:
