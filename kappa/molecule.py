@@ -288,7 +288,7 @@ class Molecule:
             
         if self.ff.dihs:
             
-            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:3]
+            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:,3]
             def e_dihs():
                 posji = self.posList[jdih] - self.posList[idih]
                 poskj = self.posList[kdih] - self.posList[jdih]
@@ -296,9 +296,9 @@ class Molecule:
                 rkj = np.linalg.norm(poskj,axis=1)
                 cross12 = np.cross(posji, poskj)
                 cross23 = np.cross(poskj, poslk)
-                n1 = cross12/np.linalg.norm(cross12, axis=1)
-                n2 = cross23/np.linalg.norm(cross23, axis=1)
-                m1 = np.cross(n1, poskj/rkj)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)[:,None]
+                n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
+                m1 = np.cross(n1, poskj/rkj[:,None])
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.degrees(np.arctan2(y,x))
                 return np.sum(self.vn*(np.ones(len(self.dihList)) + np.cos(np.radians(self.nn*omega - self.gn))))
@@ -413,7 +413,8 @@ class Molecule:
                 
         if self.ff.dihs:
             
-            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:3]
+            idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:,3]
+            print('kek')
             def grad_dihs(grad):
                 posij = self.posList[idih] - self.posList[jdih]
                 poskj = self.posList[kdih] - self.posList[jdih]
@@ -463,7 +464,6 @@ class Molecule:
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad
