@@ -456,11 +456,12 @@ class Molecule:
                 grad[ipairs] += ljTerm
                 grad[jpairs] += -ljTerm
                 
+            grad_funcs.append(grad_lj)
+                
         def calculate_grad():
             grad = np.zeros((len(self),3))
             for grad_func in grad_funcs:
                 grad_func(grad)
-#                grad += grad_func()
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
