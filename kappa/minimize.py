@@ -181,7 +181,7 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
             alpha *= tau
             counter += 1
     
-#    print('counter:  %s' % counter)        
+    print('counter:  %s' % counter)        
     return EP
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}

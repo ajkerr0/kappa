@@ -247,7 +247,7 @@ class Molecule:
 #        print('Configuring bond topology...')
         self._configure_topology_lists()
         self._configure_nonbonded_neighbors()
-#        print('Configuring rings...')
+#        print('Configuring rings...').
         self._configure_ring_lists()
 #        print('Configuring aromaticity...')
         self._configure_aromaticity()
@@ -366,7 +366,8 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print(gradient)
+            print('numgrad')
+            print(gradient)
             
             return gradient, maxForce, totalMag
             
@@ -385,8 +386,12 @@ class Molecule:
                 posij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(posij, axis=1)
                 lengthTerm = 2.*(self.kb*(rij-self.b0)/rij)[:,None]*posij
-                grad[ibonds] += lengthTerm
-                grad[jbonds] += -lengthTerm
+#                grad[ibonds] += lengthTerm
+#                grad[jbonds] += -lengthTerm
+                for icount,ibond in enumerate(ibonds):
+                    grad[ibond] += lengthTerm[icount]
+                for jcount,jbond in enumerate(jbonds):
+                    grad[jbond] += -lengthTerm[jcount]
                 
             grad_funcs.append(grad_lengths)
                 
@@ -401,13 +406,19 @@ class Molecule:
                 sqrtCos = np.sqrt(np.ones(len(cosTheta), dtype=float)-(cosTheta**2))
                 dtdri = (posij*(cosTheta/rij)[:,None] - poskj/(rkj[:,None]))/((rij*sqrtCos)[:,None])
                 dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/(rij[:,None]))/((rkj*sqrtCos)[:,None])
-                theta = np.rad2deg(np.arccos(cosTheta))
+                theta = np.degrees(np.arccos(cosTheta))
                 dudri =  2.*(self.kt*(theta - self.t0))[:,None]*dtdri
                 dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
                 dudrk =  2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
-                grad[iangles] += dudri
-                grad[jangles] += dudrj
-                grad[kangles] += dudrk
+#                grad[iangles] += dudri
+#                grad[jangles] += dudrj
+#                grad[kangles] += dudrk
+                for icount,iangle in enumerate(iangles):
+                    grad[iangle] += dudri[icount]
+                for jcount,jangle in enumerate(jangles):
+                    grad[jangle] += dudrj[jcount]
+                for kcount,kangle in enumerate(kangles):
+                    grad[kangle] += dudrk[kcount]
                 
             grad_funcs.append(grad_angles)
                 
@@ -465,6 +476,7 @@ class Molecule:
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
+            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad
