@@ -281,8 +281,8 @@ class Molecule:
                 rij = np.linalg.norm(posij,axis=1)
                 rkj = np.linalg.norm(poskj,axis=1)
                 cosTheta = np.einsum('ij,ij->i',posij,poskj)/rij/rkj
-                theta = np.degrees(np.arccos(cosTheta))
-                return np.sum(self.kt*(theta-self.t0)**2)*np.pi/180.
+                theta = np.rad2deg(np.arccos(cosTheta))
+                return np.sum(self.kt*(theta-self.t0)**2)
                 
             e_funcs.append(e_angles)
             
@@ -300,7 +300,7 @@ class Molecule:
                 n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
                 m1 = np.cross(n1, poskj/rkj[:,None])
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
-                omega = np.degrees(np.arctan2(y,x))
+                omega = np.rad2deg(np.arctan2(y,x))
                 return np.sum(self.vn*(np.ones(len(self.dihList)) + np.cos(np.radians(self.nn*omega - self.gn))))
                 
             e_funcs.append(e_dihs)
@@ -406,10 +406,11 @@ class Molecule:
                 sqrtCos = np.sqrt(np.ones(len(cosTheta), dtype=float)-(cosTheta**2))
                 dtdri = (posij*(cosTheta/rij)[:,None] - poskj/(rkj[:,None]))/((rij*sqrtCos)[:,None])
                 dtdrk = (poskj*(cosTheta/rkj)[:,None] - posij/(rij[:,None]))/((rkj*sqrtCos)[:,None])
-                theta = np.degrees(np.arccos(cosTheta))
-                dudri =  2.*(self.kt*(theta - self.t0))[:,None]*dtdri
-                dudrj = -2.*(self.kt*(theta - self.t0))[:,None]*(dtdri + dtdrk)
-                dudrk =  2.*(self.kt*(theta - self.t0))[:,None]*dtdrk
+                theta = np.rad2deg(np.arccos(cosTheta))
+                uTerm = (360./np.pi)*(self.kt*(theta - self.t0))
+                dudri =  uTerm[:,None]*dtdri
+                dudrj = -uTerm[:,None]*(dtdri + dtdrk)
+                dudrk =  uTerm[:,None]*dtdrk
 #                grad[iangles] += dudri
 #                grad[jangles] += dudrj
 #                grad[kangles] += dudrk
@@ -437,7 +438,7 @@ class Molecule:
                 n2 = cross23/np.linalg.norm(cross23, axis=1)
                 m1 = np.cross(n1, poskj/rkj)
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
-                omega = np.degrees(np.arctan2(y,x))
+                omega = np.rad2deg(np.arctan2(y,x))
                 dotijkj = np.einsum('ij,ij->i',posij,poskj)/(rkj**2)
                 dotklkj = np.einsum('ij,ij->i',poskl,poskj)/(rkj**2)
                 dwdri = -cross12*rkj/(np.linalg.norm(cross12, axis=1)**2)
