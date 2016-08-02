@@ -282,7 +282,7 @@ class Molecule:
                 rkj = np.linalg.norm(poskj,axis=1)
                 cosTheta = np.einsum('ij,ij->i',posij,poskj)/rij/rkj
                 theta = np.degrees(np.arccos(cosTheta))
-                return np.sum(self.kt*(theta-self.t0)**2)
+                return np.sum(self.kt*(theta-self.t0)**2)*np.pi/180.
                 
             e_funcs.append(e_angles)
             
@@ -366,8 +366,8 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-            print('numgrad')
-            print(gradient)
+#            print('numgrad')
+#            print(gradient)
             
             return gradient, maxForce, totalMag
             
@@ -476,7 +476,7 @@ class Molecule:
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-            print(grad)
+#            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad
