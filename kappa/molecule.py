@@ -635,6 +635,32 @@ def build_benzene_block(ff, name=""):
     Interface([5], np.array([1.,0.,0.]), bblock)    
     
     return bblock
+    
+def build_mullen(ff, count=4, name="mullen"):
+    
+    from .lattice.mullen import main as lattice
+    posList, nList, zList = lattice()
+    posList = np.array(posList)
+    
+    unit = Molecule(ff, name, posList, nList, zList)
+    
+    angle = 2.*np.pi/count
+    norm = np.array([np.cos(angle), 0., np.sin(angle)])
+    Interface([10,11], norm, unit)
+    Interface([12,13], [-1.,0.,0.,], unit)
+    
+    molList = [unit]
+    indexList = []
+    for i in range(count-1):
+        molList.append(unit)
+        indexList.append((10,12))
+        
+    from .operation import chain
+    return chain(molList,indexList)
+        
+        
+    
+    
         
 def build_ch(ff, name="CH"):
     
@@ -645,6 +671,17 @@ def build_ch(ff, name="CH"):
     Interface([0], np.array([-1.,0.,0.]), ch)    
     
     return ch
+    
+def build_cs(ff, norm2=[1.,0.,0.], name="CS"):
+    
+    posList = np.array([0.,0.,0.], [1.3,0.,0.])
+    nList = [[1],[0]]
+    cs = Molecule(ff, name, posList, nList, np.array([6,16]))
+    
+    Interface([0], np.array([-1.,0.,0.]), cs)
+    Interface([1], np.array(norm2), cs)
+    
+    return cs
         
 def build_cc(ff, name="CC"):
     
