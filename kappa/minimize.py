@@ -68,7 +68,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec
     for step in range(1, n+1):
         
         #calculate the stepsize
-        stepSize = search(mol, -gradient/totalMag, stepSize, energy, gradient, calc_e, calc_grad)
+        stepSize = search(mol, -gradient/totalMag, stepSize, energy, gradient, calc_e)
         
         #take the step
         mol.posList += stepSize*(-gradient/totalMag)
@@ -121,7 +121,7 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
         normH = h/np.linalg.norm(np.hstack(h))
         
         #calculate the stepsize
-        stepSize = search(mol, normH, stepSize, energy, gradient, calc_e, calc_grad)
+        stepSize = search(mol, normH, stepSize, energy, gradient, calc_e)
         
         #take the step
         mol.posList += stepSize*(normH)
@@ -154,7 +154,7 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
     
     return mol, eList
 
-def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e, calc_grad):
+def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
     """Return the stepsize determined by the backtracking strategies of
     Armijo and Goldstein."""
     
@@ -162,12 +162,14 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e, calc_grad):
     c = 0.5
     alpha /= tau
     
+    m = np.dot(np.hstack(stepList),np.hstack(grad))
+    if m > 0.:
+        raise ValueError("Step isn't a descent!")
+        
+    t = -c*m
+    
     counter = 0
     while alpha > EP:
-        m = np.dot(np.hstack(stepList),np.hstack(grad))
-        if m > 0.:
-            raise ValueError("Step isn't a descent!")
-        t = -c*m
         
         mol.posList += alpha*stepList
         newE = calc_e()
@@ -176,7 +178,6 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e, calc_grad):
 #            print('counter:  %s' % counter)
             return alpha
         else:
-            grad,_,_ = calc_grad()
             alpha *= tau
             counter += 1
     
