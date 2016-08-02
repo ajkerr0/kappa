@@ -386,12 +386,8 @@ class Molecule:
                 posij = self.posList[ibonds] - self.posList[jbonds]
                 rij = np.linalg.norm(posij, axis=1)
                 lengthTerm = 2.*(self.kb*(rij-self.b0)/rij)[:,None]*posij
-#                grad[ibonds] += lengthTerm
-#                grad[jbonds] += -lengthTerm
-                for icount,ibond in enumerate(ibonds):
-                    grad[ibond] += lengthTerm[icount]
-                for jcount,jbond in enumerate(jbonds):
-                    grad[jbond] += -lengthTerm[jcount]
+                np.add.at(grad, ibonds, lengthTerm)
+                np.add.at(grad, jbonds, -lengthTerm)
                 
             grad_funcs.append(grad_lengths)
                 
@@ -411,15 +407,9 @@ class Molecule:
                 dudri =  uTerm[:,None]*dtdri
                 dudrj = -uTerm[:,None]*(dtdri + dtdrk)
                 dudrk =  uTerm[:,None]*dtdrk
-#                grad[iangles] += dudri
-#                grad[jangles] += dudrj
-#                grad[kangles] += dudrk
-                for icount,iangle in enumerate(iangles):
-                    grad[iangle] += dudri[icount]
-                for jcount,jangle in enumerate(jangles):
-                    grad[jangle] += dudrj[jcount]
-                for kcount,kangle in enumerate(kangles):
-                    grad[kangle] += dudrk[kcount]
+                np.add.at(grad, iangles, dudri)
+                np.add.at(grad, jangles, dudrj)
+                np.add.at(grad, kangles, dudrk)
                 
             grad_funcs.append(grad_angles)
                 
