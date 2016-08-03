@@ -46,9 +46,9 @@ class Minimizer:
         
     def __call__(self, molecule):
         if self.numgrad:
-            grad_routine = molecule.define_gradient_routine()
+            grad_routine = molecule.define_gradient_routine_numerical()
         else:
-            grad_routine = molecule.define_gradient_routine2()
+            grad_routine = molecule.define_gradient_routine_analytical()
         descentDict[self.descent](molecule, self.n, searchDict[self.search], molecule.define_energy_routine(),
                                   grad_routine, self.efreq, self.nbnfreq,
                                   self.eprec*molecule.ff.eunits, self.fprec*molecule.ff.eunits/molecule.ff.lunits)

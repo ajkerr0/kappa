@@ -53,15 +53,17 @@ def load(name):
     """Load a pickled molecule given a name"""
     return pickle.load(open(save_dir+name+"/mol.p", "rb"))
     
-def _calculate_hessian(molecule):
+def _calculate_hessian(molecule, numgrad=False):
     """Return the Hessian matrix for the given molecule after calculation."""
     
     N = len(molecule)
     
     H = np.zeros([3*N,3*N])
     
-#    calculate_grad = molecule.define_gradient_routine()
-    calculate_grad = molecule.define_gradient_routine2()
+    if numgrad:
+        calculate_grad = molecule.define_gradient_routine_numerical()
+    else:
+        calculate_grad = molecule.define_gradient_routine_analytical()
     
     for i in range(N):
         

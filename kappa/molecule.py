@@ -142,7 +142,7 @@ class Molecule:
         nbnList = []
         for i, ipos in enumerate(self.posList):
             for j in [j for j in range(len(self)) if j > i]:
-                if np.linalg.norm(ipos-self.posList[j]) < (cutoff + .5) and j not in self.nList[i]:
+                if np.linalg.norm(ipos-self.posList[j]) < (cutoff + 2.) and j not in self.nList[i]:
                     nbnList.append([i,j])
         self.nbnList = np.array(nbnList)
         
@@ -328,7 +328,7 @@ class Molecule:
                 
         return calculate_e    
         
-    def define_gradient_routine(self):
+    def define_gradient_routine_numerical(self):
         """Return the function that would calculate the gradients (negative forces)
         of the atoms in the molecule instance."""
         #this will change if analytical gradients get implemented
@@ -373,7 +373,7 @@ class Molecule:
             
         return calculate_grad
         
-    def define_gradient_routine2(self):
+    def define_gradient_routine_analytical(self):
         """Return the function that would calculate the gradients (negative forces)
         of the atoms; calculated analytically"""
         
