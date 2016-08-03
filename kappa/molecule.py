@@ -636,31 +636,16 @@ def build_benzene_block(ff, name=""):
     
     return bblock
     
-def build_mullen(ff, count=4, name="mullen"):
+def build_c4s(ff, count=4, name="c4s"):
     
-    from .lattice.mullen import main as lattice
-    posList, nList, zList = lattice()
-    posList = np.array(posList)
-    
-    unit = Molecule(ff, name, posList, nList, zList)
-    
-    angle = 2.*np.pi/count
-    norm = np.array([np.cos(angle), 0., np.sin(angle)])
-    Interface([10,11], norm, unit)
-    Interface([12,13], [-1.,0.,0.,], unit)
-    
-    molList = [unit]
-    indexList = []
-    for i in range(count-1):
-        molList.append(unit)
-        indexList.append((10,12))
-        
-    from .operation import chain
-    return chain(molList,indexList)
-        
-        
-    
-    
+     from .lattice.c4s import main as lattice
+     posList,nList,zList = lattice(count)
+     posList = np.array(posList)
+     
+     mol = Molecule(ff, name, posList, nList, zList)
+     mol._configure()
+     
+     return mol
         
 def build_ch(ff, name="CH"):
     
