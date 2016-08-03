@@ -160,6 +160,7 @@ def _combine(oldMolecule1,oldMolecule2,index1,index2, nextIndex1, face1, face2, 
         if dot > 0.:
             #flip the molecule
             molecule2.invert()
+            pass
     else:
         angle = np.degrees(np.arcsin(mag))
         molecule2.rotate(axis,angle)
@@ -307,16 +308,16 @@ def chain(molList, indexList, name=""):
     if not name:
         name = molList[0].name
     molChain.name = name
-    molChain._configure()
+#    molChain._configure()
         
     return molChain
     
-def calculate_thermal_conductivity(mol):
+def calculate_thermal_conductivity(mol, d1, d2):
     
     gamma = 0.1
     
     #driven atoms
-    drive1, drive2 = 145,75
+    drive1, drive2 = d1, d2
 #    drive1, drive2 = 1,2
     
 #    kMatrix = hessian(mol)
