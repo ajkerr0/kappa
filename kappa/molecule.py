@@ -366,9 +366,6 @@ class Molecule:
             magList = np.sqrt(np.hstack(gradient)*np.hstack(gradient))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print('numgrad')
-#            print(gradient)
-            
             return gradient, maxForce, totalMag
             
         return calculate_grad
@@ -435,15 +432,15 @@ class Molecule:
                 dwdrl = -cross23*-rkj/(np.linalg.norm(cross23, axis=1)**2)
                 dwdrj = (dotijkj - np.ones(len(rkj)))*dwdri - dotklkj*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))*dwdrl - dotijkj*dwdri
-                uTerm = -self.nn*self.vn*np.sin(self.nn*omega - self.gn)
+                uTerm = -(180./np.pi)*self.nn*self.vn*np.sin(self.nn*omega - self.gn)
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
                 dudrk = uTerm[:,None]*dwdrk
                 dudrl = uTerm[:,None]*dwdrl
-                grad[idih] += dudri
-                grad[jdih] += dudrj
-                grad[kdih] += dudrk
-                grad[ldih] += dudrl
+                np.add.at(grad, idih, dudri)
+                np.add.at(grad, jdih, dudrj)
+                np.add.at(grad, kdih, dudrk)
+                np.add.at(grad, ldih, dudrl)
                 
             grad_funcs.append(grad_dihs)
             
@@ -455,8 +452,8 @@ class Molecule:
                 rij = np.linalg.norm(posij, axis=1)
                 rTerm = ((self.rvdw0[ipairs] + self.rvdw0[jpairs])/rij)**6
                 ljTerm = 12.*np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm - rTerm**2)*posij/rij/rij
-                grad[ipairs] += ljTerm
-                grad[jpairs] += -ljTerm
+                np.add.at(grad, ipairs, ljTerm)
+                np.add.at(grad, jpairs, -ljTerm)
                 
             grad_funcs.append(grad_lj)
                 
@@ -467,7 +464,6 @@ class Molecule:
             magList = np.sqrt(np.hstack(grad)*np.hstack(grad))
             maxForce = np.amax(magList)
             totalMag = np.linalg.norm(magList)
-#            print(grad)
             return grad, maxForce, totalMag
             
         return calculate_grad
