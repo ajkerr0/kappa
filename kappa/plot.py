@@ -105,6 +105,7 @@ def bonds3d(molecule, sites=False, indices=False):
             ax.text(x+ds,y+ds,z+ds,str(index),color="blue")           
     
     fig.suptitle(figTitle, fontsize=18)
+    ax.grid(False)
     ax.set_xlim3d(-plotSize,plotSize)
     ax.set_ylim3d(-plotSize,plotSize)
     ax.set_zlim3d(-plotSize,plotSize)
