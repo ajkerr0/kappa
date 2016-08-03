@@ -11,6 +11,7 @@ import csv
 import numpy as np
 
 #SEE BELOW
+prmFile = "amber99_kerr_edit"
 
 def parse():
     
@@ -47,7 +48,7 @@ def parse():
     
     path = os.path.dirname(os.path.abspath(__file__))
     
-    reader = csv.reader(open("%s/amber99.prm" % (path)), delimiter=" ", skipinitialspace=True)
+    reader = csv.reader(open("%s/%s.prm" % (path, prmFile)), delimiter=" ", skipinitialspace=True)
     
     for line in reader:
         
