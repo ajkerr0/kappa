@@ -632,10 +632,10 @@ def build_benzene_block(ff, name=""):
     
     return bblock
     
-def build_c4s(ff, count=4, name="c4s"):
+def build_c4s(ff, count=4, length=1, name="c4s"):
     
      from .lattice.c4s import main as lattice
-     posList,nList,zList = lattice(count)
+     posList,nList,zList = lattice(count, length)
      posList = np.array(posList)
      
      mol = Molecule(ff, name, posList, nList, zList)

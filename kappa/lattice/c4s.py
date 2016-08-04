@@ -8,20 +8,20 @@ Created on Tue Aug 02 22:31:39 2016
 import numpy as np
 import copy
 
-def main(count):
+def main(count, length):
     
-    posList, zList = get_sites(count)
+    a = 1.40
     
-    nList = find_neighbors(posList)
+    posList, zList = get_sites(a, count, length)
+    
+    nList = find_neighbors(a, posList)
     
     return posList,nList,zList
     
-def get_sites(count):
+def get_sites(a, count, length):
     
-    a = 1.40
     a1 = a1 = a*np.array([1.,0.,0.])
     a2 = a*np.array([-.5,np.sqrt(3.)*.5,0.])
-    angle = 2.*np.pi/count
     
     pos0 = a*np.array([0.,0.,0.])
     pos1 = pos0 + a1
@@ -34,39 +34,32 @@ def get_sites(count):
     pos9 = pos7 + a2
     pos8 = pos9 - a1
     
-    pos10 = pos3 + a1
-    pos11 = pos7 + a1
-    pos12 = pos2 - a1
-    pos13 = pos6 - a1
+    pos10 = pos2 - a1
+    pos11 = pos6 - a1
     
     unitpos = np.array([pos0,pos1,pos2,pos3,pos4,pos5,
                       pos6,pos7,pos8,pos9,
-                      pos10,pos11,pos12,pos13])
-    unitz = np.array([6,6,6,6,6,6,6,6,6,6,16,16,16,16])
+                      pos10,pos11])
+    unitz = np.array([6,6,6,6,6,6,6,6,6,6,16,16])
     
-    axis = np.array([0.,1.,0.])
+    xShift = 4.*a*np.array([1.,0.,0.])
+    yShift = 2.*a*np.sqrt(3.)*np.array([0.,1.,0.])
     
     totalpos = unitpos
     totalz = unitz
     
-    if count == 4:
+    for i in range(1,count):
         
-        #left side
-        newpos = copy.deepcopy(unitpos)
-        newpos = rotate(newpos, axis, -90.)
-        newpos = translate(newpos, -newpos[10]+unitpos[12])
-        totalpos = np.concatenate((totalpos,newpos))
-        totalz = np.concatenate((totalz,unitz))
+        totalpos = np.concatenate((totalpos, unitpos + i*xShift))
+        totalz = np.concatenate((totalz, unitz))
         
-        #right side
-        newpos = translate(newpos, 4.*a*np.array([1.,0.,0.]))
-        totalpos = np.concatenate((totalpos,newpos))
-        totalz = np.concatenate((totalz,unitz))
+    newUnitPos = totalpos
+    newUnitZ = totalz
         
-        #bottom side
-        newpos = translate(unitpos, -4.*a*np.array([0.,0.,1.]))
-        totalpos = np.concatenate((totalpos,newpos))
-        totalz = np.concatenate((totalz,unitz))
+    for i in range(1,length):
+        
+        totalpos = np.concatenate((totalpos, newUnitPos + i*yShift))
+        totalz = np.concatenate((totalz, newUnitZ))
         
     #eliminate 'double' atoms
     deleteList = []
@@ -78,30 +71,17 @@ def get_sites(count):
     totalpos = np.delete(totalpos, deleteList, axis=0)
     totalz = np.delete(totalz, deleteList)
     
-    print(len(totalpos))
-        
-    return totalpos, totalz
-        
+    curledPos = curl(a, totalpos)
+         
+    return curledPos, totalz
     
-#    hookPos = unitpos[10]
-#    
-#    for i in range(count-1):
-#        nextPos = copy.deepcopy(unitpos)
-#        unitpos = nextPos
-#        nextPos = rotate(nextPos, axis, angle)
-#        nextPos = translate(nextPos, nextPos[10]-hookPos)
-#        totalpos = np.concatenate((totalpos,nextPos))
-#        totalz = np.concatenate((totalz,unitz))
-#        
-#    return totalpos,totalz
-    
-def find_neighbors(posList):
+def find_neighbors(a, posList):
     
     nList = []
     for i,ipos in enumerate(posList):
         innerList = []
         for j,jpos in enumerate(posList):
-            if np.linalg.norm(ipos-jpos) < 1.40 + .1 and i != j :
+            if np.linalg.norm(ipos-jpos) < a + .1 and i != j :
                 innerList.append(j)
         nList.append(innerList)
         
@@ -124,3 +104,17 @@ def rotate(posList, axis, angle):
                        [uz*ux*(1.-cos)-uy*sin, uz*uy*(1.-cos)+ux*sin, cos+uz*uz*(1.-cos)]])              
     #rotate points
     return np.transpose(np.dot(rotMat,np.transpose(posList)))
+    
+def curl(a, posList):
+    """Return the curled positions; in a tube."""
+    
+    maxX = np.amax(posList[:,0])
+    minX = np.amin(posList[:,0])
+    
+    circum = maxX - minX + a
+    radius = circum/2./np.pi
+    
+    theta = 2*np.pi*(posList[:,0]-np.ones(len(posList))*minX)/circum
+    
+    return np.transpose(np.array([radius*np.cos(theta),posList[:,1],radius*np.sin(theta)]))
+    
