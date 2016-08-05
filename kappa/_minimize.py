@@ -13,11 +13,14 @@ import numpy as np
 
 EP = sys.float_info.epsilon
 SQRTEP = EP**.5
-
-class Minimizer:
-    """A energy minimizer for Molecules
+                                  
+def minimize(mol, n, descent="cg", search="backtrack", numgrad=False,
+             eprec=1e-2, fprec=1e-2,
+             efreq=10, nbnfreq=15):
+    """Minimize the energy of the inputted molecule.
     
     Args:
+        mol (Molecule): Molecule to be energy-minimized.
         n (int): Max number of iterations in minimization run(s).
     Keywords:
         descent (str): Method in which the local energy minimum will be approached;
@@ -32,26 +35,13 @@ class Minimizer:
         efreq (int): Iteration period in which information is printed to the user;
             called frequency despite being inverse frequency."""
     
-    def __init__(self, n, descent="cg", search="backtrack", 
-                 numgrad=False, eprec=1e-5, fprec=1e-3,
-                 efreq=1, nbnfreq=15):
-        self.n = n
-        self.descent = descent
-        self.search = search
-        self.numgrad = numgrad
-        self.eprec = eprec
-        self.fprec = fprec
-        self.efreq =  efreq
-        self.nbnfreq = nbnfreq
+    if numgrad:
+        grad_routine = mol.define_gradient_routine_numerical()
+    else:
+        grad_routine = mol.define_gradient_routine_analytical()
         
-    def __call__(self, molecule):
-        if self.numgrad:
-            grad_routine = molecule.define_gradient_routine_numerical()
-        else:
-            grad_routine = molecule.define_gradient_routine_analytical()
-        descentDict[self.descent](molecule, self.n, searchDict[self.search], molecule.define_energy_routine(),
-                                  grad_routine, self.efreq, self.nbnfreq,
-                                  self.eprec*molecule.ff.eunits, self.fprec*molecule.ff.eunits/molecule.ff.lunits)
+    descentDict[descent](mol, n, searchDict[search], mol.define_energy_routine(), grad_routine,
+                         efreq, nbnfreq, eprec*mol.ff.eunits, fprec*mol.ff.eunits/mol.ff.lunits)
         
 def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
     """Minimize the energy of the inputted molecule via the steepest descent approach."""
