@@ -67,7 +67,7 @@ def bonds(molecule, faces=True, ftrack=False, sites=False):
     
     plt.show()
 
-def bonds3d(molecule, sites=False, indices=False):
+def bonds3d(molecule, sites=False, indices=False, save=False):
     """Draw the molecule's bonds
     Keywords:
         sites (bool): Set True to draw atomic sites.  Default is False.
@@ -106,12 +106,16 @@ def bonds3d(molecule, sites=False, indices=False):
     
     fig.suptitle(figTitle, fontsize=18)
     ax.grid(False)
+    ax._axis3don = False
     ax.set_xlim3d(-plotSize,plotSize)
     ax.set_ylim3d(-plotSize,plotSize)
     ax.set_zlim3d(-plotSize,plotSize)
     ax.set_xlabel('x-position' + ' (' + r'$\AA$' + ')')
     ax.set_ylabel('y-position' + ' (' + r'$\AA$' + ')')
     ax.set_zlabel('z-position' + ' (' + r'$\AA$' + ')')
+    
+    if save:
+        plt.savefig("./kappa_save/%s.png" % molecule.name)
     
     plt.show()
     
