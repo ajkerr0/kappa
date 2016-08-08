@@ -28,10 +28,10 @@ class Calculation:
         
         from .operation import _combine
         for mol, index in zip(molList,indexList):
-            for count, face in enumerate(self.faces):
+            for count, face in enumerate(self.base.faces):
                 if index in face.atoms:
                     iface = count
-            newTrial,_ = _combine(self, mol, index, 0, 0, iface, 0, copy=False)
+            newTrial,_ = _combine(self.base, mol, index, 0, 0, iface, 0)
         newTrial._configure()
         self.trialList.append(newTrial)
         return newTrial
@@ -44,8 +44,9 @@ def calculate_thermal_conductivity(mol, d1, d2):
     drive1, drive2 = d1, d2
 #    drive1, drive2 = 1,2
     
-#    kMatrix = hessian(mol)
-    kMatrix = _calculate_fake_K_matrix(len(mol), 1., mol.nList)
+    from .operation import hessian
+    kMatrix = hessian(mol)
+#    kMatrix = _calculate_fake_K_matrix(len(mol), 1., mol.nList)
     
     gMatrix = _calculate_gamma_mat(len(mol),gamma, drive1, drive2)
     
@@ -54,6 +55,7 @@ def calculate_thermal_conductivity(mol, d1, d2):
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
+    
     
     def _calculate_power(i,j):
         
