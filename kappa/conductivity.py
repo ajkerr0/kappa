@@ -28,10 +28,7 @@ class Calculation:
         
         from .operation import _combine
         for mol, index in zip(molList,indexList):
-            for count, face in enumerate(self.base.faces):
-                if index in face.atoms:
-                    iface = count
-            newTrial,_ = _combine(self.base, mol, index, 0, 0, iface, 0)
+            newTrial = _combine(self.base, mol, index, 0, copy=True)
         newTrial._configure()
         self.trialList.append(newTrial)
         return newTrial
