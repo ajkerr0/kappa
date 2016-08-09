@@ -91,7 +91,7 @@ class Molecule:
         openList = []
         for face in self.faces:
             openList.extend([x for x in face.atoms if x not in face.closed])
-        ch = build_ch(self.ff)
+        ch = build_ch(self.ff, bond=False)
         #populate indexList
         indexList = []
         for openatom in openList:
@@ -99,10 +99,7 @@ class Molecule:
         from .operation import _combine
         for pair in indexList:
             i,j = pair
-            for count,face in enumerate(self.faces):
-                if i in face.atoms:
-                    iface = count
-            _,_ = _combine(self, ch, i, j, 0,iface,0,copy=False)
+            self = _combine(self, ch, i, j, copy=False)
         self._configure()
         return self
             
@@ -646,10 +643,13 @@ def build_c4s(ff, count=4, length=1, name=""):
      
      return mol
         
-def build_ch(ff, name="CH"):
+def build_ch(ff, bond=True, name="CH"):
     
     posList = np.array([[0.,0.,0.], [1.15,0.,0.]])
-    nList = [[1],[0]]
+    if bond:
+        nList = [[1],[0]]
+    else:
+        nList = [[],[]]
     ch = Molecule(ff, name, posList, nList, np.array([6,1]))
 
     Interface([0], np.array([-1.,0.,0.]), ch)    
