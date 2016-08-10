@@ -85,7 +85,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
             mol2.nList[index] = newNList
             
     #adjust face attached lists
-    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1.attached], range(size1, size2-1)))
+    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1.attached], np.arange(size1, size2-1)))
             
     #delete single atom interfaces
     if len(mol1.faces[face1].atoms) == 1:
