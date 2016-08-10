@@ -34,7 +34,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
     mol2 = deepcopy(mol2)
     
     #regularly referenced quantities
-    size1 = len(mol1)
+    size1, size2 = len(mol1), len(mol2)
     pos1, pos2 = mol1.posList, mol2.posList
     z1, z2 = mol1.zList, mol2.zList
             
@@ -61,11 +61,10 @@ def _combine(mol1, mol2, index1, index2, copy=True):
     else:
         angle = np.degrees(np.arcsin(mag))
         mol2.rotate(axis,angle)
-    #shift mol2 into position via translation
+    #translate mol2 into position
     mol2.translate(pos1[index1] - pos2[index2])
     
-    #adjust molecule attributes
-    #neighbors
+    #adjust molecule neighbors
     for neighbor in mol2.nList[index2]:
         if neighbor > index2:
             mol1.nList[index1].append(neighbor + size1 - 1)
@@ -85,6 +84,9 @@ def _combine(mol1, mol2, index1, index2, copy=True):
                     newNList.append(neighbor + size1)
             mol2.nList[index] = newNList
             
+    #adjust face attached lists
+    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1.attached], range(size1, size2-1)))
+            
     #delete single atom interfaces
     if len(mol1.faces[face1].atoms) == 1:
         del mol1.faces[face1]
@@ -95,6 +97,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
     for count, face in enumerate(mol2.faces):
         newAtoms = []
         newClosed = []
+        newAttached = []
         for oldatom in face.atoms:
             if oldatom == index2:
                 newIndex = index1
@@ -104,9 +107,12 @@ def _combine(mol1, mol2, index1, index2, copy=True):
                 newIndex = oldatom + size1
             newAtoms.append(newIndex)
             if oldatom in face.closed:
-                newClosed.append(newIndex)                
+                newClosed.append(newIndex)
+            if oldatom in face.attached:
+                newAttached.append(newIndex)
         face.atoms = newAtoms
         face.closed = newClosed
+        face.attached = np.array(newAttached)
         mol1.faces.append(face)
     
     #complete new molecule
