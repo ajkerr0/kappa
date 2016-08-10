@@ -21,15 +21,23 @@ class Calculation:
         else:
             raise ValueError("A base molecule with 2 interfaces is needed!")
         self.trialList = []
+        self.driverList = []
             
     def add(self, molList, indexList):
         """Append a trial molecule to self.trialList with enhancements 
         from molList attached to atoms in indexList"""
         
         from .operation import _combine
+        dList = [[],[]]
         for mol, index in zip(molList,indexList):
+            #find faces of index
+            for count, face in enumerate(self.base.faces):
+                if index in face.atoms:
+                    face1 = count
             newTrial = _combine(self.base, mol, index, 0, copy=True)
+            dList[face1].append(mol.driver)
         newTrial._configure()
+        self.driverList.append(dList)
         self.trialList.append(newTrial)
         return newTrial
         

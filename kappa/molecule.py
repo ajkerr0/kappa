@@ -7,6 +7,8 @@ Created on Mon Mar 21 13:09:30 2016
 Define the Molecule class and a set of functions that `build' preset molecules.
 """
 
+import random
+
 import numpy as np
 
 from . import package_dir
@@ -552,6 +554,9 @@ def build_amine(ff, name=""):
     
     Interface([0], np.array([0.,-1.,0.]), amine)
     
+    #select one of the H's to be a driver at random
+    amine.driver = random.randint(2,3)
+    
     return amine
         
 def build_imine_chain(ff, name="", count=1):
@@ -575,6 +580,10 @@ def build_imine_chain(ff, name="", count=1):
     
     from .operation import chain
     imineChain = chain(molList,indexList)
+    
+    #select a H to be a preferred driver; one of the far-right hydrogens selected at random
+    size = len(imineChain)
+    imineChain.driver = random.choice([size-1, size-3, size-4]) 
     
     return imineChain
     
@@ -625,7 +634,7 @@ def build_benzene_block(ff, name=""):
     bblock = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), bblock)
-    Interface([5], np.array([1.,0.,0.]), bblock)    
+    Interface([5], np.array([1.,0.,0.]), bblock)
     
     return bblock
     
