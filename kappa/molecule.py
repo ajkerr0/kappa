@@ -489,7 +489,6 @@ class Interface():
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
         self.closed = []
         self.attached = np.array([])
-        self.path = [len(mol.faces)]
         mol.faces.append(self)
         
 def build_graphene(ff, name="", radius=3):
