@@ -1,172 +1,112 @@
 # -*- coding: utf-8 -*-
 """
+Created on Tue Mar 22 17:52:49 2016
 
-@author: Alex
+@author: Alex Kerr
 
+Define a set of operations for use on Molecule objects that we don't want being methods.
 """
 
+import os
+import errno
 from copy import deepcopy
+import pickle
 
 import numpy as np
 
-def _combine(mol1, mol2, index1, index2, copy=True):
-    """Return a single molecule which is the combination of input molecules.  If nextIndex1 is not
-    None, also return the next index1 in the chain process in a tuple.
-    
-    Args:
-        mol1 (Molecule): Base molecule to be combined whose indexing will be
-            carried over into the new molecule.
-        mol2 (Molecule): Molecule to be effectively attached to mol1.
-        index1 (int): The atomic index of mol1 in which mol2 will be attached.
-        index2 (int): The atomic index of mol2 that will become index1 of the new molecule.
-        
-    Keywords:
-        copy (bool): True if the new molecule is to be a new Molecule instance, False if
-            the new olecule is to be an altered mol1.  Default is True."""
+#change in position for the finite difference equations
+ds = 1e-6
+dx = ds
+dy = ds
+dz = ds
+
+vdx = np.array([dx,0.0,0.0])
+vdy = np.array([0.0,dy,0.0])
+vdz = np.array([0.0,0.0,dz])
+           
+save_dir = "./kappa_save/"
+
+def _path_exists(path):
+    """Make a path if it doesn't exist"""
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
             
-    #check validity of parameters
-    if mol1.zList[index1] != mol2.zList[index2]:
-        raise ValueError("Molecules must be joined at atoms of the same atomic number")
+def _file_exists(path):
+    """Return True if file path exists, False otherwise"""
+    return os.path.isfile(path)
+
+def save(molecule):
+    """Save a pickled molecule into /kerrNM/systems/"""
+    path = save_dir + molecule.name
+    _path_exists(path)
+    pickle.dump(molecule, open( path + "/mol.p", "wb" ) )
     
-    #create new instance if copy is true        
-    if copy is True:
-        mol1 = deepcopy(mol1)
-    mol2 = deepcopy(mol2)
+def load(name):
+    """Load a pickled molecule given a name"""
+    return pickle.load(open(save_dir+name+"/mol.p", "rb"))
     
-    #regularly referenced quantities
-    size1, size2 = len(mol1), len(mol2)
-    pos1, pos2 = mol1.posList, mol2.posList
-    z1, z2 = mol1.zList, mol2.zList
-            
-    #find faces of indices
-    for count, face in enumerate(mol1.faces):
-        if index1 in face.atoms:
-            face1 = count
-            norm1 = face.norm
-    for count, face in enumerate(mol2.faces):
-        if index2 in face.atoms:
-            face2 = count
-            norm2 = face.norm
-            
-    #change position of mol2 to put it in place
-    #rotate mol2
-    axis = np.cross(norm1, norm2)
-    mag = np.linalg.norm(axis)
-    if mag < 1e-10:
-        #check for parallel/anti-parallel
-        dot = np.dot(norm1, norm2)
-        if dot > 0.:
-            #flip the molecule
-            mol2.invert()
+def _calculate_hessian(molecule, numgrad=False):
+    """Return the Hessian matrix for the given molecule after calculation."""
+    
+    N = len(molecule)
+    
+    H = np.zeros([3*N,3*N])
+    
+    if numgrad:
+        calculate_grad = molecule.define_gradient_routine_numerical()
     else:
-        angle = np.degrees(np.arcsin(mag))
-        mol2.rotate(axis,angle)
-    #translate mol2 into position
-    mol2.translate(pos1[index1] - pos2[index2])
+        calculate_grad = molecule.define_gradient_routine_analytical()
     
-    #adjust molecule neighbors
-    for neighbor in mol2.nList[index2]:
-        if neighbor > index2:
-            mol1.nList[index1].append(neighbor + size1 - 1)
-        elif neighbor < index2:
-            mol1.nList[index1].append(neighbor + size1)
-        else:
-            raise ValueError("An atom can't neighbor itself")
-    for index, nList in enumerate(mol2.nList):
-        if index != index2:
-            newNList = []
-            for neighbor in nList:
-                if neighbor == index2:
-                    newNList.append(index1)
-                elif neighbor > index2:
-                    newNList.append(neighbor + size1 - 1)
-                else:
-                    newNList.append(neighbor + size1)
-            mol2.nList[index] = newNList
-            
-    #adjust face attached lists
-    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1].attached, np.arange(size1, size2-1)))
-            
-    #delete single atom interfaces
-    if len(mol1.faces[face1].atoms) == 1:
-        del mol1.faces[face1]
-    if len(mol2.faces[face2].atoms) == 1:
-        del mol2.faces[face2]
+    for i in range(N):
         
-    #add interfaces to base molecule
-    for count, face in enumerate(mol2.faces):
-        newAtoms = []
-        newClosed = []
-        newAttached = []
-        for oldatom in face.atoms:
-            if oldatom == index2:
-                newIndex = index1
-            elif oldatom > index2:
-                newIndex = oldatom + size1 - 1
-            else:
-                newIndex = oldatom + size1
-            newAtoms.append(newIndex)
-            if oldatom in face.closed:
-                newClosed.append(newIndex)
-            if oldatom in face.attached:
-                newAttached.append(newIndex)
-        face.atoms = newAtoms
-        face.closed = newClosed
-        face.attached = np.array(newAttached)
-        mol1.faces.append(face)
-    
-    #complete new molecule
-    #delete the merging atom of mol2
-    pos2 = np.delete(pos2, index2, 0)
-    z2 = np.delete(z2, index2, 0)
-    del mol2.nList[index2]
-    #add atoms to mol1
-    mol1.posList = np.concatenate((pos1,pos2), axis=0)
-    mol1.zList = np.concatenate((z1,z2), axis=0)
-    mol1.nList.extend(mol2.nList)
-    
-    return mol1
-    
-def chain(molList, indexList, name=None):
-    """Return a single molecule as the combination of the input molecules chained successively
-    
-    Args:
-        molList (list): List of molecules to be chained together.
-        indexList (list): List of tuples of the current indices of the [separated] molecules
-            to be chained.
-            
-    Keywords:
-        name (str): If not None, is to be the name of the complete returned molecule.  If None,
-            the name will be the same as the first molecule in molList"""
-            
-    if len(molList) != len(indexList)+1:
-        raise ValueError("There should be one more molecule than connections")
+        ipos = molecule.posList[i]
         
-    molChain = molList[0]
-    i,j = indexList[0]
+        ipos += vdx
+        plusXTestGrad,_,_ = calculate_grad()
+        ipos += -2.0*vdx
+        minusXTestGrad,_,_ = calculate_grad()
+        ipos += vdx + vdy
+        plusYTestGrad,_,_ = calculate_grad()
+        ipos += -2.0*vdy
+        minusYTestGrad,_,_ = calculate_grad()
+        ipos += vdy + vdz
+        plusZTestGrad,_,_ = calculate_grad()
+        ipos += -2.0*vdz
+        minusZTestGrad,_,_ = calculate_grad()
+        ipos += vdz
+        
+        xiRow = (plusXTestGrad - minusXTestGrad)/2.0/dx
+        yiRow = (plusYTestGrad - minusYTestGrad)/2.0/dy
+        ziRow = (plusZTestGrad - minusZTestGrad)/2.0/dz
+        
+        H[3*i    ] = np.hstack(xiRow)
+        H[3*i + 1] = np.hstack(yiRow)
+        H[3*i + 2] = np.hstack(ziRow)
+        
+    return H
     
-    for molNum, mol in enumerate(molList[1:]):
-        
-        if molNum+1 < len(indexList):
-            nextI = indexList[molNum+1][0]
-        else:
-            nextI = 0
-        j = indexList[molNum][1]
-        
-        sizei = len(molChain)
-        molChain = _combine(molChain, mol, i, j)
-        
-        if nextI > j:
-            i = nextI + sizei - 1
-        elif nextI < j:
-            i = nextI + sizei
-        #else i doesn't change
-            
-    if name is not None:
-        molChain.name = name
-        
-    return molChain
-        
-            
+def hessian(molecule):
+    """Return the Hessian for a molecule; if it doesn't exist calculate it otherwise load it
+    from the numpy format."""
+    path = save_dir + molecule.name
+    #check if path exists
+    _path_exists(path)
+    #if Hessian file exists then load it; otherwise calculate it and save it
+    if _file_exists(path + "/hessian.npy"):
+        print("Loading Hessian matrix from file...")
+        return np.load(path + "/hessian.npy")
+    else:
+        print("Calculating the Hessian matrix for " + molecule.name + "...")
+        H = _calculate_hessian(molecule)
+        print("Done!")
+        np.save(path + "/hessian.npy", H)
+        return H
     
-    
+def evecs(hessian):
+    """Return the eigenvalues and eigenvectors associated with a given Hessian matrix."""
+    w,vr = np.linalg.eig(hessian)
+    return w,vr
+        

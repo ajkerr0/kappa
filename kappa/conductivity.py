@@ -27,7 +27,7 @@ class Calculation:
         """Append a trial molecule to self.trialList with enhancements 
         from molList attached to atoms in indexList"""
         
-        from .operation import _combine
+        from .molecule import _combine
         dList = [[],[]]
         for mol, index in zip(molList,indexList):
             #find faces of index
@@ -43,13 +43,10 @@ class Calculation:
         minm(newTrial)
         return newTrial
         
-def calculate_thermal_conductivity(mol, d1, d2):
+def calculate_thermal_conductivity(mol, driverList):
     
+    #give each driver the same drag constant
     gamma = 0.1
-    
-    #driven atoms
-    drive1, drive2 = d1, d2
-#    drive1, drive2 = 1,2
     
     from .operation import hessian
     kMatrix = hessian(mol)

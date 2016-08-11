@@ -149,7 +149,7 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
     Armijo and Goldstein."""
     
     tau = 0.5
-    c = 0.75
+    c = 0.33
     alpha /= tau
     
     m = np.dot(np.hstack(stepList),np.hstack(grad))
