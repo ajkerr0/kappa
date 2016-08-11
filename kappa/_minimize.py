@@ -149,7 +149,7 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
     Armijo and Goldstein."""
     
     tau = 0.5
-    c = 0.5
+    c = 0.75
     alpha /= tau
     
     m = np.dot(np.hstack(stepList),np.hstack(grad))
@@ -171,7 +171,7 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
             alpha *= tau
             counter += 1
     
-    print('counter:  %s' % counter)        
+#    print('counter:  %s' % counter)        
     return EP
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}

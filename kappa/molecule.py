@@ -412,7 +412,6 @@ class Molecule:
         if self.ff.dihs:
             
             idih,jdih,kdih,ldih = self.dihList[:,0],self.dihList[:,1],self.dihList[:,2],self.dihList[:,3]
-            print('kek')
             def grad_dihs(grad):
                 posij = self.posList[idih] - self.posList[jdih]
                 poskj = self.posList[kdih] - self.posList[jdih]
@@ -420,17 +419,17 @@ class Molecule:
                 rkj = np.linalg.norm(poskj, axis=1)
                 cross12 = np.cross(-posij, poskj)
                 cross23 = np.cross(poskj, -poskl)
-                n1 = cross12/np.linalg.norm(cross12, axis=1)
-                n2 = cross23/np.linalg.norm(cross23, axis=1)
-                m1 = np.cross(n1, poskj/rkj)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)[:,None]
+                n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
+                m1 = np.cross(n1, poskj/rkj[:,None])
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.rad2deg(np.arctan2(y,x))
                 dotijkj = np.einsum('ij,ij->i',posij,poskj)/(rkj**2)
                 dotklkj = np.einsum('ij,ij->i',poskl,poskj)/(rkj**2)
-                dwdri = -cross12*rkj/(np.linalg.norm(cross12, axis=1)**2)
-                dwdrl = -cross23*-rkj/(np.linalg.norm(cross23, axis=1)**2)
-                dwdrj = (dotijkj - np.ones(len(rkj)))*dwdri - dotklkj*dwdrl
-                dwdrk = (dotklkj - np.ones(len(rkj)))*dwdrl - dotijkj*dwdri
+                dwdri = -cross12*(rkj/(np.linalg.norm(cross12, axis=1)**2))[:,None]
+                dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
+                dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
+                dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
                 uTerm = -(180./np.pi)*self.nn*self.vn*np.sin(self.nn*omega - self.gn)
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
