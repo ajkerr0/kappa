@@ -43,16 +43,19 @@ class Calculation:
         minm(newTrial)
         return newTrial
         
-def calculate_thermal_conductivity(mol, driverList):
+def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
     gamma = 0.1
     
+    #standardize the driverList
+    driverList = np.array(driverList)
+    
     from .operation import hessian
     kMatrix = hessian(mol)
-#    kMatrix = _calculate_fake_K_matrix(len(mol), 1., mol.nList)
+#    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
     
-    gMatrix = _calculate_gamma_mat(len(mol),gamma, drive1, drive2)
+    gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
     mMatrix = _calculate_mass_mat(mol.zList)
     
@@ -63,9 +66,9 @@ def calculate_thermal_conductivity(mol, driverList):
     
     def _calculate_power(i,j):
         
-        #driven atom
         #assuming same drag constant as other driven atom
-        driver = drive1
+#        driver0 = driverList[0]
+        driver1 = driverList[1]
         
         n = len(val)
         
@@ -76,72 +79,40 @@ def calculate_thermal_conductivity(mol, driverList):
         
         for idim in [0,1,2]:
             for jdim in [0,1,2]:
+                for driver in driver1:
         
-                term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-                        + np.tile(coeff[:, 3*driver + 2], (n,1))
-                term3 = np.tile(vec[3*i + idim,:], (n,1))
-                term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1))) 
-        
-                kappa += kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
+                    term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
+                            + np.tile(coeff[:, 3*driver + 2], (n,1))
+                    term3 = np.tile(vec[3*i + idim,:], (n,1))
+                    term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1))) 
+            
+                    kappa += kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
                 
         return kappa
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
-    
-    #determine interfaces
-    for count,face in enumerate(mol.faces):
-        if drive1 in face.atoms:
-            face1 = count
-        if drive2 in face.atoms:
-            face2 = count
-            
-    #determine interface path
-    for face in mol.faces:
-        #look for a path that contains both indices
-        if face1 in face.path and face2 in face.path:
-            path = face.path
-        else:
-            #the interfaces are on the 'root' mol
-            pass
-            #goig to assume every molecule i test uses meet this condition, for now
-            
-    #find all face paths that start at our interfaces
-    face1paths, face2paths = [], []
-    for face in mol.faces:
-        if face1 in face.path:
-            face1paths.append(face.path)
-        if face2 in face.path:
-            face2paths.append(face.path)
-            
-    #find all facetracking numbers used
-    tracknums1, tracknums2 = [], []
-    for path in face1paths:
-        tracknums1.append(path[-1])
-    for path in face2paths:
-        tracknums2.append(path[-1])
             
     #find all dihedral interactions that contain an enhancement atom and interface atom
+    #dihedral interactions exhaust all possible bond related interactions although if dihedrals are turned off 
+            #many terms will be zero
     #add them to pairings list
     interactions = []
-#    atoms = np.where(mol.facetrack in tracknums)
-#    print('check2')
-    atoms1 = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums1]
-    atoms2 = [i for i in range(len(mol)) if mol.facetrack[i] in tracknums2]
-#    print(tracknums)
-#    print(atoms)
-#    print('check3')
+    atoms0 = mol.faces[0].attached
+    atoms1 = mol.faces[1].attached
+    
+
     for dih in mol.dihList:
-        for atom in atoms1:
+        for atom in atoms0:
             if atom in dih:
-                #find the elements of facetrack -1 that are also in dih
+                #find elements that are part of the base molecule
                 #if there are any, then add them to interactions
-                elements = [x for x in dih if mol.facetrack[x] == -1]
+                elements = [x for x in dih if x < baseSize]
                 for element in elements:
                     interactions.append([atom, element])
-        for atom in atoms2:
+        for atom in atoms1:
             if atom in dih:
-                elements = [x for x in dih if mol.facetrack[x] == -1]
+                elements = [x for x in dih if x < baseSize]
                 for element in elements:
                     interactions.append([element, atom])
                     
@@ -150,9 +121,6 @@ def calculate_thermal_conductivity(mol, driverList):
     #remove duplicate interactions
     interactions.sort()
     interactions = list(k for k,_ in itertools.groupby(interactions))    
-                    
-    print('check4')
-    print(interactions)
                 
     kappa = 0.             
                 
@@ -161,6 +129,7 @@ def calculate_thermal_conductivity(mol, driverList):
         kappa += _calculate_power(i,j)
     
     print(kappa)
+    return kappa
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
@@ -213,10 +182,10 @@ def _calculate_mass_mat(zList):
     
     return np.diag(diagonal)
     
-def _calculate_gamma_mat(N,gamma, drive1, drive2):
+def _calculate_gamma_mat(N,gamma, driverList):
     
     gmat = np.zeros((3*N, 3*N))
-    driveList = [drive1, drive2]
+    driveList = np.hstack(driverList)
     
     for drive_atom in driveList:
         gmat[3*drive_atom  , 3*drive_atom  ] = gamma
@@ -225,7 +194,7 @@ def _calculate_gamma_mat(N,gamma, drive1, drive2):
         
     return gmat
     
-def _calculate_fake_K_matrix(N,k0,nLists):
+def _calculate_ballandspring_k_mat(N,k0,nLists):
     """Return the Hessian of a linear chain of atoms assuming only nearest neighbor interactions."""
     
     KMatrix = np.zeros([3*N,3*N])
