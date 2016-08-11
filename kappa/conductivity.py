@@ -39,6 +39,8 @@ class Calculation:
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
+        from ._minimize import minimize as minm
+        minm(newTrial)
         return newTrial
         
 def calculate_thermal_conductivity(mol, d1, d2):
