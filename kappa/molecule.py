@@ -519,7 +519,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
     
     #regularly referenced quantities
     size1, size2 = len(mol1), len(mol2)
-    pos1, pos2 = mol1.posList, mol2.posList
+    pos1 = mol1.posList
     z1, z2 = mol1.zList, mol2.zList
             
     #find faces of indices
@@ -546,7 +546,8 @@ def _combine(mol1, mol2, index1, index2, copy=True):
         angle = np.degrees(np.arcsin(mag))
         mol2.rotate(axis,angle)
     #translate mol2 into position
-    mol2.translate(pos1[index1] - pos2[index2])
+    #mol2 might have just rotated so need to find its position again
+    mol2.translate(pos1[index1] - mol2.posList[index2])
     
     #adjust molecule neighbors
     for neighbor in mol2.nList[index2]:
@@ -569,7 +570,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
             mol2.nList[index] = newNList
             
     #adjust face attached lists
-    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1].attached, np.arange(size1, size2-1)))
+    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1].attached, np.arange(size1, size1+size2-1)))
             
     #delete single atom interfaces
     if len(mol1.faces[face1].atoms) == 1:
@@ -601,7 +602,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
     
     #complete new molecule
     #delete the merging atom of mol2
-    pos2 = np.delete(pos2, index2, 0)
+    pos2 = np.delete(mol2.posList, index2, 0)
     z2 = np.delete(z2, index2, 0)
     del mol2.nList[index2]
     #add atoms to mol1
