@@ -6,6 +6,7 @@
 """
 
 import itertools
+from copy import deepcopy
 
 import numpy as np
 import scipy.linalg as linalg
@@ -42,19 +43,21 @@ class Calculation:
         from molList attached to atoms in indexList"""
         
         from .molecule import _combine
+        newTrial = deepcopy(self.base)
         dList = [[],[]]
         for mol, index in zip(molList,indexList):
             #find faces of index
             for count, face in enumerate(self.base.faces):
                 if index in face.atoms:
                     face1 = count
-            newTrial = _combine(self.base, mol, index, 0, copy=True)
+            newTrial = _combine(self.base, mol, index, 0, copy=False)
             dList[face1].append(mol.driver)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
-        from ._minimize import minimize as minm
-        minm(newTrial)
+        from ._minimize import minimize
+        minimize(newTrial, self.n, self.descent, self.search, self.numgrad,
+                 self.eprec, self.fprec, self.efreq, self.nbnfreq)
         return newTrial
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
