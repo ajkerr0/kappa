@@ -154,7 +154,7 @@ def face(molecule, facenum):
     for atom in face.atoms:
         plt.text(mol.posList[atom][0]+ds, mol.posList[atom][1]+ds, str(atom), color='blue')
     
-    fig.suptitle("Interface %s of Molecule %s" % (str(facenum), map(str, face.atoms)), fontsize=18)
+    fig.suptitle("Interface %s of %s" % (facenum, molecule), fontsize=18)
     plt.axis('equal')
     
     plt.show()
