@@ -15,11 +15,25 @@ amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
 
 class Calculation:
     
-    def __init__(self, base):
+    def __init__(self, base, n, descent="cg", search="backtrack", numgrad=False,
+                 eprec=1e-2, fprec=1e-1, efreq=10, nbnfreq=15):
         if len(base.faces) == 2:
             self.base = base
         else:
             raise ValueError("A base molecule with 2 interfaces is needed!")
+        #minimize the base molecule
+        from ._minimize import minimize
+        minimize(self.base, n, descent, search, numgrad, eprec, fprec, efreq, nbnfreq)
+        #assign minimization attributes
+        self.n = n
+        self.descent = descent
+        self.search = search
+        self.numgrad = numgrad
+        self.eprec = eprec
+        self.fprec = fprec
+        self.efreq = efreq
+        self.nbnfreq = nbnfreq
+        #other attributes
         self.trialList = []
         self.driverList = []
             
