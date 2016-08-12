@@ -64,7 +64,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec
         mol.posList += stepSize*(-gradient/totalMag)
         
         #reset nonbonded neighbors
-        if mol.ff.vdw:
+        if mol.ff.lj:
             if step % nbn == 0:
                 mol._configure_nonbonded_neighbors()
         
@@ -118,7 +118,7 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
         mol.posList += stepSize*(normH)
         
         #reset nonbonded neighbors
-        if mol.ff.vdw:
+        if mol.ff.lj:
             if step % nbn == 0:
                 mol._configure_nonbonded_neighbors()
         

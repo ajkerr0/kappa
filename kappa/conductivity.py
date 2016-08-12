@@ -50,7 +50,7 @@ class Calculation:
             for count, face in enumerate(self.base.faces):
                 if index in face.atoms:
                     face1 = count
-            newTrial = _combine(self.base, mol, index, 0, copy=False)
+            newTrial = _combine(newTrial, mol, index, 0, copy=False)
             dList[face1].append(mol.driver)
         newTrial._configure()
         self.driverList.append(dList)
