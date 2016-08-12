@@ -159,6 +159,9 @@ def face(molecule, facenum):
     
     plt.show()
     
+def faces(molecule):
+    for count in range(len(molecule.faces)):
+        face(molecule, count)
     
 def normal_modes(molecule,evec):
     """Draw a visualization of a normal mode of a molecule."""
