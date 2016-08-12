@@ -35,6 +35,7 @@ class Calculation:
         self.efreq = efreq
         self.nbnfreq = nbnfreq
         #other attributes
+        self.trialcount = 0
         self.trialList = []
         self.driverList = []
             
@@ -51,13 +52,19 @@ class Calculation:
                 if index in face.atoms:
                     face1 = count
             newTrial = _combine(newTrial, mol, index, 0, copy=False)
-            dList[face1].append(mol.driver)
+            #do minus 2 because 1 atom gets lost in combination
+            #and another to account to the 'start at zero' indexing
+            dList[face1].append(mol.driver + len(newTrial) - 4)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
         from ._minimize import minimize
         minimize(newTrial, self.n, self.descent, self.search, self.numgrad,
                  self.eprec, self.fprec, self.efreq, self.nbnfreq)
+        from .plot import bonds
+        newTrial.name = "%s_trial%s" % (newTrial.name, str(self.trialcount))
+        self.trialcount += 1
+        bonds(newTrial)
         return newTrial
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
@@ -102,8 +109,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                             + np.tile(coeff[:, 3*driver + 2], (n,1))
                     term3 = np.tile(vec[3*i + idim,:], (n,1))
                     term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1))) 
-            
-                    kappa += kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
+                    
+                    term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
+#                    print(term)
+                    kappa += term
+                    
                 
         return kappa
     
@@ -139,7 +149,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     interactions.sort()
     interactions = list(k for k,_ in itertools.groupby(interactions))    
                 
-    kappa = 0.             
+    kappa = 0.        
                 
     for interaction in interactions:
         i,j = interaction
