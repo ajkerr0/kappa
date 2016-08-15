@@ -51,10 +51,11 @@ class Calculation:
             for count, face in enumerate(self.base.faces):
                 if index in face.atoms:
                     face1 = count
+            sizetrial = len(newTrial)
             newTrial = _combine(newTrial, mol, index, 0, copy=False)
             #do minus 2 because 1 atom gets lost in combination
             #and another to account to the 'start at zero' indexing
-            dList[face1].append(mol.driver + len(newTrial) - 4)
+            dList[face1].append(mol.driver + sizetrial)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
@@ -111,7 +112,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                     term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1))) 
                     
                     term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
-#                    print(term)
+                    print(term)
                     kappa += term
                     
                 
