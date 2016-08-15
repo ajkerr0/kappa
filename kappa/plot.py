@@ -203,3 +203,22 @@ def normal_modes(molecule,evec):
 #    fig.savefig("fig_nm.png",transparent=False,bbox_inches='tight')
     
     plt.show()
+    
+def participation(mol):
+    """Plot the participation ratios of each normal mode as a function of their frequencies."""
+    
+    fig = plt.figure()
+    
+    from .operation import hessian, evecs
+    hess = hessian(mol)
+    val, vec = evecs(hess)
+    
+    num = np.sum((vec**2), axis=0)**2
+    den = len(vec)*np.sum(vec**4, axis=0)
+    
+    plt.scatter(val, num/den)
+    
+    fig.suptitle("Participation ratios of %s" % mol.name)
+    
+    plt.show()
+    
