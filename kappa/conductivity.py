@@ -68,6 +68,9 @@ class Calculation:
         bonds(newTrial)
         return newTrial
         
+    def calculate_kappa(self, trial):
+        calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
+        
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
@@ -76,8 +79,9 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #standardize the driverList
     driverList = np.array(driverList)
     
-    from .operation import hessian
-    kMatrix = hessian(mol)
+    from .operation import hessian, _calculate_hessian_matrix
+    kMatrix = _calculate_hessian_matrix(mol)
+#    kMatrix = hessian(mol)
 #    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
@@ -104,12 +108,14 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         
         for idim in [0,1,2]:
             for jdim in [0,1,2]:
+                
+                term3 = np.tile(vec[3*i + idim,:], (n,1))
+                term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
+                
                 for driver in driver1:
         
                     term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-                            + np.tile(coeff[:, 3*driver + 2], (n,1))
-                    term3 = np.tile(vec[3*i + idim,:], (n,1))
-                    term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1))) 
+                            + np.tile(coeff[:, 3*driver + 2], (n,1)) 
                     
                     term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
                     print(term)
