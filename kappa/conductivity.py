@@ -84,6 +84,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
     kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
+    ballandspring = True
     print(kMatrix)
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
@@ -135,34 +136,44 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #dihedral interactions exhaust all possible bond related interactions although if dihedrals are turned off 
             #many terms will be zero
     #add them to pairings list
-    interactions = []
+    crossings = []
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
+    
+    if mol.ff.dihs:
+        interactions = mol.dihList
+    elif mol.ff.angles:
+        interactions = mol.angleList
+    elif mol.ff.lengths:
+        interactions = mol.bondList
+        
+    if ballandspring:
+        interactions = mol.bondList
 
-    for dih in mol.dihList:
+    for it in interactions:
         for atom in atoms0:
-            if atom in dih:
+            if atom in it:
                 #find elements that are part of the base molecule
                 #if there are any, then add them to interactions
-                elements = [x for x in dih if x < baseSize]
+                elements = [x for x in it if x < baseSize]
                 for element in elements:
-                    interactions.append([atom, element])
+                    crossings.append([atom, element])
         for atom in atoms1:
-            if atom in dih:
-                elements = [x for x in dih if x < baseSize]
+            if atom in it:
+                elements = [x for x in it if x < baseSize]
                 for element in elements:
-                    interactions.append([element, atom])
+                    crossings.append([element, atom])
                     
     #add nonbonded interactions
                     
     #remove duplicate interactions
-    interactions.sort()
-    interactions = list(k for k,_ in itertools.groupby(interactions))    
+    crossings.sort()
+    crossings = list(k for k,_ in itertools.groupby(interactions))    
                 
     kappa = 0.      
                 
-    for interaction in interactions:
-        i,j = interaction
+    for crossing in crossings:
+        i,j = crossing
         kappa += _calculate_power(i,j)
     
     print(kappa)
