@@ -15,7 +15,7 @@ import pickle
 import numpy as np
 
 #change in position for the finite difference equations
-ds = 1e-6
+ds = 1e-5
 dx = ds
 dy = ds
 dz = ds

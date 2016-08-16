@@ -13,7 +13,7 @@ import scipy.linalg as linalg
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
-
+           
 class Calculation:
     
     def __init__(self, base, n, descent="cg", search="backtrack", numgrad=False,
@@ -55,7 +55,7 @@ class Calculation:
             newTrial = _combine(newTrial, mol, index, 0, copy=False)
             #do minus 2 because 1 atom gets lost in combination
             #and another to account to the 'start at zero' indexing
-            dList[face1].append(mol.driver + sizetrial)
+            dList[face1].append(mol.driver + sizetrial - 1)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
@@ -79,10 +79,12 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #standardize the driverList
     driverList = np.array(driverList)
     
-    from .operation import hessian, _calculate_hessian_matrix
-    kMatrix = _calculate_hessian_matrix(mol)
+    from .operation import hessian, _calculate_hessian
+#    kMatrix = _calculate_hessian(mol)
+#    print(kMatrix)
 #    kMatrix = hessian(mol)
-#    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
+    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
+    print(kMatrix)
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
@@ -91,7 +93,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
-    
     
     def _calculate_power(i,j):
         
@@ -110,18 +111,21 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
             for jdim in [0,1,2]:
                 
                 term3 = np.tile(vec[3*i + idim,:], (n,1))
+#                print(np.shape(term3))
                 term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
                 
+#                print("term3 %s" % term3)
+#                print("term4 %s" % term4)
+#                print(np.amax(term4))
                 for driver in driver1:
         
                     term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
                             + np.tile(coeff[:, 3*driver + 2], (n,1)) 
                     
                     term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
-                    print(term)
-                    kappa += term
+#                    print(term)
+                    kappa += term          
                     
-                
         return kappa
     
     #for each interaction that goes through the interface,
@@ -134,7 +138,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     interactions = []
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
-    
 
     for dih in mol.dihList:
         for atom in atoms0:
@@ -156,7 +159,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     interactions.sort()
     interactions = list(k for k,_ in itertools.groupby(interactions))    
                 
-    kappa = 0.        
+    kappa = 0.      
                 
     for interaction in interactions:
         i,j = interaction
