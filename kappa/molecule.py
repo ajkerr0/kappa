@@ -490,7 +490,7 @@ class Interface():
         #define interface position to be at the geometric center of its atoms
         self.pos = np.sum(mol.posList[np.array(atoms)], axis=0)/len(atoms)
         self.closed = []
-        self.attached = np.array([])
+        self.attached = np.array([], dtype=int)
         mol.faces.append(self)
         
 def _combine(mol1, mol2, index1, index2, copy=True):
@@ -570,7 +570,7 @@ def _combine(mol1, mol2, index1, index2, copy=True):
             mol2.nList[index] = newNList
             
     #adjust face attached lists
-    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1].attached, np.arange(size1, size1+size2-1)))
+    mol1.faces[face1].attached = np.concatenate((mol1.faces[face1].attached, np.arange(size1, size1+size2-1, dtype=int)))
             
     #delete single atom interfaces
     if len(mol1.faces[face1].atoms) == 1:
