@@ -47,7 +47,6 @@ class Molecule:
         self.nList = nList
         self.zList = np.array(zList)
         self.faces = []
-        self.facetrack = np.full(len(self), -1, dtype=np.int8)
         
     def __len__(self):
         return len(self.posList)

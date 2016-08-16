@@ -55,10 +55,6 @@ def bonds(molecule, faces=True, ftrack=False, sites=False):
             if np.linalg.norm(face.norm[:2]) > 0.0001:
                 plt.quiver(face.pos[0]+.5*face.norm[0], face.pos[1]+.5*face.norm[1], 5.*face.norm[0], 5.*face.norm[1],
                 color='r', headwidth=1, units='width', width=5e-3, headlength=2.5)
-                         
-    if ftrack:
-        for ft,pos in zip(molecule.facetrack, molecule.posList):
-            plt.annotate(ft, (pos[0]+.1, pos[1]+.1))
     
     fig.suptitle(figTitle, fontsize=18)
     plt.axis('equal')
