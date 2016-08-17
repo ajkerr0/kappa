@@ -187,7 +187,7 @@ class Molecule:
         
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
-        from .antechamber.atomtype import main
+        from .antechamber.atomtype.atomtype import main
         self.atomtypes = main(self)
         if "DU" in self.atomtypes:
             print("WARNING: Dummy atom was assessed during atomtype assignment.")
