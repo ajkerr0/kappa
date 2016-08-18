@@ -5,7 +5,11 @@ Design from: http://www.sciencedirect.com/science/article/pii/S1093326305001737
 @author: Alex Kerr
 """
 
+import csv
+
 import numpy as np
+
+from . import package_dir
 
 def main(mol):
     """Return the perceived bond types list for `mol`,
@@ -42,7 +46,20 @@ def main(mol):
 def bondtype(tps, mol):
     """Return all the combinations of valence states for the given tps."""
     
-    vstates = np.ones(len(mol))
+    file_ = "APS_kerr_edit.DAT"
+    
+    reader = csv.reader(open("%s/antechamber/bondtype/%s" % (package_dir, file_)), delimiter=" ")
+    lines = []
+    for line in reader:
+        #populate lineList
+        #this is because reader object cycles only once; was a surprising bug!
+        #there must be a better way to do this
+        lines.append(line)
+        
+    
+    
+    vstates = np.array([])
+    
     
     return vstates
     
