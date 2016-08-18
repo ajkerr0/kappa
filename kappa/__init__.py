@@ -18,6 +18,6 @@ from .forcefield import *
 from .conductivity import Calculation
 from .operation import *
 from ._minimize import minimize
-from .antechamber.atomtype import main as atomtype
+from .antechamber.atomtype.atomtype import main as atomtype
 from . import plot
 from .md.generate import *

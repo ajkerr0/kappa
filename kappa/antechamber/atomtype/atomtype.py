@@ -10,7 +10,7 @@ Rules are defined by 'ANTECHAMBER, AN ACCESSORY SOFTWARE PACKAGE FOR MOLECULE ME
 
 import csv
 import re
-from .. import package_dir
+from ... import package_dir
 
 nums = ["1", "2", "3", "4"]
 atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16], "Cl":[17], 
@@ -21,7 +21,7 @@ def main(molecule):
     
     file_ = molecule.ff.atomtypeFile
     
-    reader = csv.reader(open("%s/antechamber/%s" % (package_dir,file_)), delimiter=" ")
+    reader = csv.reader(open("%s/antechamber/atomtype/%s" % (package_dir,file_)), delimiter=" ")
     lines = []
     for line in reader:
         #populate lineList
