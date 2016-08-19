@@ -168,9 +168,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                     
     #remove duplicate interactions
     crossings.sort()
-    crossings = list(k for k,_ in itertools.groupby(interactions))    
+    crossings = list(k for k,_ in itertools.groupby(crossings))    
                 
-    kappa = 0.      
+    kappa = 0.
+    
+    print(crossings)
                 
     for crossing in crossings:
         i,j = crossing
