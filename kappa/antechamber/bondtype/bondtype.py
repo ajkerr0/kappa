@@ -55,11 +55,13 @@ def bondtype(tps, mol):
         #this is because reader object cycles only once; was a surprising bug!
         #there must be a better way to do this
         lines.append(line)
-        
-    
     
     vstates = np.array([])
-    
+    def dfs(index, vstate):
+        """A recursive function to fill `vstates` will all valence states
+        of total penalty score `tps`"""
+        atomicnum, con = mol.zList[index], len(mol.nList[index])
+        
     
     return vstates
     
@@ -69,3 +71,6 @@ def boaf(vstate):
     
     return False, None
     
+def parse_line(line,):
+    """Return True if"""
+    pass
