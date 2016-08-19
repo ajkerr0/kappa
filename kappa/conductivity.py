@@ -95,7 +95,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
     
-    def _calculate_power(i,j):
+    def _calculate_power(i,j, mullenTable):
         
         #assuming same drag constant as other driven atom
 #        driver0 = driverList[0]
@@ -125,6 +125,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                     
                     term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
 #                    print(term)
+                    mullenTable.append([i+idim,j+jdim,term])
                     kappa += term          
                     
         return kappa
@@ -173,11 +174,14 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     kappa = 0.
     
     print(crossings)
+    
+    mullenTable = []
                 
     for crossing in crossings:
         i,j = crossing
-        kappa += _calculate_power(i,j)
+        kappa += _calculate_power(i,j, mullenTable)
     
+    print(mullenTable)
     print(kappa)
     return kappa
     
