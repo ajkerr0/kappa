@@ -93,6 +93,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
+#    print(val)
+    
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
     
     def _calculate_power(i,j, mullenTable):
@@ -125,7 +127,9 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                     
                     term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
 #                    print(term)
-                    mullenTable.append([i+idim,j+jdim,term])
+#                    print(j)
+#                    print(3*j+jdim)
+                    mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                     kappa += term          
                     
         return kappa
@@ -181,6 +185,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         i,j = crossing
         kappa += _calculate_power(i,j, mullenTable)
     
+#    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
     print(mullenTable)
     print(kappa)
     return kappa
