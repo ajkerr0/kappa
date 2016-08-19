@@ -16,7 +16,7 @@ SQRTEP = EP**.5
                                   
 def minimize(mol, n, descent="cg", search="backtrack", numgrad=False,
              eprec=1e-2, fprec=1e-2,
-             efreq=10, nbnfreq=15):
+             efreq=1000, nbnfreq=15):
     """Minimize the energy of the inputted molecule.
     
     Args:
