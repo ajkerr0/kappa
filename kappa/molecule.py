@@ -104,6 +104,13 @@ class Molecule:
             self = _combine(self, ch, i, j, copy=False)
         self._configure()
         return self
+        
+    def _check_neighbors(self):
+        """Raise an error if Molecule's neighbor list is not symmetric."""
+        for index, nList in enumerate(self.nList):
+            for neighbor in nList:
+                if index not in self.nList[neighbor]:
+                    raise ValueError("Molecule's neighbor list needs to be symmetric")
             
     def _configure_topology_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
@@ -243,7 +250,9 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
+        print("Configuring...")
 #        print('Configuring bond topology...')
+        self._check_neighbors()
         self._configure_topology_lists()
         self._configure_nonbonded_neighbors()
 #        print('Configuring rings...').
