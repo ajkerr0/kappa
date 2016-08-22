@@ -7,6 +7,7 @@
 
 import itertools
 from copy import deepcopy
+import pprint
 
 import numpy as np
 import scipy.linalg as linalg
@@ -93,46 +94,14 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
-#    print(val)
-    
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
     
-    def _calculate_power_old(i,j, mullenTable):
-        
-        #assuming same drag constant as other driven atom
-#        driver0 = driverList[0]
-        driver1 = driverList[1]
-        
-        n = len(val)
-        
-        kappa = 0.
-        
-        val_sigma = np.tile(val, (n,1))
-        val_tau = np.transpose(val_sigma)
-        
-        for idim in [0,1,2]:
-            for jdim in [0,1,2]:
-                
-                term3 = np.tile(vec[3*i + idim,:], (n,1))
-#                print(np.shape(term3))
-                term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
-                
-#                print("term3 %s" % term3)
-#                print("term4 %s" % term4)
-#                print(np.amax(term4))
-                for driver in driver1:
-        
-                    term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-                            + np.tile(coeff[:, 3*driver + 2], (n,1)) 
-                    
-                    term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
-#                    print(term)
-#                    print(j)
-#                    print(3*j+jdim)
-                    mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
-                    kappa += term          
-                    
-        return kappa
+#    print(val)
+#    print(vec)
+#    print(coeff)
+    np.savetxt("./val.txt", val)
+    np.savetxt("./vec.txt", vec)
+    np.savetxt("./coeff.txt", coeff)
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
@@ -156,7 +125,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         interactions = mol.bondList
         
     #testing
-#    interactions = mol.angleList
+    interactions = mol.angleList
 
     for it in interactions:
         for atom in atoms0:
@@ -186,11 +155,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-#        kappa += _calculate_power_old(i,j, mullenTable)
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
-    print(mullenTable)
+#    write_to_txt(mullenTable)
+    pprint.pprint(mullenTable)
     print(kappa)
     return kappa
     
@@ -308,3 +277,8 @@ def _calculate_ballandspring_k_mat(N,k0,nLists):
             KMatrix[3*i+2,3*neighbor+2] = -k0
     
     return KMatrix
+    
+def write_to_txt(twodlist, name):
+    with open(name,'w') as f:
+        for x in zip(*twodlist):
+            f.write("{0}\t{1}\t{2}\t{3}\t{4}\n".format(*x))
