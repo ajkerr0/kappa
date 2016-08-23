@@ -157,12 +157,38 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+#        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
 #    write_to_txt(mullenTable)
     pprint.pprint(mullenTable)
     print(kappa)
+    return kappa
+    
+def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
+    
+    driver1 = driverList[1]    
+    
+    n = len(val)//2
+    
+    kappa = 0.
+    
+    for idim in [0,1,2]:
+        for jdim in [0,1,2]:
+            for driver in driver1:
+                term = 0.
+                for sigma in range(2*n):
+                    cosigma = coeff[sigma, 3*driver + 1] + coeff[sigma, 3*driver +2] + coeff[sigma, 3*driver]
+                    for tau in range(2*n):
+#                        print(val[sigma])
+#                        print(val[tau])
+                        cotau = coeff[tau, 3*driver] + coeff[tau, 3*driver+1] + coeff[tau, 3*driver+2]
+                        term += cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
+                term *= kMatrix[3*i + idim, 3*j + jdim]
+                mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
+                kappa += term
+            
     return kappa
     
 def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
