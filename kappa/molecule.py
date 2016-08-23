@@ -722,7 +722,8 @@ def build_amine(ff, name=""):
     Interface([0], np.array([0.,-1.,0.]), amine)
     
     #select one of the H's to be a driver at random
-    amine.driver = random.randint(2,3)
+#    amine.driver = random.randint(2,3)
+    amine.driver = 2
     
     return amine
         
