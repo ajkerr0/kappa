@@ -102,6 +102,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     np.savetxt("./val.txt", val)
     np.savetxt("./vec.txt", vec)
     np.savetxt("./coeff.txt", coeff)
+    print(np.shape(coeff))
+    print(np.shape(vec))
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
@@ -125,7 +127,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         interactions = mol.bondList
         
     #testing
-    interactions = mol.angleList
+#    interactions = mol.angleList
 
     for it in interactions:
         for atom in atoms0:
@@ -179,21 +181,19 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
         for jdim in [0,1,2]:
             
             term3 = np.tile(vec[3*i + idim,:], (n,1))
-#                print(np.shape(term3))
             term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
+#            term3 = np.tile(vec[:,3*i + idim], (n,1))
+#            term4 = np.tile(vec[:,3*j + jdim], (n,1))
             
-#                print("term3 %s" % term3)
-#                print("term4 %s" % term4)
-#                print(np.amax(term4))
             for driver in driver1:
     
                 term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-                        + np.tile(coeff[:, 3*driver + 2], (n,1)) 
+                        + np.tile(coeff[:, 3*driver + 2], (n,1))
+#                term1 = np.transpose(np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
+#                        + np.tile(coeff[:, 3*driver + 2], (n,1))) 
                 
                 term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
-#                    print(term)
-#                    print(j)
-#                    print(3*j+jdim)
+
                 mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                 kappa += term          
                 
