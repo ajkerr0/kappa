@@ -99,11 +99,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    print(val)
 #    print(vec)
 #    print(coeff)
-    np.savetxt("./val.txt", val)
-    np.savetxt("./vec.txt", vec)
-    np.savetxt("./coeff.txt", coeff)
-    print(np.shape(coeff))
-    print(np.shape(vec))
+#    np.savetxt("./val.txt", val)
+#    np.savetxt("./vec.txt", vec)
+#    np.savetxt("./coeff.txt", coeff)
+#    print(np.shape(coeff))
+#    print(np.shape(vec))
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
@@ -162,7 +162,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
 #    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
 #    write_to_txt(mullenTable)
-    pprint.pprint(mullenTable)
+#    pprint.pprint(mullenTable)
     print(kappa)
     return kappa
     

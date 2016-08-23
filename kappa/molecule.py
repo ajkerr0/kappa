@@ -192,6 +192,11 @@ class Molecule:
                 aromaticList.append(None)
         self.aromaticList = aromaticList
         
+    def _configure_bondtypes(self):
+        """Assign the bondtypes to the molecule instance."""
+        from .antechamber.bondtype.bondtype import main
+        self.bondtypes = main(self)
+        
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
         from .antechamber.atomtype.atomtype import main
@@ -250,7 +255,6 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
-        print("Configuring...")
 #        print('Configuring bond topology...')
         self._check_neighbors()
         self._configure_topology_lists()
@@ -259,7 +263,9 @@ class Molecule:
         self._configure_ring_lists()
 #        print('Configuring aromaticity...')
         self._configure_aromaticity()
-#        print('Configuring atomtypes...')
+#        print('Configuring bond types')
+        self._configure_bondtypes()
+#        print('Configuring atom types...')
         self._configure_atomtypes()
 #        print('Configuring forcefield parameters...')
         self._configure_parameters()
