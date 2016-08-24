@@ -23,43 +23,48 @@ def main(mol):
     #first we need to numerate the possible valences and respective penalty scores for each atom
     av = find_atomic_valences(mol)
     
-    print(av)
-    return av
+    vstates = np.array([])
     
-#    vstates = np.array([])
-#    
-#    while state_num < max_valence_state:
-#        
-#        #find states of given tps
-#        newstates = bondtype(tps, mol)
-#        
-#        #increment tps and state number
-#        tps += 1
-#        state_num += len(newstates)
-#        
-#    for vstate in vstates:
-#        
-#        match, b_order = boaf(vstate)
-#        
-#        if match:
-#            break
-#        
-#    #develop bond types from bond order
-#    b_types = b_order
-#        
-#    return b_types
+    while state_num < max_valence_state:
+        
+        #find states of given tps
+        newstates = bondtype(tps, av)
+        
+        vstates = np.concatenate((vstates, newstates),axis=0)
+        
+        #increment tps and state number
+        tps += 1
+        state_num += len(newstates)
+        
+    for vstate in vstates:
+        
+        match, b_order = boaf(vstate)
+        
+        if match:
+            break
+        
+    #develop bond types from bond order
+    b_types = b_order
+        
+    return b_types
     
-def bondtype(tps, mol):
+def bondtype(tps, av):
     """Return all the combinations of valence states for the given tps."""
     
-    vstates = np.array([])
-    def dfs(index, vstate):
+    vstates = []
+    
+    def dfs(index, vstate, runsum):
         """A recursive function to fill `vstates` will all valence states
         of total penalty score `tps`"""
-        atomicnum, con = mol.zList[index], len(mol.nList[index])
-        
+        newstate = vstate[:]
+        try:
+            for valence, ps in av[index]:
+                if ps+runsum <= tps:
+                    dfs(index+1, newstate, runsum+ps)
+        except IndexError:
+            vstates.append(newstate)
     
-    return vstates
+    return np.array(vstates)
     
 def boaf(vstate):
     """Return True if bond order assignment of the valence state is successful,
