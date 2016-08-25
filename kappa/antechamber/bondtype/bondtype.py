@@ -98,21 +98,46 @@ def boaf(vstate, bondList):
     elif l1 > l0:
         con0 = np.concatenate((con0, np.zeros(l1-l0, dtype=int))) 
     conList = con0 + con1
-    boList = [None]*len(bondList)
+#    boList = [None]*len(bondList)
+    boList = np.zeros(len(bondList), dtype=int)   #zero order means unassigned
+    assignList = np.zeros(len(bondList), dtype=bool)
     
-    print(conList)
+    atom = 0
+    while atom < len(vstate):
+        #check for rules 2 and 3; if True apply rule 1
+        if conList[atom] == vstate[atom]:
+            #set bond order to 1 for all remaining bonds
+            bonds = np.where(bondList==atom and assignList==False)[0]
+            boList[bonds] = np.ones(len(bonds), dtype=int)
+            assignList[bonds] = np.ones(len(bonds), dtype=bool)
+            #apply rule 1
+            
+            #reset
+            atom = 0
+            continue
+        elif conList[atom] == 1:
+            #set remaining bond to order of the remaining valence
+            bonds = np.where(bondList==atom and assignList==False)[0]
+            boList[bonds[0]] = vstate[atom]
+            assignList[bonds[0]] = True
+            #apply rule 1
+            
+            #reset
+            atom = 0
+            continue
+        atom += 1
             
     #2: set the orders of remaining bonds to 1 if con == av
     #3: set the orders to av if con == 1
-    for i in range(len(vstate)):
-        if conList[i] == vstate[i]:
-            bonds = np.where(bondList==i)[0]
-            for j in bonds:
-                boList[j] = 1
-            
-        elif conList[i] == 1:
-            bonds = np.where(bondList==i)[0]
-            boList[np.where(bondList==i)[0][0]] = vstate[i]
+#    for i in range(len(vstate)):
+#        if conList[i] == vstate[i]:
+#            bonds = np.where(bondList==i)[0]
+#            for j in bonds:
+#                boList[j] = 1
+#            
+#        elif conList[i] == 1:
+#            bonds = np.where(bondList==i)[0]
+#            boList[np.where(bondList==i)[0][0]] = vstate[i]
     
     
     return True, None
