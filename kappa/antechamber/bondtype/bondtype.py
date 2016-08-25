@@ -15,7 +15,7 @@ def main(mol):
     """Return the perceived bond types list for `mol`,
     indexed like `mol.bondList`."""
     
-    max_valence_state = 200
+    max_valence_state = 150
     state_num = 0
     
     tps = 0
@@ -42,20 +42,20 @@ def main(mol):
         tps += 1
         state_num += num
         
-#    for vstate in vstates[1:]:
-#        
-#        match, b_order = boaf(vstate, mol.bondList)
-#        
-#        if match:
-#            break
-#    else:
-#        raise ValueError("Valid bond order assignments were not found. \
-#                          Consider increasing the max valance state count")
-#        
-#    #develop bond types from bond order
-#    b_types = b_order
-#        
-#    return b_types
+    for vstate in vstates[1:]:
+        
+        match, b_order = boaf(vstate, mol.bondList)
+        
+        if match:
+            break
+    else:
+        raise ValueError("Valid bond order assignments were not found. \
+                          Consider increasing the max valance state count")
+        
+    #develop bond types from bond order
+    b_types = b_order
+        
+    return b_types
     
 def bondtype(tps, av):
     """Return all the combinations of valence states for the given tps."""
@@ -100,16 +100,14 @@ def boaf(vstate, bondList):
     conList = con0 + con1
 #    boList = [None]*len(bondList)
     boList = np.zeros(len(bondList), dtype=int)   #zero order means unassigned
-    assignList = np.zeros(len(bondList), dtype=bool)
     
     atom = 0
     while atom < len(vstate):
         #check for rules 2 and 3; if True apply rule 1
         if conList[atom] == vstate[atom]:
             #set bond order to 1 for all remaining bonds
-            bonds = np.where(bondList==atom and assignList==False)[0]
+            bonds = np.where(bondList==atom and boList==0)[0]
             boList[bonds] = np.ones(len(bonds), dtype=int)
-            assignList[bonds] = np.ones(len(bonds), dtype=bool)
             #apply rule 1
             
             #reset
@@ -117,9 +115,8 @@ def boaf(vstate, bondList):
             continue
         elif conList[atom] == 1:
             #set remaining bond to order of the remaining valence
-            bonds = np.where(bondList==atom and assignList==False)[0]
+            bonds = np.where(bondList==atom and boList==0)[0]
             boList[bonds[0]] = vstate[atom]
-            assignList[bonds[0]] = True
             #apply rule 1
             
             #reset
