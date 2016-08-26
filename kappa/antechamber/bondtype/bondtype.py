@@ -15,7 +15,7 @@ def main(mol):
     """Return the perceived bond types list for `mol`,
     indexed like `mol.bondList`."""
     
-    max_valence_state = 150
+    max_valence_state = 50
     state_num = 0
     
     tps = 0
@@ -41,6 +41,8 @@ def main(mol):
         #increment tps and state number
         tps += 1
         state_num += num
+        
+    print(vstates)
         
     for vstate in vstates[1:]:
         
@@ -107,27 +109,37 @@ def boaf(vstate, bondList):
         return False, None
     
     #if there are unassigned bonds still...
-    while len(np.where(boList==0)) > 0:
+    zeronum = 0
+    while len(np.where(boList==0)[0]) > 0:
         #...perform trial and error on the first unassigned bond
-        zeroindex = np.where(boList==0)[0][0]
+        zeroindex = np.where(boList==0)[0][zeronum]
         for trialorder in [1,2,3]:
             testbo = np.copy(boList)
             testvs = np.copy(vstate)
             testcon = np.copy(conList)
             testbo[zeroindex] = trialorder
+            #apply rule 1
+            i,j = bondList[zeroindex]
+            testcon[i] += -1
+            testcon[j] += -1
+            testvs[i]  += -trialorder
+            testvs[j]  += -trialorder
             fail = apply_rules123(testvs, testcon, bondList, testbo)
             if fail:
-                return False, None
+                continue
             else:
-                conList = testcon
-                boList = testbo
-                vstate = testvs
-                break
-        
-    if len(np.nonzero(vstate)) == 0 and len(np.nonzero(conList)) == 0:
-        match = True
+                if check_match(testvs, testcon):
+                    return True, testbo
+        if fail:
+            return False, None
+#        zeronum += 1
+    return False, None
     
-    return match, boList
+def check_match(vstate, conList):
+    if len(np.nonzero(vstate)[0]) == 0 and len(np.nonzero(conList)[0]) == 0:
+        return True
+    else:
+        return False
     
 def apply_rules123(vstate, conList, bondList, boList):
     """A helper function to enforce rules 1,2, and 3."""
@@ -139,7 +151,9 @@ def apply_rules123(vstate, conList, bondList, boList):
         #2: set the orders of remaining bonds to 1 if con == av
         if conList[atom] == vstate[atom] and conList[atom] != 0:
             #set bond order to 1 for all remaining bonds
-            bonds = np.where(bondList==atom and boList==0)[0]
+            bonds1 = np.where(bondList==atom)[0]
+            bonds2 = np.where(boList==0)[0]
+            bonds = np.intersect1d(bonds1,bonds2)
             boList[bonds] = np.ones(len(bonds), dtype=int)
             #1: if order is determined reduced the valence and connectivity
             for i,j in bondList[bonds]:
@@ -155,14 +169,17 @@ def apply_rules123(vstate, conList, bondList, boList):
         #3: set the orders to av if con == 1
         elif conList[atom] == 1:
             #set remaining bond to order of the remaining valence
-            bonds = np.where(bondList==atom and boList==0)[0]
+            bonds1 = np.where(bondList==atom)[0]
+            bonds2 = np.where(boList==0)[0]
+            bonds = np.intersect1d(bonds1,bonds2)
             boList[bonds[0]] = vstate[atom]
             #1: if order is determined reduced the valence and connectivity
             for i,j in bondList[bonds]:
+                av = vstate[atom]
                 conList[i] += -1
                 conList[j] += -1
-                vstate[i]  += -vstate[atom]
-                vstate[j]  += -vstate[atom]
+                vstate[i]  += -av
+                vstate[j]  += -av
             
             #reset
             atom = 0
@@ -171,9 +188,11 @@ def apply_rules123(vstate, conList, bondList, boList):
         elif (conList[atom] == 0 and vstate[atom] != 0) or \
              (conList[atom] != 0 and vstate[atom] == 0):
             #boaf exits with false match
-            return False
-         
+            return True
+        
         atom += 1
+        
+    return False
     
 def find_atomic_valences(mol):
     
