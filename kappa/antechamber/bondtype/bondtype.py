@@ -114,7 +114,7 @@ def boaf(vstate, bondList):
             testbo = np.copy(boList)
             testvs = np.copy(vstate)
             testcon = np.copy(conList)
-            boList[zeroindex] = trialorder
+            testbo[zeroindex] = trialorder
             fail = apply_rules123(testvs, testcon, bondList, testbo)
             if fail:
                 return False, None
