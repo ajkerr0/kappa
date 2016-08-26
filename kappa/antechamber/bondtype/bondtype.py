@@ -99,57 +99,81 @@ def boaf(vstate, bondList):
         con0 = np.concatenate((con0, np.zeros(l1-l0, dtype=int))) 
     conList = con0 + con1
     boList = np.zeros(len(bondList), dtype=int)   #zero order means unassigned
-    
-    def helper():
-        while True:
             
-            atom = 0
-            while atom < len(vstate):
-                #check for rules 2 and 3; if True apply rule 1
-            
-                #2: set the orders of remaining bonds to 1 if con == av
-                if conList[atom] == vstate[atom] and conList[atom] != 0:
-                    #set bond order to 1 for all remaining bonds
-                    bonds = np.where(bondList==atom and boList==0)[0]
-                    boList[bonds] = np.ones(len(bonds), dtype=int)
-                    #1: if order is determined reduced the valence and connectivity
-                    for i,j in bondList[bonds]:
-                        conList[i] += -1
-                        conList[j] += -1
-                        vstate[i]  += -1
-                        vstate[j]  += -1
-                    
-                    #reset
-                    atom = 0
-                    continue
-                
-                #3: set the orders to av if con == 1
-                elif conList[atom] == 1:
-                    #set remaining bond to order of the remaining valence
-                    bonds = np.where(bondList==atom and boList==0)[0]
-                    boList[bonds[0]] = vstate[atom]
-                    #1: if order is determined reduced the valence and connectivity
-                    for i,j in bondList[bonds]:
-                        conList[i] += -1
-                        conList[j] += -1
-                        vstate[i]  += -vstate[atom]
-                        vstate[j]  += -vstate[atom]
-                    
-                    #reset
-                    atom = 0
-                    continue
-                
-                elif (conList[atom] == 0 and vstate[atom] != 0) or \
-                     (conList[atom] != 0 and vstate[atom] == 0):
-                    #boaf exits with false match
-                    return False
-                 
-                atom += 1
-                
-            #perform trial and error
+    #first run helper function
+    fail = apply_rules123(vstate, conList, bondList, boList)
     
-    match = helper()
+    if fail:
+        return False, None
+    
+    #if there are unassigned bonds still...
+    while len(np.where(boList==0)) > 0:
+        #...perform trial and error on the first unassigned bond
+        zeroindex = np.where(boList==0)[0][0]
+        for trialorder in [1,2,3]:
+            testbo = np.copy(boList)
+            testvs = np.copy(vstate)
+            testcon = np.copy(conList)
+            boList[zeroindex] = trialorder
+            fail = apply_rules123(testvs, testcon, bondList, testbo)
+            if fail:
+                return False, None
+            else:
+                conList = testcon
+                boList = testbo
+                vstate = testvs
+                break
+        
+    if len(np.nonzero(vstate)) == 0 and len(np.nonzero(conList)) == 0:
+        match = True
+    
     return match, boList
+    
+def apply_rules123(vstate, conList, bondList, boList):
+    """A helper function to enforce rules 1,2, and 3."""
+    
+    atom = 0
+    while atom < len(vstate):
+        #check for rules 2 and 3; if True apply rule 1
+    
+        #2: set the orders of remaining bonds to 1 if con == av
+        if conList[atom] == vstate[atom] and conList[atom] != 0:
+            #set bond order to 1 for all remaining bonds
+            bonds = np.where(bondList==atom and boList==0)[0]
+            boList[bonds] = np.ones(len(bonds), dtype=int)
+            #1: if order is determined reduced the valence and connectivity
+            for i,j in bondList[bonds]:
+                conList[i] += -1
+                conList[j] += -1
+                vstate[i]  += -1
+                vstate[j]  += -1
+            
+            #reset
+            atom = 0
+            continue
+        
+        #3: set the orders to av if con == 1
+        elif conList[atom] == 1:
+            #set remaining bond to order of the remaining valence
+            bonds = np.where(bondList==atom and boList==0)[0]
+            boList[bonds[0]] = vstate[atom]
+            #1: if order is determined reduced the valence and connectivity
+            for i,j in bondList[bonds]:
+                conList[i] += -1
+                conList[j] += -1
+                vstate[i]  += -vstate[atom]
+                vstate[j]  += -vstate[atom]
+            
+            #reset
+            atom = 0
+            continue
+        
+        elif (conList[atom] == 0 and vstate[atom] != 0) or \
+             (conList[atom] != 0 and vstate[atom] == 0):
+            #boaf exits with false match
+            return False
+         
+        atom += 1
     
 def find_atomic_valences(mol):
     
