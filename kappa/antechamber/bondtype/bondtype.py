@@ -91,6 +91,8 @@ def boaf(vstate, bondList):
     """Return True if bond order assignment of the valence state is successful,
     otherwise return False."""
     
+    print('starting boaf')
+    
     #connectivity and bond order lists
     con0 = np.bincount(bondList[:,0])
     con1 = np.bincount(bondList[:,1])
@@ -110,31 +112,64 @@ def boaf(vstate, bondList):
         
     elif check_match(vstate, conList):
         return True, boList
-    
-    #if there are unassigned bonds still...
-    zeronum = 0
-    while len(np.where(boList==0)[0]) > 0:
-        #...perform trial and error on the first unassigned bond
-        zeroindex = np.where(boList==0)[0][zeronum]
+        
+    print(bondList)
+        
+    #if there are unassigned bonds, perform trial and error
+    counter = 0
+    maxcount = 10
+    if 0 in boList:
+        firstzero = np.where(boList==0)[0][0]
+        print(firstzero)
         for trialorder in [1,2,3]:
+            print('trial %s' % trialorder)
             testbo = np.copy(boList)
             testvs = np.copy(vstate)
             testcon = np.copy(conList)
-            testbo[zeroindex] = trialorder
+            testbo[firstzero] = trialorder
             #apply rule 1
-            i,j = bondList[zeroindex]
+            i,j = bondList[firstzero]
             testcon[i] += -1
             testcon[j] += -1
             testvs[i]  += -trialorder
             testvs[j]  += -trialorder
             fail = apply_rules123(testvs, testcon, bondList, testbo)
+            counter += 1
+            if counter > maxcount:
+                raise ValueError('stop')
             if fail:
                 continue
-            else:
-                if check_match(testvs, testcon):
-                    return True, testbo
-        if fail:
-            return False, None
+            elif check_match(testvs, testcon):
+                return True, testbo
+#        if fail:
+#            return False, None
+            
+    
+#    #if there are unassigned bonds still...
+#    zeronum = 0
+#    while len(np.where(boList==0)[0]) > 0:
+#        #...perform trial and error on the first unassigned bond
+#        zeroindex = np.where(boList==0)[0][zeronum]
+#        for trialorder in [1,2,3]:
+#            print('trial %s' % trialorder)
+#            testbo = np.copy(boList)
+#            testvs = np.copy(vstate)
+#            testcon = np.copy(conList)
+#            testbo[zeroindex] = trialorder
+#            #apply rule 1
+#            i,j = bondList[zeroindex]
+#            testcon[i] += -1
+#            testcon[j] += -1
+#            testvs[i]  += -trialorder
+#            testvs[j]  += -trialorder
+#            fail = apply_rules123(testvs, testcon, bondList, testbo)
+#            if fail:
+#                continue
+#            else:
+#                if check_match(testvs, testcon):
+#                    return True, testbo
+#        if fail:
+#            return False, None
 #        zeronum += 1
     return False, None
     
@@ -148,11 +183,13 @@ def apply_rules123(vstate, conList, bondList, boList):
     """A helper function to enforce rules 1,2, and 3."""
     
     atom = 0
+    counter = 0
+    maxcount = 250
     while atom < len(vstate):
-        print('atom %s' % atom)
-        print(vstate)
-        print(conList)
-        print(boList)
+#        print('atom %s' % atom)
+#        print(vstate)
+#        print(conList)
+#        print(boList)
         #check for rules 2 and 3; if True apply rule 1
     
         #2: set the orders of remaining bonds to 1 if con == av
@@ -200,6 +237,9 @@ def apply_rules123(vstate, conList, bondList, boList):
             return True
         
         atom += 1
+        counter += 1
+#        if counter > maxcount:
+#            raise ValueError()
         
     return False
     
