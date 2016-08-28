@@ -42,7 +42,7 @@ def main(mol):
         tps += 1
         state_num += num
         
-    print(vstates)
+#    vstates = np.array([[0,0,0,0],[3,5,1,1]])
         
     for vstate in vstates[1:]:
         
@@ -107,6 +107,9 @@ def boaf(vstate, bondList):
     
     if fail:
         return False, None
+        
+    elif check_match(vstate, conList):
+        return True, boList
     
     #if there are unassigned bonds still...
     zeronum = 0
@@ -146,11 +149,16 @@ def apply_rules123(vstate, conList, bondList, boList):
     
     atom = 0
     while atom < len(vstate):
+        print('atom %s' % atom)
+        print(vstate)
+        print(conList)
+        print(boList)
         #check for rules 2 and 3; if True apply rule 1
     
         #2: set the orders of remaining bonds to 1 if con == av
         if conList[atom] == vstate[atom] and conList[atom] != 0:
             #set bond order to 1 for all remaining bonds
+            print('rule 2')
             bonds1 = np.where(bondList==atom)[0]
             bonds2 = np.where(boList==0)[0]
             bonds = np.intersect1d(bonds1,bonds2)
@@ -169,6 +177,7 @@ def apply_rules123(vstate, conList, bondList, boList):
         #3: set the orders to av if con == 1
         elif conList[atom] == 1:
             #set remaining bond to order of the remaining valence
+            print('rule 3')
             bonds1 = np.where(bondList==atom)[0]
             bonds2 = np.where(boList==0)[0]
             bonds = np.intersect1d(bonds1,bonds2)
