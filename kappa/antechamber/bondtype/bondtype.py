@@ -15,7 +15,7 @@ def main(mol):
     """Return the perceived bond types list for `mol`,
     indexed like `mol.bondList`."""
     
-    max_valence_state = 5000
+    max_valence_state = 2000
     maxtps = 64*len(mol)
     state_num = 0
     
@@ -29,7 +29,7 @@ def main(mol):
     while state_num < max_valence_state:
         
         #find states of given tps
-        newstates = bondtype(tps, av)
+        newstates = bondtype(tps, av, max_valence_state-state_num)
         
         print(tps)
         print(newstates)
@@ -46,8 +46,6 @@ def main(mol):
         if tps > maxtps:
             break
         
-#    vstates = np.array([[0,0,0,0],[3,5,1,1]])
-        
     for vstate in vstates[1:]:
         
         match, b_order = boaf(vstate, mol.bondList)
@@ -61,9 +59,9 @@ def main(mol):
     #develop bond types from bond order
     b_types = b_order
         
-    return b_types
+    return b_order, b_types
     
-def bondtype(tps, av):
+def bondtype(tps, av, maxadd):
     """Return all the combinations of valence states for the given tps."""
     
     vstates = []
@@ -85,16 +83,18 @@ def bondtype(tps, av):
             
     dfs(0, [], 0)
     
-    if len(vstates) == 0:
+    length = len(vstates)
+    
+    if length < 1:
         return None
+    elif length > maxadd:
+        return np.array(vstates)[:maxadd]
     else:
         return np.array(vstates)
     
 def boaf(vstate, bondList):
     """Return True if bond order assignment of the valence state is successful,
     otherwise return False."""
-    
-    print('starting boaf')
     
     #connectivity and bond order lists
     con0 = np.bincount(bondList[:,0])
@@ -116,11 +116,7 @@ def boaf(vstate, bondList):
     elif check_match(vstate, conList):
         return True, boList
         
-#    print(bondList)
-        
     #if there are unassigned bonds, perform trial and error
-    counter = 0
-    maxcount = 10
     if 0 in boList:
         firstzero = np.where(boList==0)[0][0]
 #        print(firstzero)
@@ -137,43 +133,11 @@ def boaf(vstate, bondList):
             testvs[i]  += -trialorder
             testvs[j]  += -trialorder
             fail = apply_rules123(testvs, testcon, bondList, testbo)
-            counter += 1
-            if counter > maxcount:
-                raise ValueError('stop')
             if fail:
                 continue
             elif check_match(testvs, testcon):
                 return True, testbo
-#        if fail:
-#            return False, None
-            
-    
-#    #if there are unassigned bonds still...
-#    zeronum = 0
-#    while len(np.where(boList==0)[0]) > 0:
-#        #...perform trial and error on the first unassigned bond
-#        zeroindex = np.where(boList==0)[0][zeronum]
-#        for trialorder in [1,2,3]:
-#            print('trial %s' % trialorder)
-#            testbo = np.copy(boList)
-#            testvs = np.copy(vstate)
-#            testcon = np.copy(conList)
-#            testbo[zeroindex] = trialorder
-#            #apply rule 1
-#            i,j = bondList[zeroindex]
-#            testcon[i] += -1
-#            testcon[j] += -1
-#            testvs[i]  += -trialorder
-#            testvs[j]  += -trialorder
-#            fail = apply_rules123(testvs, testcon, bondList, testbo)
-#            if fail:
-#                continue
-#            else:
-#                if check_match(testvs, testcon):
-#                    return True, testbo
-#        if fail:
-#            return False, None
-#        zeronum += 1
+
     return False, None
     
 def check_match(vstate, conList):
@@ -186,19 +150,12 @@ def apply_rules123(vstate, conList, bondList, boList):
     """A helper function to enforce rules 1,2, and 3."""
     
     atom = 0
-    counter = 0
-    maxcount = 300
     while atom < len(vstate):
-#        print('atom %s' % atom)
-#        print(vstate)
-#        print(conList)
-#        print(boList)
         #check for rules 2 and 3; if True apply rule 1
     
         #2: set the orders of remaining bonds to 1 if con == av
         if conList[atom] == vstate[atom] and conList[atom] > 0:
             #set bond order to 1 for all remaining bonds
-#            print('rule 2')
             bonds1 = np.where(bondList==atom)[0]
             bonds2 = np.where(boList==0)[0]
             bonds = np.intersect1d(bonds1,bonds2)
@@ -217,7 +174,6 @@ def apply_rules123(vstate, conList, bondList, boList):
         #3: set the orders to av if con == 1
         elif conList[atom] == 1:
             #set remaining bond to order of the remaining valence
-#            print('rule 3')
             bonds1 = np.where(bondList==atom)[0]
             bonds2 = np.where(boList==0)[0]
             bonds = np.intersect1d(bonds1,bonds2)
@@ -234,15 +190,16 @@ def apply_rules123(vstate, conList, bondList, boList):
             atom = 0
             continue
         
+        elif conList[atom] < 0 or vstate[atom] < 0:
+            #boaf exits
+            return True
+        
         elif (conList[atom] == 0 and vstate[atom] != 0) or \
              (conList[atom] != 0 and vstate[atom] == 0):
             #boaf exits with false match
             return True
         
         atom += 1
-        counter += 1
-#        if counter > maxcount:
-#            raise ValueError()
         
     return False
     
