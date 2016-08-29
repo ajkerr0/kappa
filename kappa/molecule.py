@@ -195,7 +195,7 @@ class Molecule:
     def _configure_bondtypes(self):
         """Assign the bondtypes to the molecule instance."""
         from .antechamber.bondtype.bondtype import main
-        self.bondtypes = main(self)
+        self.bondorder, self.bondtypes = main(self)
         
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
