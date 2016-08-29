@@ -73,7 +73,6 @@ def bondtype(tps, av):
             if ps+runsum <= tps:
                 newstate.append(valence)
                 newsum += ps
-#                print("{0},{1}".format(newstate, newsum))
                 if len(newstate) < len(av):
                     dfs(index+1, newstate, newsum)
                 elif len(newstate) == len(av):
@@ -184,16 +183,16 @@ def apply_rules123(vstate, conList, bondList, boList):
     
     atom = 0
     counter = 0
-    maxcount = 250
+    maxcount = 300
     while atom < len(vstate):
-#        print('atom %s' % atom)
-#        print(vstate)
-#        print(conList)
-#        print(boList)
+        print('atom %s' % atom)
+        print(vstate)
+        print(conList)
+        print(boList)
         #check for rules 2 and 3; if True apply rule 1
     
         #2: set the orders of remaining bonds to 1 if con == av
-        if conList[atom] == vstate[atom] and conList[atom] != 0:
+        if conList[atom] == vstate[atom] and conList[atom] > 0:
             #set bond order to 1 for all remaining bonds
             print('rule 2')
             bonds1 = np.where(bondList==atom)[0]
@@ -238,8 +237,8 @@ def apply_rules123(vstate, conList, bondList, boList):
         
         atom += 1
         counter += 1
-#        if counter > maxcount:
-#            raise ValueError()
+        if counter > maxcount:
+            raise ValueError()
         
     return False
     
