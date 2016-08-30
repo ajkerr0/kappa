@@ -26,7 +26,9 @@ def main(molecule):
     for line in reader:
         #populate lineList
         #this is because reader object cycles only once; was a surprising bug!
-        lines.append(line)
+#        if 1:
+        if line[0] == "ATD":
+            lines.append(line)
     
     typeList = []
     for atom in range(len(molecule)):
@@ -229,7 +231,7 @@ funcList = [atomic_num, neighbors, hneighbors, wneighbors, atomic_prop, chem_env
 def parse_line(line, atom, molecule):
     """Return True and atomtype if atom matches a line entry, False otherwise."""
 
-    for entryIndex, entry in enumerate(line[2:]):
+    for entryIndex, entry in enumerate(line[3:]):
         
         type_ = 'dummy'
         

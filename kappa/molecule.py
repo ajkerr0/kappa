@@ -203,7 +203,6 @@ class Molecule:
         if self.base is True:
             #assign valence state based on connectivity
             vstate = np.array([4 if len(x) == 3 else 3 for x in self.nList], dtype=int)
-            print(vstate)
             from .antechamber.bondtype.bondtype import boaf
             match, bondorder = boaf(vstate, self.bondList)
             if match is True:
