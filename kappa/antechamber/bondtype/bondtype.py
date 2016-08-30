@@ -107,7 +107,7 @@ def boaf(vstate, bondList):
     conList = con0 + con1
     boList = np.zeros(len(bondList), dtype=int)   #zero order means unassigned
             
-    #first run helper function
+    #first run helper function that applies rules
     fail = apply_rules123(vstate, conList, bondList, boList)
     
     if fail:
@@ -115,13 +115,11 @@ def boaf(vstate, bondList):
         
     elif check_match(vstate, conList):
         return True, boList
-        
+    
     #if there are unassigned bonds, perform trial and error
-    if 0 in boList:
+    while 0 in boList:
         firstzero = np.where(boList==0)[0][0]
-#        print(firstzero)
         for trialorder in [1,2,3]:
-#            print('trial %s' % trialorder)
             testbo = np.copy(boList)
             testvs = np.copy(vstate)
             testcon = np.copy(conList)
@@ -137,8 +135,15 @@ def boaf(vstate, bondList):
                 continue
             elif check_match(testvs, testcon):
                 return True, testbo
+            else:
+                boList = testbo
+                vstate = testvs
+                conList = testcon
+                break
+        if fail:
+            return False, None
 
-    return False, None
+    raise ValueError('This valence state slipped through our conditions!')
     
 def check_match(vstate, conList):
     if len(np.nonzero(vstate)[0]) == 0 and len(np.nonzero(conList)[0]) == 0:
