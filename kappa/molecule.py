@@ -32,7 +32,12 @@ class Molecule:
         name (str): Human readable string that identifies the molecule.
         posList (ndarray): Numpy 2d array (N by 3) that contains the x,y,z coordinates of the atoms.
         nList (list): List of lists of each neighboring atom that determines bonding, indexed like posList.
-        zList (ndarray): Numpy 1d array (1 by N) of the atomic numbers in the molecule, indexed like posList
+        zList (ndarray): Numpy 1d array (1 by N) of the atomic numbers in the molecule, indexed like posList.
+        
+    Keywords:
+        base (bool):  True if instantiated Molecule is to be designated as a carbon base structure, basically
+            one of the few canonical, 2-interface, macromolecules we're trying to calculate thermal conductivity of
+            like graphene, cnts, etc.
             
     Forcefield Parameters (if applicable):
         kb (ndarray): Array of harmonic bond stretching spring constants indexed like bondList.
@@ -40,13 +45,14 @@ class Molecule:
         kt (ndarray): Array of harmonic bond bending spring constants indexed like angleList.
         t0 (ndarray): Array of harmonic bond bending equilibirum displacements indexed like angleList."""
     
-    def __init__(self, ff, name, posList, nList, zList):
+    def __init__(self, ff, name, posList, nList, zList, base=False):
         self.ff = ff
         self.name = name
         self.posList = np.array(posList)
         self.nList = nList
         self.zList = np.array(zList)
         self.faces = []
+        self.base = base
         
     def __len__(self):
         return len(self.posList)
@@ -194,8 +200,19 @@ class Molecule:
         
     def _configure_bondtypes(self):
         """Assign the bondtypes to the molecule instance."""
-        from .antechamber.bondtype.bondtype import main
-        self.bondorder, self.bondtypes = main(self)
+        if self.base is True:
+            #assign valence state based on connectivity
+            vstate = np.array([4 if len(x) == 3 else 3 for x in self.nList], dtype=int)
+            print(vstate)
+            from .antechamber.bondtype.bondtype import boaf
+            match, bondorder = boaf(vstate, self.bondList)
+            if match is True:
+                self.bondorder = bondorder
+            else:
+                raise ValueError("Bond order assignment did not work for base molecule.")
+        else:
+            from .antechamber.bondtype.bondtype import main
+            self.bondorder, self.bondtypes = main(self)
         
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
@@ -675,7 +692,7 @@ def build_graphene(ff, name="", radius=3):
         name = 'graphene_N%s' % (str(size))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
-    graphene = Molecule(ff, name, posList, nList, zList)
+    graphene = Molecule(ff, name, posList, nList, zList, base=True)
 
     #add faces
     Interface(faceList[0],np.array([1.,0.,0.]), graphene)
@@ -692,7 +709,7 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
         name = 'cnt_R%s_L%s' % (str(radius), str(length))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
-    cnt = Molecule( ff, name, posList, nList, zList)
+    cnt = Molecule( ff, name, posList, nList, zList, base=True)
     
     #add faces
     Interface(faceList[0], np.array([0.,1.,0.]), cnt)
