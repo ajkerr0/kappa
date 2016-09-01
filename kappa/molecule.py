@@ -280,7 +280,7 @@ class Molecule:
 #        print('Configuring aromaticity...')
         self._configure_aromaticity()
 #        print('Configuring bond types')
-        self._configure_bondtypes()
+#        self._configure_bondtypes()
 #        print('Configuring atom types...')
         self._configure_atomtypes()
 #        print('Configuring forcefield parameters...')

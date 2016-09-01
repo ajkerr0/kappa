@@ -26,8 +26,8 @@ def main(molecule):
     for line in reader:
         #populate lineList
         #this is because reader object cycles only once; was a surprising bug!
-#        if 1:
-        if line[0] == "ATD":
+        if 1:
+#        if line[0] == "ATD":
             lines.append(line)
     
     typeList = []

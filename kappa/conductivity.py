@@ -157,8 +157,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-#        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
-        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+#        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
 #    write_to_txt(mullenTable)
@@ -181,8 +181,6 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                 for sigma in range(2*n):
                     cosigma = coeff[sigma, 3*driver + 1] + coeff[sigma, 3*driver +2] + coeff[sigma, 3*driver]
                     for tau in range(2*n):
-#                        print(val[sigma])
-#                        print(val[tau])
                         cotau = coeff[tau, 3*driver] + coeff[tau, 3*driver+1] + coeff[tau, 3*driver+2]
                         term += cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
                 term *= kMatrix[3*i + idim, 3*j + jdim]
@@ -192,33 +190,29 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
     return kappa
     
 def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
+    
     #assuming same drag constant as other driven atom
-#        driver0 = driverList[0]
     driver1 = driverList[1]
     
     n = len(val)
     
     kappa = 0.
     
-    val_sigma = np.tile(np.copy(val), (n,1))
-    val_tau = np.transpose(np.copy(val_sigma))
+    val_sigma = np.tile(val, (n,1))
+    val_tau = np.transpose(val_sigma)
     
     for idim in [0,1,2]:
         for jdim in [0,1,2]:
             
-            term3 = np.tile(np.copy(vec[3*i + idim,:], (n,1)))
-            term4 = np.transpose(np.tile(np.copy(vec[3*j + jdim,:], (n,1))))
-#            term3 = np.tile(vec[:,3*i + idim], (n,1))
-#            term4 = np.tile(vec[:,3*j + jdim], (n,1))
+            term3 = np.tile(vec[3*i + idim,:], (n,1))
+            term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
             
             for driver in driver1:
     
-                term1 = np.tile(np.copy(coeff[:, 3*driver], (n,1))) + np.tile(np.copy(coeff[:, 3*driver + 1], (n,1))) \
-                        + np.tile(np.copy(coeff[:, 3*driver + 2], (n,1)))
-#                term1 = np.transpose(np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-#                        + np.tile(coeff[:, 3*driver + 2], (n,1))) 
+                term1 = np.tile(coeff[:, 3*driver] + coeff[:, 3*driver+1] + coeff[:, 3*driver+2], (n,1))
+                term2 = np.transpose(term1)
                 
-                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
+                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*((val_sigma-val_tau)/(val_sigma+val_tau)))
 
                 mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                 kappa += term          
