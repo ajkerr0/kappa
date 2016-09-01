@@ -162,7 +162,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
 #    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
 #    write_to_txt(mullenTable)
-#    pprint.pprint(mullenTable)
+    pprint.pprint(mullenTable)
     print(kappa)
     return kappa
     
@@ -200,21 +200,21 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
     kappa = 0.
     
-    val_sigma = np.tile(val, (n,1))
-    val_tau = np.transpose(val_sigma)
+    val_sigma = np.tile(np.copy(val), (n,1))
+    val_tau = np.transpose(np.copy(val_sigma))
     
     for idim in [0,1,2]:
         for jdim in [0,1,2]:
             
-            term3 = np.tile(vec[3*i + idim,:], (n,1))
-            term4 = np.transpose(np.tile(vec[3*j + jdim,:], (n,1)))
+            term3 = np.tile(np.copy(vec[3*i + idim,:], (n,1)))
+            term4 = np.transpose(np.tile(np.copy(vec[3*j + jdim,:], (n,1))))
 #            term3 = np.tile(vec[:,3*i + idim], (n,1))
 #            term4 = np.tile(vec[:,3*j + jdim], (n,1))
             
             for driver in driver1:
     
-                term1 = np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
-                        + np.tile(coeff[:, 3*driver + 2], (n,1))
+                term1 = np.tile(np.copy(coeff[:, 3*driver], (n,1))) + np.tile(np.copy(coeff[:, 3*driver + 1], (n,1))) \
+                        + np.tile(np.copy(coeff[:, 3*driver + 2], (n,1)))
 #                term1 = np.transpose(np.tile(coeff[:, 3*driver], (n,1)) + np.tile(coeff[:, 3*driver + 1], (n,1)) \
 #                        + np.tile(coeff[:, 3*driver + 2], (n,1))) 
                 
