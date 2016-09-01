@@ -189,6 +189,20 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
             
     return kappa
     
+def _calculate_power2(i, j, val, vec, coeff, kMatrix, driverList, mullenTable):
+    
+    #assuming same drag constant as other driven atom
+    driver1 = driverList[1]
+    
+    n = len(val)
+    
+    a1 = np.tile(vec[3*i:3*i+3,:], (1,1,n))
+    a2 = np.transpose(np.tile(vec[3*j:3*j+3,:], (1,1,n)))
+    
+    print(a1)
+    
+    pass
+    
 def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
     #assuming same drag constant as other driven atom
