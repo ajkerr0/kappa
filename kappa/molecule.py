@@ -776,23 +776,23 @@ def build_imine_chain(ff, name="", count=1):
     
     return imineChain
     
-def build_polyethylene(ff, name="", count=1):
+def build_pmma(ff, name="", count=1):
     
     from .lattice.polyethylene import main as lattice
     posList, nList, zList = lattice()
     if not name:
-        name = 'polyethylene'
+        name = 'pmma'
     posList = np.array(posList)
-    polyeth = Molecule(ff, name, posList, nList, zList)
+    pmma = Molecule(ff, name, posList, nList, zList)
     
-    Interface([0], np.array([-1.,0.,0.]), polyeth)
-    Interface([15], np.array([1.,0.,0.]), polyeth)
+    Interface([0], np.array([-1.,0.,0.]), pmma)
+    Interface([15], np.array([1.,0.,0.]), pmma)
     
-    molList = [polyeth]
+    molList = [pmma]
     indexList = [(15,0)]
     
     for i in range(count-1):
-        molList.append(polyeth)
+        molList.append(pmma)
         indexList.append((15,0))
     
     molList.append(build_ch(ff))

@@ -13,14 +13,14 @@ def main():
     #atomic distance
     a = 1.40
     
-    posList = generate_polyeth(a)
+    posList = generate_pmma(a)
     
     nList, zList = find_neighbors(a, posList)
     
     return posList,nList,zList
     
-def generate_polyeth(a):
-    """Return the starting positions of the atoms in the polyethylene chain."""
+def generate_pmma(a):
+    """Return the starting positions of the atoms in the poly methyl methacrylate chain."""
     
     Tpos = np.array([0.,0.,0.])
     
