@@ -826,6 +826,27 @@ def build_benzene_block(ff, name=""):
     
     return bblock
     
+def build_pan(ff, name="polyacrylonitrile", count=2):
+    """Return a polyacrylonitrile molecule."""
+    
+    from .lattice.panitrile import main as lattice
+    posList, nList, zList = lattice()
+    posList = np.array(posList)
+    pan = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), pan)
+    Interface([2], np.array([1., 0.,0.]), pan)
+    
+    molList = [pan]
+    indexList = [(2,0)]
+    
+    for i in range(count-1):
+        molList.append(pan)
+        indexList.append((2,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
 def build_c4s(ff, count=4, length=1, name=""):
     
      from .lattice.c4s import main as lattice
@@ -876,7 +897,8 @@ def build_cc(ff, name="CC"):
     return cc
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
-                "imine":build_imine, "imine_chain":build_imine_chain, "polyeth":build_polyethylene}
+                "imine":build_imine, "imine_chain":build_imine_chain, "pmma":build_pmma,
+                "pan":build_pan}
 lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):
