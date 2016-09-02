@@ -86,7 +86,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    kMatrix = hessian(mol)
     kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
     ballandspring = True
-    print(kMatrix)
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
@@ -95,15 +94,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
-    
-#    print(val)
-#    print(vec)
-#    print(coeff)
-#    np.savetxt("./val.txt", val)
-#    np.savetxt("./vec.txt", vec)
-#    np.savetxt("./coeff.txt", coeff)
-#    print(np.shape(coeff))
-#    print(np.shape(vec))
     
     #for each interaction that goes through the interface,
     #add it to the running total kappa
@@ -125,9 +115,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         
     if ballandspring:
         interactions = mol.bondList
-        
-    #testing
-#    interactions = mol.angleList
 
     for it in interactions:
         for atom in atoms0:
@@ -158,11 +145,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     for crossing in crossings:
         i,j = crossing
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
-#        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
-#    print(np.array(mullenTable, dtype=[('i', np.int16),('j', np.int16),('kele', np.float32),('term', np.float32)]))
-#    write_to_txt(mullenTable)
-    pprint.pprint(mullenTable)
+#    pprint.pprint(mullenTable)
     print(kappa)
     return kappa
     
@@ -196,12 +180,15 @@ def _calculate_power2(i, j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
     n = len(val)
     
-    a1 = np.tile(vec[3*i:3*i+3,:], (1,1,n))
-    a2 = np.transpose(np.tile(vec[3*j:3*j+3,:], (1,1,n)))
+    a1 = vec[3*i:3*i+3,:].reshape((1,3,n,1))
+#    a1 = np.tile(vec[3*i:3*i+3,:].reshape((1,3,n,1)), (1,1,n))
+#    a2 = np.transpose(np.tile(vec[3*j:3*j+3,:], (1,1,n,3)), axes=(0,3,1,2))
     
-    print(a1)
+    print(vec[3*i:3*i+3,:].shape)
+    print(a1.shape)
+    print(a2.shape)
     
-    pass
+    return 0.
     
 def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
