@@ -35,7 +35,7 @@ class Molecule:
         zList (ndarray): Numpy 1d array (1 by N) of the atomic numbers in the molecule, indexed like posList.
         
     Keywords:
-        base (bool):  True if instantiated Molecule is to be designated as a carbon base structure, basically
+        cbase (bool):  True if instantiated Molecule is to be designated as a carbon base structure, basically
             one of the few canonical, 2-interface, macromolecules we're trying to calculate thermal conductivity of
             like graphene, cnts, etc.
             
@@ -45,14 +45,14 @@ class Molecule:
         kt (ndarray): Array of harmonic bond bending spring constants indexed like angleList.
         t0 (ndarray): Array of harmonic bond bending equilibirum displacements indexed like angleList."""
     
-    def __init__(self, ff, name, posList, nList, zList, base=False):
+    def __init__(self, ff, name, posList, nList, zList, cbase=False):
         self.ff = ff
         self.name = name
         self.posList = np.array(posList)
         self.nList = nList
         self.zList = np.array(zList)
         self.faces = []
-        self.base = base
+        self.cbase = cbase
         
     def __len__(self):
         return len(self.posList)
@@ -200,7 +200,7 @@ class Molecule:
         
     def _configure_bondtypes(self):
         """Assign the bondtypes to the molecule instance."""
-        if self.base is True:
+        if self.cbase is True:
             #assign valence state based on connectivity
             vstate = np.array([4 if len(x) == 3 else 3 for x in self.nList], dtype=int)
             from .antechamber.bondtype.bondtype import boaf
@@ -691,7 +691,7 @@ def build_graphene(ff, name="", radius=3):
         name = 'graphene_N%s' % (str(size))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
-    graphene = Molecule(ff, name, posList, nList, zList, base=True)
+    graphene = Molecule(ff, name, posList, nList, zList, cbase=True)
 
     #add faces
     Interface(faceList[0],np.array([1.,0.,0.]), graphene)
@@ -708,7 +708,7 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
         name = 'cnt_R%s_L%s' % (str(radius), str(length))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
-    cnt = Molecule( ff, name, posList, nList, zList, base=True)
+    cnt = Molecule( ff, name, posList, nList, zList, cbase=True)
     
     #add faces
     Interface(faceList[0], np.array([0.,1.,0.]), cnt)
