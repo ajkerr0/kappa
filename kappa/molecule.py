@@ -721,7 +721,7 @@ def build_dingus(ff, name="", count=5, angle=160.):
     from .lattice.dingus import main as lattice
     posList,nList,zList = lattice(count,angle)
     if not name:
-        name = 'dingus_N%s' % (str(len(posList)))
+        name = 'dingus_N%s' % (count)
     posList = 1.1*np.array(posList)
     dingus = Molecule(ff, name, posList, nList, zList)
     
@@ -731,12 +731,10 @@ def build_dingus(ff, name="", count=5, angle=160.):
     dingus._configure_parameters()
     return dingus
 
-def build_amine(ff, name=""):
+def build_amine(ff, name="amine"):
     
     from .lattice.amine import main as lattice
     posList, nList = lattice()
-    if not name:
-        name = 'amine'
     posList = np.array(posList)
     zList = np.array([6,7,1,1])
     amine = Molecule( ff, name, posList, nList, zList)
@@ -770,18 +768,19 @@ def build_imine_chain(ff, name="", count=1):
     
     imineChain = chain(molList,indexList)
     
+    if not name:
+        imineChain.name = "iminechainN%s" % count
+    
     #select a H to be a preferred driver; one of the far-right hydrogens selected at random
     size = len(imineChain)
     imineChain.driver = random.choice([size-1, size-3, size-4]) 
     
     return imineChain
     
-def build_pmma(ff, name="", count=1):
+def build_pmma(ff, name="pmma", count=1):
     
     from .lattice.polyethylene import main as lattice
     posList, nList, zList = lattice()
-    if not name:
-        name = 'pmma'
     posList = np.array(posList)
     pmma = Molecule(ff, name, posList, nList, zList)
     
@@ -798,12 +797,10 @@ def build_pmma(ff, name="", count=1):
     molList.append(build_ch(ff))
     return chain(molList, indexList)
     
-def build_imine(ff, name=""):
+def build_imine(ff, name="imine"):
 
     from .lattice.imine import main as lattice
     posList, nList, zList = lattice()
-    if not name:
-        name = 'imine'
     posList = np.array(posList)
     imine = Molecule(ff, name, posList, nList, zList)
     
@@ -812,12 +809,10 @@ def build_imine(ff, name=""):
     
     return imine
         
-def build_benzene_block(ff, name=""):
+def build_benzene_block(ff, name="bblock"):
 
     from .lattice.benzene import main as lattice
     posList, nList, zList = lattice()
-    if not name:
-        name = "bblock"
     posList = np.array(posList)
     bblock = Molecule(ff, name, posList, nList, zList)
     
