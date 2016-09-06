@@ -842,6 +842,48 @@ def build_pan(ff, name="polyacrylonitrile", count=2):
     molList.append(build_ch(ff))
     return chain(molList, indexList)
     
+def build_pvf(ff, name="polyvinylidenefluoride", count=2):
+    """Return a polyvinylidenefluoride molecule."""
+    
+    from .lattice.vinylidene import main as lattice
+    posList, nList, zList = lattice(9,9)
+    posList = np.array(posList)
+    pvf = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), pvf)
+    Interface([2], np.array([1., 0.,0.]), pvf)
+    
+    molList = [pvf]
+    indexList = [(2,0)]
+    
+    for i in range(count-1):
+        molList.append(pvf)
+        indexList.append((2,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
+def build_pvcl(ff, name="polyvinylidenechloride", count=2):
+    """Return a polyvinylidenechloride molecule."""
+    
+    from .lattice.vinylidene import main as lattice
+    posList, nList, zList = lattice(1,17)
+    posList = np.array(posList)
+    pvcl = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), pvcl)
+    Interface([2], np.array([1., 0.,0.]), pvcl)
+    
+    molList = [pvcl]
+    indexList = [(2,0)]
+    
+    for i in range(count-1):
+        molList.append(pvcl)
+        indexList.append((2,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
 def build_c4s(ff, count=4, length=1, name=""):
     
      from .lattice.c4s import main as lattice
