@@ -842,85 +842,46 @@ def build_pan(ff, name="polyacrylonitrile", count=2):
     molList.append(build_ch(ff))
     return chain(molList, indexList)
     
-def build_pvf(ff, name="polyvinylidenefluoride", count=2):
-    """Return a polyvinylidenefluoride molecule."""
+def build_polyx(xList, ff, name, count):
+    """Return a 'polyx' molecule"""
     
+    x1,x2,x3,x4 = xList
     from .lattice.polyx import main as lattice
-    posList, nList, zList = lattice(1,1,9,9)
-    pvf = Molecule(ff, name, posList, nList, zList)
+    posList, nList, zList = lattice(x1,x2,x3,x4)
+    mol = Molecule(ff, name, posList, nList, zList)
     
-    Interface([0], np.array([-1.,0.,0.]), pvf)
-    Interface([2], np.array([1., 0.,0.]), pvf)
+    Interface([0], np.array([-1.,0.,0.]), mol)
+    Interface([2], np.array([1., 0.,0.]), mol)
     
-    molList = [pvf]
+    molList = [mol]
     indexList = [(2,0)]
     
     for i in range(count-1):
-        molList.append(pvf)
+        molList.append(mol)
         indexList.append((2,0))
         
     molList.append(build_ch(ff))
     return chain(molList, indexList)
+    
+def build_pvf(ff, name="polyvinylidenefluoride", count=2):
+    """Return a polyvinylidenefluoride molecule."""
+    
+    return build_polyx((1,1,9,9), ff, name, count)
     
 def build_pvcl(ff, name="polyvinylidenechloride", count=2):
     """Return a polyvinylidenechloride molecule."""
     
-    from .lattice.polyx import main as lattice
-    posList, nList, zList = lattice(1,1,17,1)
-    pvcl = Molecule(ff, name, posList, nList, zList)
+    return build_polyx((1,1,17,1), ff, name, count)
     
-    Interface([0], np.array([-1.,0.,0.]), pvcl)
-    Interface([2], np.array([1., 0.,0.]), pvcl)
-    
-    molList = [pvcl]
-    indexList = [(2,0)]
-    
-    for i in range(count-1):
-        molList.append(pvcl)
-        indexList.append((2,0))
-        
-    molList.append(build_ch(ff))
-    return chain(molList, indexList)
-    
-def build_polyethylene(ff, name="polyethylene", count=2):
+def build_polyeth(ff, name="polyethylene", count=2):
     """Return a polyethylene chain."""
     
-    from .lattice.polyx import main as lattice
-    posList, nList, zList = lattice(1,1,1,1)
-    polyeth = Molecule(ff, name, posList, nList, zList)
-    
-    Interface([0], np.array([-1.,0.,0.]), polyeth)
-    Interface([2], np.array([1., 0.,0.]), polyeth)
-    
-    molList = [polyeth]
-    indexList = [(2,0)]
-    
-    for i in range(count-1):
-        molList.append(polyeth)
-        indexList.append((2,0))
-        
-    molList.append(build_ch(ff))
-    return chain(molList, indexList)
+    return build_polyx((1,1,1,1), ff, name, count)
     
 def build_teflon(ff, name="teflon", count=2):
     """Return a Teflon chain."""
     
-    from .lattice.polyx import main as lattice
-    posList, nList, zList = lattice(9,9,9,9)
-    tef = Molecule(ff, name, posList, nList, zList)
-    
-    Interface([0], np.array([-1.,0.,0.]), tef)
-    Interface([2], np.array([1., 0.,0.]), tef)
-    
-    molList = [tef]
-    indexList = [(2,0)]
-    
-    for i in range(count-1):
-        molList.append(tef)
-        indexList.append((2,0))
-        
-    molList.append(build_ch(ff))
-    return chain(molList, indexList)
+    return build_polyx((9,9,9,9), ff, name, count)
     
 def build_c4s(ff, count=4, length=1, name=""):
     
