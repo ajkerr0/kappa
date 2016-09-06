@@ -779,7 +779,7 @@ def build_imine_chain(ff, name="", count=1):
     
 def build_pmma(ff, name="pmma", count=1):
     
-    from .lattice.polyethylene import main as lattice
+    from .lattice.pmma import main as lattice
     posList, nList, zList = lattice()
     posList = np.array(posList)
     pmma = Molecule(ff, name, posList, nList, zList)
@@ -830,7 +830,7 @@ def build_pan(ff, name="polyacrylonitrile", count=2):
     pan = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), pan)
-    Interface([2], np.array([1., 0.,0.]), pan)
+    Interface([2], np.array([ 1.,0.,0.]), pan)
     
     molList = [pan]
     indexList = [(2,0)]
@@ -847,7 +847,6 @@ def build_pvf(ff, name="polyvinylidenefluoride", count=2):
     
     from .lattice.polyx import main as lattice
     posList, nList, zList = lattice(1,1,9,9)
-    posList = np.array(posList)
     pvf = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), pvf)
@@ -868,7 +867,6 @@ def build_pvcl(ff, name="polyvinylidenechloride", count=2):
     
     from .lattice.polyx import main as lattice
     posList, nList, zList = lattice(1,1,17,1)
-    posList = np.array(posList)
     pvcl = Molecule(ff, name, posList, nList, zList)
     
     Interface([0], np.array([-1.,0.,0.]), pvcl)
@@ -879,6 +877,26 @@ def build_pvcl(ff, name="polyvinylidenechloride", count=2):
     
     for i in range(count-1):
         molList.append(pvcl)
+        indexList.append((2,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
+def build_polyethylene(ff, name="polyethylene", count=2):
+    """Return a polyethylene chain."""
+    
+    from .lattice.polyx import main as lattice
+    posList, nList, zList = lattice(1,1,1,1)
+    polyeth = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), polyeth)
+    Interface([2], np.array([1., 0.,0.]), polyeth)
+    
+    molList = [polyeth]
+    indexList = [(2,0)]
+    
+    for i in range(count-1):
+        molList.append(polyeth)
         indexList.append((2,0))
         
     molList.append(build_ch(ff))

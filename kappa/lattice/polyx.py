@@ -17,7 +17,7 @@ def main(x1,x2,x3,x4):
     
     nList, zList = find_neighbors(x1,x2,x3,x4)
     
-    return posList, nList, zList
+    return np.array(posList), nList, zList
     
 def generate_vinyl(ac, ah):
     """Return the starting positions of the atoms in polyvinylidene fluoride."""
