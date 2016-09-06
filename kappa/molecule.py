@@ -884,6 +884,30 @@ def build_pvcl(ff, name="polyvinylidenechloride", count=2):
     molList.append(build_ch(ff))
     return chain(molList, indexList)
     
+def build_teflon(ff, name="teflon", count=3):
+    """Return a Teflon chain."""
+    
+    zero = np.array([0.,0.,0.])
+    xm = np.array([1.4,0.,0.])
+    ym = np.array([0.,1.3,0.])
+    posList = np.array([zero, zero+xm, zero+xm+ym, zero+xm-ym])
+    nList = [[1],[0,2,3],[1],[1]]
+    zList = np.array([6,6,9,9], dtype=int)
+    tef = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), tef)
+    Interface([1], np.array([1., 0.,0.]), tef)
+    
+    molList = [tef]
+    indexList = [(1,0)]
+    
+    for i in range(count-1):
+        molList.append(tef)
+        indexList.append((1,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)
+    
 def build_c4s(ff, count=4, length=1, name=""):
     
      from .lattice.c4s import main as lattice
