@@ -840,7 +840,11 @@ def build_pan(ff, name="polyacrylonitrile", count=2):
         indexList.append((2,0))
         
     molList.append(build_ch(ff))
-    return chain(molList, indexList)
+    panchain = chain(molList, indexList)
+    
+    panchain.driver = len(panchain)-1
+    
+    return panchain
     
 def build_polyx(xList, ff, name, count):
     """Return a 'polyx' molecule"""
@@ -861,7 +865,11 @@ def build_polyx(xList, ff, name, count):
         indexList.append((2,0))
         
     molList.append(build_ch(ff))
-    return chain(molList, indexList)
+    polyx = chain(molList, indexList)
+    
+    polyx.driver = len(polyx)-1
+    
+    return polyx
     
 def build_pvf(ff, name="polyvinylidenefluoride", count=2):
     """Return a polyvinylidenefluoride molecule."""
