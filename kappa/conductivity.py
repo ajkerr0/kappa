@@ -63,13 +63,13 @@ class Calculation:
         from ._minimize import minimize
         minimize(newTrial, self.n, self.descent, self.search, self.numgrad,
                  self.eprec, self.fprec, self.efreq, self.nbnfreq)
-        from .plot import bonds
         newTrial.name = "%s_trial%s" % (newTrial.name, str(self.trialcount))
         self.trialcount += 1
-        bonds(newTrial)
         return newTrial
         
     def calculate_kappa(self, trial):
+        from .plot import bonds
+        bonds(self.trialList[trial])
         calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
@@ -81,11 +81,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     driverList = np.array(driverList)
     
     from .operation import hessian, _calculate_hessian
-#    kMatrix = _calculate_hessian(mol)
+    kMatrix = _calculate_hessian(mol)
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
-    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
-    ballandspring = True
+#    kMatrix = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList)
+    ballandspring = False
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
