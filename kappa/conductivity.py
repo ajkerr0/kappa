@@ -147,8 +147,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-#        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
-        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+#        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    pprint.pprint(mullenTable)
     print(kappa)
@@ -175,6 +175,10 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                         except FloatingPointError:
                             print("Divergent term")
                             print(cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau]))
+                            print(tau)
+                            print(sigma)
+                            print(val[tau])
+                            print(val[sigma])
                 term *= kMatrix[3*i + idim, 3*j + jdim]
                 mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                 kappa += term
@@ -210,9 +214,10 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     val_sigma = np.tile(val, (n,1))
     val_tau = np.transpose(val_sigma)
     
-    valterm = (val_sigma-val_tau)/(val_sigma+val_tau)
-    
-#    print(val_sigma+val_tau)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        valterm = np.true_divide(val_sigma-val_tau,val_sigma+val_tau)
+#    valterm = (val_sigma-val_tau)/(val_sigma+val_tau)
+    valterm[~np.isfinite(valterm)] = 0.
     
     for idim in [0,1,2]:
         for jdim in [0,1,2]:
