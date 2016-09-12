@@ -189,16 +189,24 @@ def _calculate_power2(i, j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
     #assuming same drag constant as other driven atom
     driver1 = driverList[1]
+    d = len(driver1)
     
     n = len(val)
     
-    a1 = vec[3*i:3*i+3,:].reshape((1,3,n,1))
-#    a1 = np.tile(vec[3*i:3*i+3,:].reshape((1,3,n,1)), (1,1,n))
-#    a2 = np.transpose(np.tile(vec[3*j:3*j+3,:], (1,1,n,3)), axes=(0,3,1,2))
+    kappaterms = np.zeros((3,3,d,n,n))
     
-    print(vec[3*i:3*i+3,:].shape)
-    print(a1.shape)
-    print(a2.shape)
+    val_sigma = np.tile(val, (n,1))
+    val_tau = np.transpose(val_sigma)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        valterm = np.true_divide(val_sigma-val_tau,val_sigma+val_tau)
+    valterm[~np.isfinite(valterm)] = 0.
+    
+    aix = vec[3*i  ,:]
+    aiy = vec[3*i+1,:]
+    aiz = vec[3*i+2,:]
+    ajx = vec[3*j  ,:]
+    ajy = vec[3*j+1,:]
+    ajz = vec[3*j+2,:]
     
     return 0.
     
@@ -216,7 +224,6 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
     with np.errstate(divide="ignore", invalid="ignore"):
         valterm = np.true_divide(val_sigma-val_tau,val_sigma+val_tau)
-#    valterm = (val_sigma-val_tau)/(val_sigma+val_tau)
     valterm[~np.isfinite(valterm)] = 0.
     
     for idim in [0,1,2]:
