@@ -55,7 +55,7 @@ class Molecule:
         self.cbase = cbase
         
     def __len__(self):
-        return len(self.posList)
+        return self.posList.shape[0]
         
     def __str__(self):
         return self.name
