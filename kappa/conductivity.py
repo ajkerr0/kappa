@@ -80,20 +80,17 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     driverList = np.array(driverList)
     
     from .operation import _calculate_hessian
-    kMatrix = _calculate_hessian(mol)
+#    kMatrix = _calculate_hessian(mol)
     ballandspring=False
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
-#    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
+    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
     mMatrix = _calculate_mass_mat(mol.zList)
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
-    
-#    np.set_printoptions(threshold=np.inf)
-#    print(val)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
     
@@ -146,6 +143,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print_spring_constants(crossings, kMatrix)
     inspect_hessian(crossings, kMatrix)
+    inspect_modes(mol, val, vec)
                 
     for crossing in crossings:
         i,j = crossing
@@ -263,6 +261,22 @@ def inspect_hessian(interactions, kmat):
         i,j = act
         print(np.sum(kmat[3*i:3*i+3]))
         print(np.sum(kmat[3*j:3*j+3]))
+        
+def inspect_modes(mol, val, vec):
+    
+    #find where modes are uncoupled from dissapation
+    uncoupled = np.where(np.real(val) > -1e-12)[0]
+    
+    N = len(vec)//2
+    
+    #pick an index
+#    index = 0
+#    index = uncoupled[index]
+    
+    from .plot import normal_modes
+    for index in uncoupled[:6]:
+        normal_modes(mol, vec[:N,index])
+    
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
