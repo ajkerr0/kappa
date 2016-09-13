@@ -14,15 +14,15 @@ import numpy as np
 EP = sys.float_info.epsilon
 SQRTEP = EP**.5
                                   
-def minimize(mol, n, descent="cg", search="backtrack", numgrad=False,
+def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
              eprec=1e-2, fprec=1e-2,
              efreq=1000, nbnfreq=15):
     """Minimize the energy of the inputted molecule.
     
     Args:
         mol (Molecule): Molecule to be energy-minimized.
-        n (int): Max number of iterations in minimization run(s).
     Keywords:
+        n (int): Max number of iterations in minimization run(s).
         descent (str): Method in which the local energy minimum will be approached;
             must be key in descentDict
         search (str): Line search method; must be key in searchDict

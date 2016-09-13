@@ -16,24 +16,18 @@ amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            
 class Calculation:
     
-    def __init__(self, base, n, descent="cg", search="backtrack", numgrad=False,
-                 eprec=1e-2, fprec=1e-1, efreq=10, nbnfreq=15):
+#    def __init__(self, base, n, descent="cg", search="backtrack", numgrad=False,
+#                 eprec=1e-2, fprec=1e-1, efreq=10, nbnfreq=15):
+    def __init__(self, base, **minkwargs):
         if len(base.faces) == 2:
             self.base = base
         else:
             raise ValueError("A base molecule with 2 interfaces is needed!")
         #minimize the base molecule
         from ._minimize import minimize
-        minimize(self.base, n, descent, search, numgrad, eprec, fprec, efreq, nbnfreq)
+        minimize(self.base, **minkwargs)
         #assign minimization attributes
-        self.n = n
-        self.descent = descent
-        self.search = search
-        self.numgrad = numgrad
-        self.eprec = eprec
-        self.fprec = fprec
-        self.efreq = efreq
-        self.nbnfreq = nbnfreq
+        self.minkwargs = minkwargs
         #other attributes
         self.trialcount = 0
         self.trialList = []
@@ -60,8 +54,7 @@ class Calculation:
         self.driverList.append(dList)
         self.trialList.append(newTrial)
         from ._minimize import minimize
-        minimize(newTrial, self.n, self.descent, self.search, self.numgrad,
-                 self.eprec, self.fprec, self.efreq, self.nbnfreq)
+        minimize(newTrial, **self.minkwargs)
         newTrial.name = "%s_trial%s" % (newTrial.name, str(self.trialcount))
         self.trialcount += 1
         return newTrial
@@ -143,7 +136,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print_spring_constants(crossings, kMatrix)
     inspect_hessian(crossings, kMatrix)
-    inspect_modes(mol, val, vec)
+#    inspect_modes(mol, val, vec)
                 
     for crossing in crossings:
         i,j = crossing
