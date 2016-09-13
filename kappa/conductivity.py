@@ -145,6 +145,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     mullenTable = []
     
     print_spring_constants(crossings, kMatrix)
+    inspect_hessian(crossings, kMatrix)
                 
     for crossing in crossings:
         i,j = crossing
@@ -253,6 +254,15 @@ def print_spring_constants(interactions, kmat):
         i,j = act
         print(act)
         print(kmat[3*i:3*i+3,3*j:3*j+3])
+        
+def inspect_hessian(interactions, kmat):
+    
+    acts = np.array(interactions)
+    
+    for act in acts:
+        i,j = act
+        print(np.sum(kmat[3*i:3*i+3]))
+        print(np.sum(kmat[3*j:3*j+3]))
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
