@@ -7,7 +7,6 @@
 
 import itertools
 from copy import deepcopy
-import pprint
 
 import numpy as np
 import scipy.linalg as linalg
@@ -80,12 +79,12 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #standardize the driverList
     driverList = np.array(driverList)
     
-    from .operation import hessian, _calculate_hessian
-#    kMatrix = _calculate_hessian(mol)
+    from .operation import _calculate_hessian
+    kMatrix = _calculate_hessian(mol)
     ballandspring=False
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
-    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
+#    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
@@ -144,6 +143,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     print(crossings)
     
     mullenTable = []
+    
+    print_spring_constants(crossings, kMatrix)
                 
     for crossing in crossings:
         i,j = crossing
@@ -243,6 +244,15 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 kappa += term          
                 
     return kappa
+    
+def print_spring_constants(interactions, kmat):
+    
+    acts = np.array(interactions)
+    
+    for act in acts:
+        i,j = act
+        print(act)
+        print(kmat[3*i:3*i+3,3*j:3*j+3])
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""

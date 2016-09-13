@@ -47,7 +47,7 @@ class Amber(Forcefield):
     """Amber forcefield inheriting from Forcefield,
     as presented by Cornell et al. (1994)"""
     
-    def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
+    def __init__(self, lengths=True, angles=False, dihs=False, lj=False):
         super().__init__("amber", 1.0, 1.0,
                          lengths, angles, dihs, lj, False, False)
         self.atomTypeIDDict = {"CT":1, "C":2,  "CA":3,  "CM":4, "CC":5,  "CV":6, "CW":7, "CR":8, "CB":9, "C*":10, "CZ":3,
