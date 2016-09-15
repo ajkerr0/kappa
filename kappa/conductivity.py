@@ -16,8 +16,6 @@ amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            
 class Calculation:
     
-#    def __init__(self, base, n, descent="cg", search="backtrack", numgrad=False,
-#                 eprec=1e-2, fprec=1e-1, efreq=10, nbnfreq=15):
     def __init__(self, base, **minkwargs):
         if len(base.faces) == 2:
             self.base = base
@@ -64,6 +62,11 @@ class Calculation:
         bonds(self.trialList[trial])
         calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
+class ParamSpaceExplorer:
+    
+    def __init__(self, clen=[1], cnum=[1], cid=["polyeth"]):
+        pass
+        
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
@@ -73,11 +76,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     driverList = np.array(driverList)
     
     from .operation import _calculate_hessian
-#    kMatrix = _calculate_hessian(mol)
+    kMatrix = _calculate_hessian(mol)
     ballandspring=False
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
-    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
+#    kMatrix, ballandspring = _calculate_ballandspring_k_mat(len(mol), 1., mol.nList), True
     
     gMatrix = _calculate_gamma_mat(len(mol), gamma, driverList)
     
