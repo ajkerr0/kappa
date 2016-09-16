@@ -11,6 +11,8 @@ from copy import deepcopy
 import numpy as np
 import scipy.linalg as linalg
 
+from .molecule import build
+
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
            
@@ -60,7 +62,7 @@ class Calculation:
     def calculate_kappa(self, trial):
         from .plot import bonds
         bonds(self.trialList[trial])
-        calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
+        return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
 class ParamSpaceExplorer(Calculation):
     
@@ -70,20 +72,18 @@ class ParamSpaceExplorer(Calculation):
         self.cnum = cnum
         self.cid = cid
         #make zero value array based on dim of parameters
-        #
-        #
-        self.values = np.array([])
+        self.values = np.zeros((len(cid), len(clen), len(cnum)))
         
     def explore(self):
         trial = 0
-        for _id in self.cid:
-            for _len in self.clen:
-                chain = kappa.build(self.base.ff, _id, count=_len)
-                for _num in self.cnum:
+        for idcount, _id in enumerate(self.cid):
+            for lencount, _len in enumerate(self.clen):
+                chain = build(self.base.ff, _id, count=_len)
+                for numcount, _num in enumerate(self.cnum):
                     #find indices of attachment points
-                    indices = find_indices(base, _num)
+                    indices = find_indices(self.base, _num)
                     self.add([chain]*_num, indices)
-                    self.values[i,j,k] = self.calculate_kappa(trial)
+                    self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
                     trial += 1
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
@@ -108,9 +108,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
-    
-    #for each interaction that goes through the interface,
-    #add it to the running total kappa
             
     #find all dihedral interactions that contain an enhancement atom and interface atom
     #dihedral interactions exhaust all possible bond related interactions although if dihedrals are turned off 
@@ -246,11 +243,22 @@ def print_spring_constants(interactions, kmat):
         
 def inspect_positive_definiteness(kmat):
     
+    atom = 20
+    hill = 1e-3
+    
+    kmat[atom*3  ,atom*3  ] += hill
+    kmat[atom*3+1,atom*3+1] += hill
+    kmat[atom*3+2,atom*3+2] += hill
+    
     try:
         np.linalg.cholesky(kmat)
         print("hessian is positive definite")
     except np.linalg.LinAlgError:
         print("hessian is NOT positive definite")
+        
+    val, vec = np.linalg.eig(kmat)
+    
+    print(val)
         
 def inspect_space_homogeneity(interactions, kmat):
     
@@ -355,6 +363,9 @@ def _calculate_ballandspring_k_mat(N,k0,nLists):
             KMatrix[3*i+2,3*neighbor+2] = -k0
     
     return KMatrix
+    
+def find_indices(base, num):
+    pass
     
 def write_to_txt(twodlist, name):
     with open(name,'w') as f:
