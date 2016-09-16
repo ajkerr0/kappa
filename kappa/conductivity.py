@@ -62,10 +62,29 @@ class Calculation:
         bonds(self.trialList[trial])
         calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
-class ParamSpaceExplorer:
+class ParamSpaceExplorer(Calculation):
     
-    def __init__(self, clen=[1], cnum=[1], cid=["polyeth"]):
-        pass
+    def __init__(self, base, clen=[1], cnum=[1], cid=["polyeth"], **minkwargs):
+        super.__init__(self, base, **minkwargs)
+        self.clen = clen
+        self.cnum = cnum
+        self.cid = cid
+        #make zero value array based on dim of parameters
+        #
+        #
+        self.values = np.array([])
+        
+    def explore(self):
+        trial = 0
+        for _id in self.cid:
+            for _len in self.clen:
+                chain = kappa.build(self.base.ff, _id, count=_len)
+                for _num in self.cnum:
+                    #find indices of attachment points
+                    indices = find_indices(base, _num)
+                    self.add([chain]*_num, indices)
+                    self.values[i,j,k] = self.calculate_kappa(trial)
+                    trial += 1
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
