@@ -158,7 +158,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print_spring_constants(crossings, kMatrix)
     inspect_positive_definiteness(kMatrix)
-    inspect_hessian(crossings, kMatrix)
+    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_modes(mol, val, vec)
                 
     for crossing in crossings:
@@ -200,31 +200,6 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                 kappa += term
             
     return kappa
-    
-def _calculate_power2(i, j, val, vec, coeff, kMatrix, driverList, mullenTable):
-    
-    #assuming same drag constant as other driven atom
-    driver1 = driverList[1]
-    d = len(driver1)
-    
-    n = len(val)
-    
-    kappaterms = np.zeros((3,3,d,n,n))
-    
-    val_sigma = np.tile(val, (n,1))
-    val_tau = np.transpose(val_sigma)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        valterm = np.true_divide(val_sigma-val_tau,val_sigma+val_tau)
-    valterm[~np.isfinite(valterm)] = 0.
-    
-    aix = vec[3*i  ,:]
-    aiy = vec[3*i+1,:]
-    aiz = vec[3*i+2,:]
-    ajx = vec[3*j  ,:]
-    ajy = vec[3*j+1,:]
-    ajz = vec[3*j+2,:]
-    
-    return 0.
     
 def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -277,7 +252,7 @@ def inspect_positive_definiteness(kmat):
     except np.linalg.LinAlgError:
         print("hessian is NOT positive definite")
         
-def inspect_hessian(interactions, kmat):
+def inspect_space_homogeneity(interactions, kmat):
     
     acts = np.array(interactions)
     
