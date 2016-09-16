@@ -138,6 +138,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     mullenTable = []
     
     print_spring_constants(crossings, kMatrix)
+    inspect_positive_definiteness(kMatrix)
     inspect_hessian(crossings, kMatrix)
 #    inspect_modes(mol, val, vec)
                 
@@ -248,6 +249,14 @@ def print_spring_constants(interactions, kmat):
         i,j = act
         print(act)
         print(kmat[3*i:3*i+3,3*j:3*j+3])
+        
+def inspect_positive_definiteness(kmat):
+    
+    try:
+        np.linalg.cholesky(kmat)
+        print("hessian is positive definite")
+    except np.linalg.LinAlgError:
+        print("hessian is NOT positive definite")
         
 def inspect_hessian(interactions, kmat):
     
