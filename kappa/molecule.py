@@ -942,7 +942,8 @@ def build_cc(ff, name="CC"):
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
                 "imine":build_imine, "imine_chain":build_imine_chain, "pmma":build_pmma,
-                "pan":build_pan}
+                "pan":build_pan, 
+                "polyeth":build_polyeth, "pvf":build_pvf, "pvcl":build_pvcl, "teflon":build_teflon}
 lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):

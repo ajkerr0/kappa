@@ -6,6 +6,7 @@
 """
 
 import itertools
+import random
 from copy import deepcopy
 
 import numpy as np
@@ -85,6 +86,9 @@ class ParamSpaceExplorer(Calculation):
                     self.add([chain]*_num, indices)
                     self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
                     trial += 1
+                    
+    def write_to_file(self):
+        print(self.values)
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
@@ -365,7 +369,22 @@ def _calculate_ballandspring_k_mat(N,k0,nLists):
     return KMatrix
     
 def find_indices(base, num):
-    pass
+    
+    indices = []
+    
+    if num > 1:
+        #select indices that are most 'spread out'
+        pass
+    elif num == 1:
+        #pick a random index
+        for faceindex in [0,1]:
+            face = base.faces[faceindex]
+            choices = [x for x in face.atoms if x not in face.closed]
+            indices.append(random.choice(choices))
+    else:
+        raise ValueError("Number of chains must be an integer greater than zero")
+        
+    return indices
     
 def write_to_txt(twodlist, name):
     with open(name,'w') as f:
