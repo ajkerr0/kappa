@@ -68,12 +68,13 @@ class Calculation:
 class ParamSpaceExplorer(Calculation):
     
     def __init__(self, base, clen=[1], cnum=[1], cid=["polyeth"], **minkwargs):
-        super.__init__(self, base, **minkwargs)
+        super().__init__(base, **minkwargs)
         self.clen = clen
         self.cnum = cnum
         self.cid = cid
         #make zero value array based on dim of parameters
-        self.values = np.zeros((len(cid), len(clen), len(cnum)))
+        self.params = [cid, clen, cnum]
+        self.values = np.zeros([len(x) for x in self.params])
         
     def explore(self):
         trial = 0
@@ -83,12 +84,15 @@ class ParamSpaceExplorer(Calculation):
                 for numcount, _num in enumerate(self.cnum):
                     #find indices of attachment points
                     indices = find_indices(self.base, _num)
-                    self.add([chain]*_num, indices)
+                    self.add([chain]*_num*2, indices)
                     self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
                     trial += 1
                     
     def write_to_file(self):
-        print(self.values)
+        shape = self.values.shape
+        param_strings = ["id", "length", "num"]
+        #find all dimensions of single length
+        singles = np.where(shape == 1)[0]
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
@@ -157,9 +161,9 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     mullenTable = []
     
-    print_spring_constants(crossings, kMatrix)
-    inspect_positive_definiteness(kMatrix)
-    inspect_space_homogeneity(crossings, kMatrix)
+#    print_spring_constants(crossings, kMatrix)
+#    inspect_positive_definiteness(kMatrix)
+#    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_modes(mol, val, vec)
                 
     for crossing in crossings:
