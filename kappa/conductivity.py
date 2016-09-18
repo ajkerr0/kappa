@@ -67,7 +67,7 @@ class Calculation:
         
 class ParamSpaceExplorer(Calculation):
     
-    def __init__(self, base, clen=[1], cnum=[1], cid=["polyeth"], **minkwargs):
+    def __init__(self, base, cnum, clen=[1], cid=["polyeth"], **minkwargs):
         super().__init__(base, **minkwargs)
         self.clen = clen
         self.cnum = cnum
@@ -81,10 +81,10 @@ class ParamSpaceExplorer(Calculation):
         for idcount, _id in enumerate(self.cid):
             for lencount, _len in enumerate(self.clen):
                 chain = build(self.base.ff, _id, count=_len)
-                for numcount, _num in enumerate(self.cnum):
+                for numcount in range(len(self.cnum)):
                     #find indices of attachment points
-                    indices = find_indices(self.base, _num)
-                    self.add([chain]*_num*2, indices)
+                    indices = [index for subindices in self.cnum[0:numcount+1] for index in subindices]
+                    self.add([chain]*(numcount+1)*2, indices)
                     self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
                     trial += 1
                     
