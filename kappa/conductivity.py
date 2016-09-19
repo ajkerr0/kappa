@@ -88,11 +88,25 @@ class ParamSpaceExplorer(Calculation):
                     self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
                     trial += 1
                     
-    def write_to_file(self):
-        shape = self.values.shape
-        param_strings = ["id", "length", "num"]
-        #find all dimensions of single length
-        singles = np.where(shape == 1)[0]
+    def write(self):
+        with open('values.kappa', 'w') as outfile:
+            for idnum, _id in enumerate(self.cid):
+#                outfile.write("{0}\n\n".format(_id))
+                outfile.write("\n\n")
+                outfile.write("%s\n\n" % _id)
+                outfile.write("rows %s\n" % self.clen)
+                outfile.write("cols %s\n" % self.cnum)
+#                outfile.write("rows {0}".format(self.clen))
+#                outfile.write("cols {0}".format(self.cnum))
+                with open('values.kappa', 'wb') as outfile2:
+#                for row in self.values[idnum]:
+                    print(self.values[idnum])
+                    np.savetxt(outfile2, self.values[idnum],)
+#            _file.write("%s\n\n" % _id)
+#            _file.write("rows %s" % self.clen)
+#            _file.write("cols %s" % self.cnum)
+#            _file.write(self.values[idnum])
+            
         
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
