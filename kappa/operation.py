@@ -59,6 +59,8 @@ def _calculate_hessian(molecule, numgrad=False):
         calculate_grad = molecule.define_gradient_routine_numerical()
     else:
         calculate_grad = molecule.define_gradient_routine_analytical()
+        
+    index = 0
     
     for i in range(N):
         
@@ -81,11 +83,18 @@ def _calculate_hessian(molecule, numgrad=False):
         xiRow = (plusXTestGrad - minusXTestGrad)/2.0/dx
         yiRow = (plusYTestGrad - minusYTestGrad)/2.0/dy
         ziRow = (plusZTestGrad - minusZTestGrad)/2.0/dz
+    
+        if i == index:
+            a,b = plusXTestGrad, minusXTestGrad
         
         H[3*i    ] = np.hstack(xiRow)
         H[3*i + 1] = np.hstack(yiRow)
         H[3*i + 2] = np.hstack(ziRow)
         
+#    print(a)
+#    print(b)
+#    print(H[index])
+       
     return H
     
 def hessian(molecule):

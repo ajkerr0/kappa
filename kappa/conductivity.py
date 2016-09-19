@@ -8,6 +8,7 @@
 import itertools
 import random
 from copy import deepcopy
+import pprint
 
 import numpy as np
 import scipy.linalg as linalg
@@ -178,6 +179,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    print_spring_constants(crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
+#    inspect_symmetry(kMatrix)
 #    inspect_modes(mol, val, vec)
                 
     for crossing in crossings:
@@ -185,7 +187,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
-#    pprint.pprint(mullenTable)
+    pprint.pprint(mullenTable)
     print(kappa)
     return kappa
     
@@ -278,9 +280,14 @@ def inspect_positive_definiteness(kmat):
     except np.linalg.LinAlgError:
         print("hessian is NOT positive definite")
         
-    val, vec = np.linalg.eig(kmat)
+    val , vec = np.linalg.eig(kmat)
     
     print(val)
+        
+def inspect_symmetry(kmat):
+    
+    print("symmetry: ")
+    print(np.allclose(kmat.transpose(), kmat))
         
 def inspect_space_homogeneity(interactions, kmat):
     
