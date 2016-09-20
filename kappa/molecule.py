@@ -8,6 +8,7 @@ Define the Molecule class and a set of functions that `build' preset molecules.
 """
 
 import random
+import warnings
 from copy import deepcopy
 
 import numpy as np
@@ -218,11 +219,11 @@ class Molecule:
         from .antechamber.atomtype.atomtype import main
         self.atomtypes = main(self)
         if "DU" in self.atomtypes:
-            print("WARNING: Dummy atom was assessed during atomtype assignment.")
+            warnings.warn("A dummy atom type was assigned.", stacklevel=2)
         #from these atomtypes, get their IDs
         idList = []
         for atomtype in self.atomtypes:
-                idList.append(self.ff.atomTypeIDDict[atomtype]) 
+                idList.append(self.ff.atomTypeIDDict[atomtype])
         self.idList = np.array(idList)
         
     def _configure_parameters(self):
@@ -271,19 +272,13 @@ class Molecule:
         
     def _configure(self):
         """Call the 'configure' methods sequentially."""
-#        print('Configuring bond topology...')
         self._check_neighbors()
         self._configure_topology_lists()
         self._configure_nonbonded_neighbors()
-#        print('Configuring rings...').
         self._configure_ring_lists()
-#        print('Configuring aromaticity...')
         self._configure_aromaticity()
-#        print('Configuring bond types')
 #        self._configure_bondtypes()
-#        print('Configuring atom types...')
         self._configure_atomtypes()
-#        print('Configuring forcefield parameters...')
         self._configure_parameters()
         
     def define_energy_routine(self):

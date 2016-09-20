@@ -55,7 +55,7 @@ class Amber(Forcefield):
                                "OW":21,"OH":22,"OS":23, "O":24, "O2":25, "S":26, "SH":27, "SO":26,"P":28, "H":29, "HW":30, 
                                "HO":31,"HS":32,"HA":33, "HC":34,"H1":35, "H2":36,"H3":37,"HP":38,"H4":39,"HS":40,
                                "DU":1}
-        self.atomtypeFile = "AMBER_kerr_edit.txt"
+        self.atomtypeFile = "ATOMTYPE_AMBER_KERR.DEF"
             
 class Tersoff(Forcefield):
     """Under construction, a remnant of code past."""
