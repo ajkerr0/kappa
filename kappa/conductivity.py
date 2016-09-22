@@ -176,7 +176,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     mullenTable = []
     
-#    print_spring_constants(crossings, kMatrix)
+    print_spring_constants(crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_symmetry(kMatrix)
@@ -188,7 +188,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
     pprint.pprint(mullenTable)
-    print(kappa)
+#    print(kappa)
     return kappa
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
@@ -264,6 +264,11 @@ def print_spring_constants(interactions, kmat):
         i,j = act
         print(act)
         print(kmat[3*i:3*i+3,3*j:3*j+3])
+        
+    print('random diagonal blocks')
+    diags = [0,11,20]
+    for diag in diags:
+        print(kmat[3*diag:3*diag+3, 3*diag:3*diag+3])
         
 def inspect_positive_definiteness(kmat):
     

@@ -53,7 +53,7 @@ class Amber(Forcefield):
         self.atomTypeIDDict = {"CT":1, "C":2,  "CA":3,  "CM":4, "CC":5,  "CV":6, "CW":7, "CR":8, "CB":9, "C*":10, "CZ":3,
                                "CN":11,"CK":12,"CQ":13, "N":14, "NA":15, "NB":16,"NC":17,"N*":18,"N2":19,"N3":20, "NT":19,
                                "OW":21,"OH":22,"OS":23, "O":24, "O2":25, "S":26, "SH":27, "SO":26,"P":28, "H":29, "HW":30, 
-                               "HO":31,"HS":32,"HA":33, "HC":34,"H1":35, "H2":36,"H3":37,"HP":38,"H4":39,"HS":40,
+                               "HO":31,"HS":32,"HA":33, "HC":34,"H1":35, "H2":36,"H3":37,"HP":38,"H4":39,"HS":40, "Cl":34,  #edit
                                "DU":1}
         self.atomtypeFile = "ATOMTYPE_AMBER_KERR.DEF"
             

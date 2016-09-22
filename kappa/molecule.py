@@ -216,10 +216,11 @@ class Molecule:
         
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
-        from .antechamber.atomtype.atomtype import main
-        self.atomtypes = main(self)
-        if "DU" in self.atomtypes:
-            warnings.warn("A dummy atom type was assigned.", stacklevel=2)
+#        from .antechamber.atomtype.atomtype import main
+#        self.atomtypes = main(self)
+#        if "DU" in self.atomtypes:
+#            warnings.warn("A dummy atom type was assigned.", stacklevel=2)
+        self.atomtypes = ['CZ']*len(self)
         #from these atomtypes, get their IDs
         idList = []
         for atomtype in self.atomtypes:
