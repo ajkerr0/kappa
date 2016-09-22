@@ -58,7 +58,7 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec
     for step in range(1, n+1):
         
         #calculate the stepsize
-        stepSize = search(mol, -gradient/totalMag, stepSize, energy, gradient, calc_e)
+        stepSize = search(mol, -gradient/totalMag, energy, gradient, calc_e, alpha=stepSize)
         
         #take the step
         mol.posList += stepSize*(-gradient/totalMag)
@@ -112,7 +112,7 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
         normH = h/np.linalg.norm(np.hstack(h))
         
         #calculate the stepsize
-        stepSize = search(mol, normH, stepSize, energy, gradient, calc_e)
+        stepSize = search(mol, normH, energy, gradient, calc_e, alpha=stepSize)
         
         #take the step
         mol.posList += stepSize*(normH)
@@ -146,9 +146,17 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
     
     return mol, eList
 
-def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
+def line_search_backtrack(mol, stepList, e, grad, calc_e, alpha=None):
     """Return the stepsize determined by the backtracking strategies of
-    Armijo and Goldstein."""
+    Armijo and Goldstein.
+    
+    Args:
+        mol (Molecule): Molecule to be minimized.  mol.posList is the coordinate array of the atoms
+        stepList (ndarray):  A N x 3 array of the step direction.
+        e (float): The energy of the molecule before the step is taken.
+        grad (ndarray): A N x 3 array of the forces on the atoms before the step is taken.
+        calc_e (function): Callable function that returns the energy of the molecule
+        alpha (float): An initial guess for the step size"""
     
     tau = 0.5
     c = 0.33
@@ -175,9 +183,21 @@ def line_search_backtrack(mol, stepList, alpha, e, grad, calc_e):
     
 #    print('counter:  %s' % counter)        
     return EP
+    
+def line_search_brent(mol, stepList, e, grad, calc_e, alpha=None):
+    """Return the stepsize determined by Brent's method
+    
+    Args:
+        mol (Molecule): Molecule to be minimized.  mol.posList is the coordinate array of the atoms
+        stepList (ndarray):  A N x 3 array of the step direction.
+        e (float): The energy of the molecule before the step is taken.
+        grad (ndarray): A N x 3 array of the forces on the atoms before the step is taken.
+        calc_e (function): Callable function that returns the energy of the molecule"""
+        
+    return 0.
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
-searchDict = {"backtrack":line_search_backtrack}
+searchDict = {"backtrack":line_search_backtrack, "brent":line_search_brent}
 
 def calculate_gamma(grad, pgrad):
     """Return the 'gamma' factor in the conjugate gradient method
