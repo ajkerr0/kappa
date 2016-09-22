@@ -118,7 +118,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     driverList = np.array(driverList)
     
     from .operation import _calculate_hessian
-    kMatrix = _calculate_hessian(mol)
+    kMatrix = _calculate_hessian(mol, numgrad=False)
     ballandspring=False
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
@@ -176,7 +176,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     mullenTable = []
     
-    print_spring_constants(crossings, kMatrix)
+    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_symmetry(kMatrix)
@@ -187,7 +187,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
-    pprint.pprint(mullenTable)
+#    pprint.pprint(mullenTable)
 #    print(kappa)
     return kappa
     
@@ -256,19 +256,26 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 
     return kappa
     
-def print_spring_constants(interactions, kmat):
+def print_spring_constants(mol, interactions, kmat):
     
-    acts = np.array(interactions)
-    
-    for act in acts:
-        i,j = act
-        print(act)
-        print(kmat[3*i:3*i+3,3*j:3*j+3])
+#    acts = np.array(interactions)
+#    
+#    for act in acts:
+#        i,j = act
+#        print(act)
+#        print(kmat[3*i:3*i+3,3*j:3*j+3])
         
-    print('random diagonal blocks')
+#    print('random diagonal blocks')
     diags = [0,11,20]
     for diag in diags:
+        print('atom {0}'.format(diag))
         print(kmat[3*diag:3*diag+3, 3*diag:3*diag+3])
+        _slice = mol.hessian_routine_analytical(diag)
+        print(_slice)
+        print(_slice/kmat[3*diag:3*diag+3, 3*diag:3*diag+3])
+        
+                
+        
         
 def inspect_positive_definiteness(kmat):
     

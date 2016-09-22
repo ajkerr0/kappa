@@ -493,6 +493,41 @@ class Molecule:
             
         return calculate_grad
         
+    def hessian_routine_analytical(self, index):
+        
+        hess_slice = np.zeros((3,3))
+        
+        if self.ff.lengths:
+            
+            def delta(q,p):
+                if q==p:
+                    return 1
+                else:
+                    return 0
+                    
+            bonds = self.bondList[np.where(self.bondList==index)[0]]
+            kb = self.kb[np.where(self.bondList==index)[0]]
+            b0 = self.b0[np.where(self.bondList==index)[0]]
+            
+            for count, bond in enumerate(bonds):
+                if bond[0] == index:
+                    i,j = bond
+                else:
+                    j,i = bond
+                for q in [0,1,2]:
+                    for p in [0,1,2]:
+                        
+                        d = delta(q,p)
+                        rij = np.linalg.norm(self.posList[i]-self.posList[j])
+                        qij = self.posList[i][q] - self.posList[j][q]
+                        pij = self.posList[i][p] - self.posList[j][p]
+                        
+                        hess_slice[q,p] += 2*kb[count]*(d + (b0[count]/rij)*((qij*pij/rij/rij)-d))
+                        
+        return hess_slice
+                    
+            
+        
 class Interface():
     """A molecular interface, calculate thermal conductivity across it.
     
