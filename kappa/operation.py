@@ -48,7 +48,7 @@ def load(name):
     """Load a pickled molecule given a name"""
     return pickle.load(open(save_dir+name+"/mol.p", "rb"))
     
-def _calculate_hessian(molecule, numgrad=False):
+def _calculate_hessian(molecule, stapled_index, numgrad=False):
     """Return the Hessian matrix for the given molecule after calculation."""
     
     N = len(molecule)
@@ -59,8 +59,6 @@ def _calculate_hessian(molecule, numgrad=False):
         calculate_grad = molecule.define_gradient_routine_numerical()
     else:
         calculate_grad = molecule.define_gradient_routine_analytical()
-        
-    index = 0
     
     for i in range(N):
         
@@ -83,17 +81,15 @@ def _calculate_hessian(molecule, numgrad=False):
         xiRow = (plusXTestGrad - minusXTestGrad)/2.0/dx
         yiRow = (plusYTestGrad - minusYTestGrad)/2.0/dy
         ziRow = (plusZTestGrad - minusZTestGrad)/2.0/dz
-    
-        if i == index:
-            a,b = plusXTestGrad, minusXTestGrad
         
         H[3*i    ] = np.hstack(xiRow)
         H[3*i + 1] = np.hstack(yiRow)
         H[3*i + 2] = np.hstack(ziRow)
         
-#    print(a)
-#    print(b)
-#    print(H[index])
+    dk = 1e-5
+    H[3*stapled_index  , 3*stapled_index  ] += dk
+    H[3*stapled_index+1, 3*stapled_index+1] += dk
+    H[3*stapled_index+2, 3*stapled_index+2] += dk
        
     return H
     

@@ -117,8 +117,10 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #standardize the driverList
     driverList = np.array(driverList)
     
+    stapled_index = 30
+    
     from .operation import _calculate_hessian
-    kMatrix = _calculate_hessian(mol, numgrad=False)
+    kMatrix = _calculate_hessian(mol, stapled_index, numgrad=False)
     ballandspring=False
 #    print(kMatrix)
 #    kMatrix = hessian(mol)
@@ -176,7 +178,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     mullenTable = []
     
-    print_spring_constants(mol, crossings, kMatrix)
+#    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_symmetry(kMatrix)
@@ -184,8 +186,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
-#        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+#        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    pprint.pprint(mullenTable)
 #    print(kappa)
@@ -208,15 +210,17 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                     for tau in range(2*n):
                         cotau = coeff[tau, 3*driver] + coeff[tau, 3*driver+1] + coeff[tau, 3*driver+2]
                         try:
-                            term += cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
+                            test= cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
+                            print(test)
+                            term += test
                         except FloatingPointError:
                             print("Divergent term")
-                            print(cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau]))
-                            print(tau)
-                            print(sigma)
-                            print(val[tau])
-                            print(val[sigma])
-                term *= kMatrix[3*i + idim, 3*j + jdim]
+#                            print(cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau]))
+#                            print(tau)
+#                            print(sigma)
+#                            print(val[tau])
+#                            print(val[sigma])
+#                term *= kMatrix[3*i + idim, 3*j + jdim]
                 mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                 kappa += term
             
