@@ -220,7 +220,7 @@ class Molecule:
 #        self.atomtypes = main(self)
 #        if "DU" in self.atomtypes:
 #            warnings.warn("A dummy atom type was assigned.", stacklevel=2)
-        self.atomtypes = ['CZ']*len(self)
+        self.atomtypes = ['CZ']*len(self)  #temporary to replicate previous error
         #from these atomtypes, get their IDs
         idList = []
         for atomtype in self.atomtypes:

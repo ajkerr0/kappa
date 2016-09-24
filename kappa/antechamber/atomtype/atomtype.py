@@ -46,35 +46,10 @@ def main(molecule):
         typeList.append(type_)
         
     return typeList
-        
-def atomic_num(entry, num):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == num:
-        return True
-    else:
-        return False
-
-def neighbors(entry, nList):
-    """Return True if the number of neighbors matches the entry, False otherwise."""
-    entry = int(entry)
-    if entry == len(nList):
-        return True
-    else:
-        return False
-
-def hneighbors(entry, hcount):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == hcount:
-        return True
-    else:
-        return False
-
-def wneighbors(entry, wcount):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == wcount:
+    
+def compare_int(entry, num):
+    """Return True if the integer matches the line entry, False otherwise."""
+    if int(entry) == num:
         return True
     else:
         return False
@@ -227,7 +202,7 @@ def path_parser(pathString, masterList, pathList):
             masterList.append(newList)
 
 
-funcList = [atomic_num, neighbors, hneighbors, wneighbors, atomic_prop, chem_env]
+funcList = [compare_int, compare_int, compare_int, compare_int, atomic_prop, chem_env]
         
 def parse_line(line, atom, molecule):
     """Return True and atomtype if atom matches a line entry, False otherwise."""
@@ -261,7 +236,7 @@ def find_input(molecule, atomIndex, funcIndex):
         return molecule.zList[atomIndex]
     elif funcIndex == 1:
         #return the neighbor list
-        return molecule.nList[atomIndex]
+        return len(molecule.nList[atomIndex])
     elif funcIndex == 2:
         #find how many of these neighbors are hydrogens and return that number
         neighbors = molecule.nList[atomIndex]
