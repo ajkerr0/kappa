@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from scipy.stats import gaussian_kde
 
 plt.close("all")
 
@@ -202,6 +203,16 @@ def normal_modes(molecule,evec):
     
 #    fig.savefig("fig_nm.png",transparent=False,bbox_inches='tight')
     
+    plt.show()
+    
+def density(val):
+    
+#    print(val)
+    density = gaussian_kde(val.flatten())
+    x = np.linspace(-20, 20, 1000)
+    density.covariance_factor = lambda: .25
+    density._compute_covariance()
+    plt.plot(x, density(x))
     plt.show()
     
 def participation(mol):
