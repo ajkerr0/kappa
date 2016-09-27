@@ -8,7 +8,6 @@
 import itertools
 import random
 from copy import deepcopy
-import pprint
 
 import numpy as np
 import scipy.linalg as linalg
@@ -52,6 +51,9 @@ class Calculation:
             #do minus 2 because 1 atom gets lost in combination
             #and another to account to the 'start at zero' indexing
             dList[face1].append(mol.driver + sizetrial - 1)
+#            #drive every hydrogen
+#            for hindex in np.where(mol.zList==1)[0]:
+#                dList[face1].append(hindex + sizetrial - 1)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
@@ -63,6 +65,8 @@ class Calculation:
         
     def calculate_kappa(self, trial):
         from .plot import bonds
+#        print(self.driverList[trial])
+#        bonds3d(self.trialList[trial], indices=True)
         bonds(self.trialList[trial])
         return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
@@ -186,12 +190,13 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
                 
     for crossing in crossings:
         i,j = crossing
-#        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
-        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+        kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
+#        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    pprint.pprint(mullenTable)
 #    print(kappa)
-    return kappa
+#    return kappa
+    return kappa, np.array(mullenTable)
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -210,18 +215,12 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                     for tau in range(2*n):
                         cotau = coeff[tau, 3*driver] + coeff[tau, 3*driver+1] + coeff[tau, 3*driver+2]
                         try:
-                            test= cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
-                            print(test)
+                            test= kMatrix[3*i + idim, 3*j + jdim]*cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
+                            mullenTable.append(test)
                             term += test
                         except FloatingPointError:
                             print("Divergent term")
-#                            print(cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau]))
-#                            print(tau)
-#                            print(sigma)
-#                            print(val[tau])
-#                            print(val[sigma])
 #                term *= kMatrix[3*i + idim, 3*j + jdim]
-                mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
                 kappa += term
             
     return kappa
@@ -253,10 +252,11 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 term1 = np.tile(coeff[:, 3*driver] + coeff[:, 3*driver+1] + coeff[:, 3*driver+2], (n,1))
                 term2 = np.transpose(term1)
                 
-                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
-
-                mullenTable.append([3*i+idim,3*j+jdim,kMatrix[3*i + idim, 3*j + jdim],term])
-                kappa += term          
+                termArr = kMatrix[3*i + idim, 3*j + jdim]*term1*term2*term3*term4*valterm
+                mullenTable.append(termArr)
+#                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
+#                kappa += term
+                kappa += np.sum(termArr)
                 
     return kappa
     
