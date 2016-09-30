@@ -207,12 +207,14 @@ def normal_modes(molecule,evec):
     
 def density(val):
     
-#    print(val)
-    density = gaussian_kde(val.flatten())
-    x = np.linspace(-20, 20, 1000)
-    density.covariance_factor = lambda: .25
-    density._compute_covariance()
-    plt.plot(x, density(x))
+#    density = gaussian_kde(val.flatten())
+#    x = np.linspace(-20, 20, 1000)
+#    density.covariance_factor = lambda: .25
+#    density._compute_covariance()
+#    plt.plot(x, density(x))
+    
+    n, bins, patches = plt.hist(val.flatten(), bins=200)
+    plt.axis([-10000, 10000, 0, 1e6])
     plt.show()
     
 def participation(mol):
