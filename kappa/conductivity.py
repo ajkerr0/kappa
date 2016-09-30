@@ -116,7 +116,7 @@ class ParamSpaceExplorer(Calculation):
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
-    gamma = 0.1
+    gamma = 100.
     
     #standardize the driverList
     driverList = np.array(driverList)
@@ -135,6 +135,9 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     mMatrix = _calculate_mass_mat(mol.zList)
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
+    
+#    
+#        print(np.dot(vec[i]))
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
             
@@ -180,7 +183,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print(crossings)
     
-    mullenTable = []
+#    mullenTable = []
+    mullenTable = None
     
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
@@ -195,8 +199,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
 #    pprint.pprint(mullenTable)
 #    print(kappa)
-#    return kappa
-    return kappa, np.array(mullenTable)
+    return kappa
+#    return kappa, mullenTable
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -253,7 +257,13 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 term2 = np.transpose(term1)
                 
                 termArr = kMatrix[3*i + idim, 3*j + jdim]*term1*term2*term3*term4*valterm
-                mullenTable.append(termArr)
+                if mullenTable is not None:
+                    large_vals = np.where(np.absolute(termArr) > 500.)
+#                    print(large_vals)
+                    for x,y in zip(large_vals[0], large_vals[1]):
+                        mullenTable.append([termArr[x, y], x, y])
+                        mullenTable.append([term1[x,y], term2[x,y], term3[x,y], term4[x,y], val_sigma[x,y], val_tau[x,y], valterm[x,y]])
+#                        mullenTable.append(x)
 #                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
 #                kappa += term
                 kappa += np.sum(termArr)
