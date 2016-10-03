@@ -67,7 +67,7 @@ class Calculation:
         from .plot import bonds
 #        print(self.driverList[trial])
 #        bonds3d(self.trialList[trial], indices=True)
-        bonds(self.trialList[trial])
+#        bonds(self.trialList[trial])
         return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
 class ParamSpaceExplorer(Calculation):
@@ -116,7 +116,7 @@ class ParamSpaceExplorer(Calculation):
 def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
-    gamma = 100.
+    gamma = 10.
     
     #standardize the driverList
     driverList = np.array(driverList)
@@ -183,9 +183,10 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print(crossings)
     
-#    mullenTable = []
-    mullenTable = None
+    mullenTable = []
+#    mullenTable = None
     
+    inspect_orthogonality(vec)
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
@@ -199,8 +200,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
 #    pprint.pprint(mullenTable)
 #    print(kappa)
-    return kappa
-#    return kappa, mullenTable
+#    return kappa
+    return kappa, mullenTable
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -258,11 +259,12 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 
                 termArr = kMatrix[3*i + idim, 3*j + jdim]*term1*term2*term3*term4*valterm
                 if mullenTable is not None:
-                    large_vals = np.where(np.absolute(termArr) > 500.)
-#                    print(large_vals)
-                    for x,y in zip(large_vals[0], large_vals[1]):
-                        mullenTable.append([termArr[x, y], x, y])
-                        mullenTable.append([term1[x,y], term2[x,y], term3[x,y], term4[x,y], val_sigma[x,y], val_tau[x,y], valterm[x,y]])
+                    mullenTable.append(termArr)
+#                    large_vals = np.where(np.absolute(termArr) > 100.)
+##                    print(large_vals)
+#                    for x,y in zip(large_vals[0], large_vals[1]):
+#                        mullenTable.append([termArr[x, y], x, y])
+#                        mullenTable.append([term1[x,y], term2[x,y], term3[x,y], term4[x,y], val_sigma[x,y], val_tau[x,y], valterm[x,y]])
 #                        mullenTable.append(x)
 #                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
 #                kappa += term
@@ -338,6 +340,22 @@ def inspect_modes(mol, val, vec):
     from .plot import normal_modes
     for index in uncoupled[:6]:
         normal_modes(mol, vec[:N,index])
+        
+def inspect_orthogonality(vec):
+    
+    N = len(vec)
+    
+    for i in range(N):
+        for j in range(N):
+            
+            if abs(j-i) > 1:
+                
+                dot = np.dot(vec[:,i], np.vec[:,j])
+                
+                if abs(dot) > 1e-2:
+                    print(dot)
+                
+    print("that was ortho check")
     
     
 def _calculate_coeff(val, vec, massMat, gMat):
