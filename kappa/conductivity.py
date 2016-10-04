@@ -187,7 +187,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    mullenTable = []
     mullenTable = None
     
-#    inspect_orthogonality(vec)
+#    inspect_orthogonality(vec, kMatrix)
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
@@ -342,7 +342,11 @@ def inspect_modes(mol, val, vec):
     for index in uncoupled[:6]:
         normal_modes(mol, vec[:N,index])
         
-def inspect_orthogonality(vec):
+def inspect_orthogonality(vec, kmat):
+    
+    
+#    val, vec = np.linalg.eig(kmat)
+#    vec = np.imag(vec)
     
     N = len(vec)
     
@@ -359,8 +363,7 @@ def inspect_orthogonality(vec):
             print(j)
             print(np.dot(vec[:,i], vec[:,j]))
                 
-    print("that was ortho check")
-    
+    print("that was ortho check")    
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
