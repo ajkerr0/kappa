@@ -67,7 +67,7 @@ class Calculation:
         from .plot import bonds
 #        print(self.driverList[trial])
 #        bonds3d(self.trialList[trial], indices=True)
-#        bonds(self.trialList[trial])
+        bonds(self.trialList[trial])
         return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
         
 class ParamSpaceExplorer(Calculation):
@@ -121,7 +121,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     #standardize the driverList
     driverList = np.array(driverList)
     
-    stapled_index = 30
+#    stapled_index = 30
+    stapled_index=None
     
     from .operation import _calculate_hessian
     kMatrix = _calculate_hessian(mol, stapled_index, numgrad=False)
@@ -183,10 +184,10 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     print(crossings)
     
-    mullenTable = []
-#    mullenTable = None
+#    mullenTable = []
+    mullenTable = None
     
-    inspect_orthogonality(vec)
+#    inspect_orthogonality(vec)
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
@@ -199,9 +200,9 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    pprint.pprint(mullenTable)
-#    print(kappa)
-#    return kappa
-    return kappa, mullenTable
+    print(kappa)
+    return kappa
+#    return kappa, mullenTable
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -348,12 +349,15 @@ def inspect_orthogonality(vec):
     for i in range(N):
         for j in range(N):
             
-            if abs(j-i) > 1:
-                
-                dot = np.dot(vec[:,i], np.vec[:,j])
-                
-                if abs(dot) > 1e-2:
-                    print(dot)
+#            if abs(j-i) > 1:
+#                
+#                dot = np.dot(vec[:,i], vec[:,j])
+#                
+#                if abs(dot) > 1e-2:
+#                    print(dot)
+            print(i)
+            print(j)
+            print(np.dot(vec[:,i], vec[:,j]))
                 
     print("that was ortho check")
     
