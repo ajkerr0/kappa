@@ -8,12 +8,12 @@ Define functions that draw molecule objects.
 """
 
 import copy
+from itertools import cycle
 
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from scipy.stats import gaussian_kde
 
 plt.close("all")
 
@@ -234,4 +234,22 @@ def participation(mol):
     fig.suptitle("Participation ratios of %s" % mol.name)
     
     plt.show()
+    
+def grid(values):
+    """Plot a grid of values."""
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    colors = ['b', 'r', 'g', 'y']   
+
+    xs = np.arange(values.shape[2])
+    
+    count = 0
+    for block, c in zip(values, cycle(colors)):
+        for row in block:
+            ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
+            count += 1
+    
+    
     
