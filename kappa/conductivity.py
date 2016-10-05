@@ -117,6 +117,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
     
     #give each driver the same drag constant
     gamma = 10.
+#    gamma = .1
     
     #standardize the driverList
     driverList = np.array(driverList)
@@ -187,6 +188,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize):
 #    mullenTable = []
     mullenTable = None
     
+    inspect_char_equation(gamma, kMatrix, driverList)
 #    inspect_orthogonality(vec, kMatrix)
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
@@ -363,7 +365,18 @@ def inspect_orthogonality(vec, kmat):
             print(j)
             print(np.dot(vec[:,i], vec[:,j]))
                 
-    print("that was ortho check")    
+    print("that was ortho check")
+    
+def inspect_char_equation(g, kmat, driverList):
+    """Print values from the characteristic equation."""
+    
+    drivers = driverList[1]
+    
+    for driver in drivers:
+        print(driver)
+        print(g)
+        print(kmat[driver,driver])
+        print(np.sqrt(complex(g**2 - 4.*kmat[driver,driver])))
     
 def _calculate_coeff(val, vec, massMat, gMat):
     """Return the 2N x N Green's function coefficient matrix."""
