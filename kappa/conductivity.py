@@ -73,8 +73,8 @@ class Calculation:
         
 class ParamSpaceExplorer(Calculation):
     
-    def __init__(self, base, cnum, clen=[1], cid=["polyeth"], **minkwargs):
-        super().__init__(base, **minkwargs)
+    def __init__(self, base, cnum, clen=[1], cid=["polyeth"], gamma=10., **minkwargs):
+        super().__init__(base, gamma=gamma, **minkwargs)
         self.clen = clen
         self.cnum = cnum
         self.cid = cid
@@ -121,8 +121,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     #standardize the driverList
     driverList = np.array(driverList)
     
-#    stapled_index = 30
-    stapled_index=None
+    stapled_index = 30
+#    stapled_index=None
     
     from .operation import _calculate_hessian
     kMatrix = _calculate_hessian(mol, stapled_index, numgrad=False)
@@ -137,8 +137,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
-#    
-#        print(np.dot(vec[i]))
+    print(val)
     
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
             
@@ -184,10 +183,10 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     print(crossings)
     
-#    mullenTable = []
-    mullenTable = None
+    mullenTable = []
+#    mullenTable = None
     
-    inspect_char_equation(gamma, kMatrix, driverList)
+#    inspect_char_equation(gamma, kMatrix, driverList)
 #    inspect_orthogonality(vec, kMatrix)
 #    print_spring_constants(mol, crossings, kMatrix)
 #    inspect_positive_definiteness(kMatrix)
@@ -204,6 +203,13 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     print(kappa)
     return kappa
 #    return kappa, mullenTable
+    
+#    for k in mullenTable:
+#        print(gamma)
+#        print(k)
+#        print(np.sqrt(complex(gamma**2 - 4.*k)))
+#        
+#    return kappa
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
     
@@ -261,7 +267,10 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 
                 termArr = kMatrix[3*i + idim, 3*j + jdim]*term1*term2*term3*term4*valterm
                 if mullenTable is not None:
-                    mullenTable.append(termArr)
+                    mullenTable.append(kMatrix[3*i + idim, 3*j +jdim])
+                #####
+#                    mullenTable.append(termArr)
+                ########
 #                    large_vals = np.where(np.absolute(termArr) > 100.)
 ##                    print(large_vals)
 #                    for x,y in zip(large_vals[0], large_vals[1]):
