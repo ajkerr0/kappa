@@ -19,11 +19,12 @@ amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            
 class Calculation:
     
-    def __init__(self, base, **minkwargs):
+    def __init__(self, base, gamma=10., **minkwargs):
         if len(base.faces) == 2:
             self.base = base
         else:
             raise ValueError("A base molecule with 2 interfaces is needed!")
+        self.gamma = gamma
         #minimize the base molecule
         from ._minimize import minimize
         minimize(self.base, **minkwargs)
@@ -68,7 +69,7 @@ class Calculation:
 #        print(self.driverList[trial])
 #        bonds3d(self.trialList[trial], indices=True)
         bonds(self.trialList[trial])
-        return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base))
+        return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base), self.gamma)
         
 class ParamSpaceExplorer(Calculation):
     
@@ -113,11 +114,9 @@ class ParamSpaceExplorer(Calculation):
 #            _file.write(self.values[idnum])
             
         
-def calculate_thermal_conductivity(mol, driverList, baseSize):
+def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
-    #give each driver the same drag constant
-    gamma = 10.
-#    gamma = .1
+    #give each driver the same drag constant (Calculation gamma)
     
     #standardize the driverList
     driverList = np.array(driverList)
