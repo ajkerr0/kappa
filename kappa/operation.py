@@ -87,7 +87,7 @@ def _calculate_hessian(molecule, stapled_index, numgrad=False):
         H[3*i + 2] = np.hstack(ziRow)
         
     if stapled_index is not None:
-        dk = 1e-5
+        dk = .1
         H[3*stapled_index  , 3*stapled_index  ] += dk
         H[3*stapled_index+1, 3*stapled_index+1] += dk
         H[3*stapled_index+2, 3*stapled_index+2] += dk

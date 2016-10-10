@@ -4,7 +4,7 @@
 @author: Alex Kerr
 
 """
-
+import pprint
 import itertools
 import random
 from copy import deepcopy
@@ -137,14 +137,10 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     val, vec = _calculate_thermal_evec(kMatrix, gMatrix, mMatrix)
     
-    print(val)
-    
     coeff = _calculate_coeff(val, vec, mMatrix, gMatrix)
-            
-    #find all dihedral interactions that contain an enhancement atom and interface atom
-    #dihedral interactions exhaust all possible bond related interactions although if dihedrals are turned off 
-            #many terms will be zero
-    #add them to pairings list
+    
+    
+    #find interactions that cross an interface        
     crossings = []
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
@@ -183,8 +179,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     print(crossings)
     
-    mullenTable = []
-#    mullenTable = None
+#    mullenTable = []
+    mullenTable = None
     
 #    inspect_char_equation(gamma, kMatrix, driverList)
 #    inspect_orthogonality(vec, kMatrix)
@@ -192,18 +188,24 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
 #    inspect_positive_definiteness(kMatrix)
 #    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_symmetry(kMatrix)
-#    inspect_modes(mol, val, vec)
+#    inspect_nondecay_modes(mol, val, vec)
                 
     for crossing in crossings:
         i,j = crossing
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
+#    inspect_term_modes(mol, mullenTable, vec)
 #    pprint.pprint(mullenTable)
+#    print(len(mullenTable))
     print(kappa)
     return kappa
 #    return kappa, mullenTable
     
+    
+    
+   ########
+    #searching for weird discriminant values
 #    for k in mullenTable:
 #        print(gamma)
 #        print(k)
@@ -267,14 +269,14 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                 
                 termArr = kMatrix[3*i + idim, 3*j + jdim]*term1*term2*term3*term4*valterm
                 if mullenTable is not None:
-                    mullenTable.append(kMatrix[3*i + idim, 3*j +jdim])
+#                    mullenTable.append(kMatrix[3*i + idim, 3*j +jdim])
                 #####
 #                    mullenTable.append(termArr)
                 ########
-#                    large_vals = np.where(np.absolute(termArr) > 100.)
+                    large_vals = np.where(np.absolute(termArr) > 250.)
 ##                    print(large_vals)
-#                    for x,y in zip(large_vals[0], large_vals[1]):
-#                        mullenTable.append([termArr[x, y], x, y])
+                    for x,y in zip(large_vals[0], large_vals[1]):
+                        mullenTable.append([termArr[x, y], x, y])
 #                        mullenTable.append([term1[x,y], term2[x,y], term3[x,y], term4[x,y], val_sigma[x,y], val_tau[x,y], valterm[x,y]])
 #                        mullenTable.append(x)
 #                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
@@ -337,7 +339,7 @@ def inspect_space_homogeneity(interactions, kmat):
         print(np.sum(kmat[3*i:3*i+3]))
         print(np.sum(kmat[3*j:3*j+3]))
         
-def inspect_modes(mol, val, vec):
+def inspect_nondecay_modes(mol, val, vec):
     
     #find where modes are uncoupled from dissapation
     uncoupled = np.where(np.real(val) > -1e-12)[0]
@@ -351,6 +353,18 @@ def inspect_modes(mol, val, vec):
     from .plot import normal_modes
     for index in uncoupled[:6]:
         normal_modes(mol, vec[:N,index])
+        
+def inspect_term_modes(mol, mullenTable, vec):
+    """Plot mode pairs that correspond to high thermal conductivity contributions"""
+    
+    N = len(vec)//2
+    
+    from .plot import normal_modes
+    
+    for row in mullenTable[:5]:
+        sigma, tau = row[1], row[2]
+        normal_modes(mol, vec[:N, sigma])
+        normal_modes(mol, vec[:N, tau])
         
 def inspect_orthogonality(vec, kmat):
     
