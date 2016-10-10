@@ -166,42 +166,25 @@ def faces(molecule):
     for count in range(len(molecule.faces)):
         face(molecule, count)
     
-def normal_modes(molecule,evec):
+def normal_modes(mol,evec):
     """Draw a visualization of a normal mode of a molecule."""
     
     fig = plt.figure()
     ax=Axes3D(fig)
     
-    length = len(molecule)
-    x = np.zeros(length)
-    y = np.zeros(length)
-    z = np.zeros(length)
-    u = np.zeros(length)
-    v = np.zeros(length)
-    w = np.zeros(length)
+    length = len(mol)
+    ar = np.arange(length, dtype=int)
+
+    ax.scatter(mol.posList[:,0],mol.posList[:,1],mol.posList[:,2])
+    ax.quiver( mol.posList[:,0],mol.posList[:,1],mol.posList[:,2],
+               evec[3*ar].real, evec[3*ar + 1].real, evec[3*ar + 2].real, pivot='tail')
     
-    for index,pos in enumerate(molecule.posList):
-        xi,yi,zi = pos
-        ui,vi,wi = np.real((evec[3*index],evec[3*index +1],evec[3*index +2]))
-        x[index] = xi
-        y[index] = yi
-        z[index] = zi
-        u[index] = ui
-        v[index] = vi
-        w[index] = wi
-        
-#    ax.quiver(x,y,z,u,v,w, length=1e-2, pivot="tail")
-    ax.scatter(x,y,z)
-    ax.quiver(x,y,z,u,v,w, pivot='tail')
-    
-    size = 10
+    size = 12
     ax.set_xlim3d(-size,size)
     ax.set_ylim3d(-size,size)
     ax.set_zlim3d(-size,size)    
     
     ax._axis3don = False
-    
-#    fig.savefig("fig_nm.png",transparent=False,bbox_inches='tight')
     
     plt.show()
     
@@ -250,6 +233,5 @@ def grid(values):
         for row in block:
             ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
             count += 1
-    
     
     
