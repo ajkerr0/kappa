@@ -24,6 +24,14 @@ dz = ds
 vdx = np.array([dx,0.0,0.0])
 vdy = np.array([0.0,dy,0.0])
 vdz = np.array([0.0,0.0,dz])
+
+#amuarray = np.array([1.0079,  4.0026,    6.941,  9.0122,  10.811, 12.0107, 14.0067,
+#                     15.9994, 18.9984,  20.1797, 22.9897,  24.305, 26.9815, 28.0855,
+#                     30.9738, 32.065,   35.453,  39.948, 39.0983,  40.078, 44.9559, 
+#                     47.867])
+
+amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
+           15:30.79, 16:32.065, 17:35.45}
         
 class Molecule:
     """A molecule, representing a collection of interacting atoms
@@ -94,6 +102,10 @@ class Molecule:
             face.pos = -face.pos
             face.norm = -face.norm
             
+    def com(self):
+        """Return the center of mass of the molecule."""
+        return np.sum(self.mass[:,None]*self.posList, axis=0)/np.sum(self.mass)
+            
     def hydrogenate(self):
         """Attach a hydrogen atom to every open interface atom."""
         #find all the open atoms
@@ -118,6 +130,13 @@ class Molecule:
             for neighbor in nList:
                 if index not in self.nList[neighbor]:
                     raise ValueError("Molecule's neighbor list needs to be symmetric")
+
+    def _configure_mass(self):
+        """Assign the mass array to the instance, indexed like posList."""
+        mass = []
+        for z in self.zList:
+            mass.append(amuDict[z])
+        self.mass = np.array(mass)
             
     def _configure_topology_lists(self):
         """Assign lists of the unique bonds, bond angles, dihedral angles, and improper torsionals 
@@ -274,6 +293,7 @@ class Molecule:
     def _configure(self):
         """Call the 'configure' methods sequentially."""
         self._check_neighbors()
+        self._configure_mass()
         self._configure_topology_lists()
         self._configure_nonbonded_neighbors()
         self._configure_ring_lists()

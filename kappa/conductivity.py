@@ -230,8 +230,10 @@ def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable
                     for tau in range(2*n):
                         cotau = coeff[tau, 3*driver] + coeff[tau, 3*driver+1] + coeff[tau, 3*driver+2]
                         try:
-                            test= kMatrix[3*i + idim, 3*j + jdim]*cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau]))
-                            mullenTable.append(test)
+                            test= kMatrix[3*i + idim, 3*j + jdim]*(cosigma*cotau*(vec[:n,:][3*i + idim ,sigma])*(
+                                    vec[:n,:][3*j + jdim,tau])*((val[sigma]-val[tau])/(val[sigma]+val[tau])))
+                            if mullenTable is not None:
+                                mullenTable.append(test)
                             term += test
                         except FloatingPointError:
                             print("Divergent term")
