@@ -368,6 +368,15 @@ def inspect_term_modes(mol, mullenTable, vec):
         normal_modes(mol, vec[:N, sigma], track=row[3:5])
         normal_modes(mol, vec[:N, tau], track=row[3:5])
         
+def inspect_com_modes(mol, vecs):
+    """Raise issue if normal mode shifts center of mass."""
+    
+    com = mol.com()
+    
+    for vec in vecs:
+        vec.reshape(N,3)
+    
+        
 def inspect_orthogonality(vec, kmat):
     
     
