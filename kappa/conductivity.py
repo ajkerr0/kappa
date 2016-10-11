@@ -179,8 +179,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     print(crossings)
     
-#    mullenTable = []
-    mullenTable = None
+    mullenTable = []
+#    mullenTable = None
     
 #    inspect_char_equation(gamma, kMatrix, driverList)
 #    inspect_orthogonality(vec, kMatrix)
@@ -195,12 +195,12 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
         kappa += _calculate_power(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
-#    inspect_term_modes(mol, mullenTable, vec)
 #    pprint.pprint(mullenTable)
+    inspect_term_modes(mol, mullenTable, vec)
 #    print(len(mullenTable))
     print(kappa)
-    return kappa
-#    return kappa, mullenTable
+#    return kappa
+    return kappa, mullenTable
     
     
     
@@ -276,7 +276,7 @@ def _calculate_power(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
                     large_vals = np.where(np.absolute(termArr) > 250.)
 ##                    print(large_vals)
                     for x,y in zip(large_vals[0], large_vals[1]):
-                        mullenTable.append([termArr[x, y], x, y])
+                        mullenTable.append([termArr[x, y], x, y, i, j])
 #                        mullenTable.append([term1[x,y], term2[x,y], term3[x,y], term4[x,y], val_sigma[x,y], val_tau[x,y], valterm[x,y]])
 #                        mullenTable.append(x)
 #                term = kMatrix[3*i + idim, 3*j + jdim]*np.sum(term1*term2*term3*term4*valterm)
@@ -363,8 +363,8 @@ def inspect_term_modes(mol, mullenTable, vec):
     
     for row in mullenTable[:5]:
         sigma, tau = row[1], row[2]
-        normal_modes(mol, vec[:N, sigma])
-        normal_modes(mol, vec[:N, tau])
+        normal_modes(mol, vec[:N, sigma], track=row[3:5])
+        normal_modes(mol, vec[:N, tau], track=row[3:5])
         
 def inspect_orthogonality(vec, kmat):
     

@@ -166,8 +166,12 @@ def faces(molecule):
     for count in range(len(molecule.faces)):
         face(molecule, count)
     
-def normal_modes(mol,evec):
-    """Draw a visualization of a normal mode of a molecule."""
+def normal_modes(mol,evec, track=None):
+    """Draw a visualization of a normal mode of a molecule.
+    
+    Keywords:
+        track (array-like): An array of indices to highlight in the plots.
+            Indices should be in '3*index' format to reflect direction."""
     
     fig = plt.figure()
     ax=Axes3D(fig)
@@ -178,6 +182,17 @@ def normal_modes(mol,evec):
     ax.scatter(mol.posList[:,0],mol.posList[:,1],mol.posList[:,2])
     ax.quiver( mol.posList[:,0],mol.posList[:,1],mol.posList[:,2],
                evec[3*ar].real, evec[3*ar + 1].real, evec[3*ar + 2].real, pivot='tail')
+               
+    if track is not None:
+        for index in track:
+            atom = int(index/3.)
+            ax.scatter(mol.posList[atom,0], mol.posList[atom,1], mol.posList[atom,2], 
+                       s=100., c='red', zorder=-3)
+            point_index = index%3
+            point = np.array([0.,0.,0.])
+            point[point_index] = 1.
+            ax.quiver(mol.posList[atom,0], mol.posList[atom,1], mol.posList[atom,2], 
+                      point[0], point[1], point[2], pivot='tail', cmap='Reds', zorder=-2, lw=5.)
     
     size = 12
     ax.set_xlim3d(-size,size)
