@@ -179,8 +179,8 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
     print(crossings)
     
-    mullenTable = []
-#    mullenTable = None
+#    mullenTable = []
+    mullenTable = None
     
 #    inspect_char_equation(gamma, kMatrix, driverList)
 #    inspect_orthogonality(vec, kMatrix)
@@ -189,6 +189,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
 #    inspect_space_homogeneity(crossings, kMatrix)
 #    inspect_symmetry(kMatrix)
 #    inspect_nondecay_modes(mol, val, vec)
+    inspect_com_modes(mol, vec)
                 
     for crossing in crossings:
         i,j = crossing
@@ -196,11 +197,11 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
 #        kappa += _calculate_power_loop(i,j,val, vec, coeff, kMatrix, driverList, mullenTable)
     
 #    pprint.pprint(mullenTable)
-    inspect_term_modes(mol, mullenTable, vec)
+#    inspect_term_modes(mol, mullenTable, vec)
 #    print(len(mullenTable))
     print(kappa)
-#    return kappa
-    return kappa, mullenTable
+    return kappa, None
+#    return kappa, mullenTable
     
     
     
@@ -371,10 +372,19 @@ def inspect_term_modes(mol, mullenTable, vec):
 def inspect_com_modes(mol, vecs):
     """Raise issue if normal mode shifts center of mass."""
     
+    N = len(vecs)//2
+    nmol = len(mol)
+    
     com = mol.com()
     
-    for vec in vecs:
-        vec.reshape(N,3)
+    for vec in np.transpose(vecs[:N]):
+        vec = vec.reshape(nmol,3)
+        
+        mol.posList += 100.*vec.real
+        new_com = mol.com()
+        mol.posList += -100.*vec.real
+        
+        print(new_com-com)
     
         
 def inspect_orthogonality(vec, kmat):
