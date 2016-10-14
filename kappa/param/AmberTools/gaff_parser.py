@@ -75,10 +75,22 @@ def parse():
     kbArr[bond_types[:,0], bond_types[:,1],1] = np.array(b0)
     kbArr[bond_types[:,1], bond_types[:,0],1] = np.array(b0)
     
-    print(kbArr[51,29])
-    print(kbArr[29,51])
-                                
-    print(bond_types)
+    ktArr = np.zeros((dim,dim,dim,2))
+    ktArr[angle_types[:,0], angle_types[:,1], angle_types[:,2],0] = np.array(kt)
+    ktArr[angle_types[:,2], angle_types[:,1], angle_types[:,0],0] = np.array(kt)
+    ktArr[angle_types[:,0], angle_types[:,1], angle_types[:,2],1] = np.array(t0)
+    ktArr[angle_types[:,2], angle_types[:,1], angle_types[:,0],1] = np.array(t0)
+    
+    vnArr = np.zeros((dim,dim,dim,dim,6))
+    vnArr[dih_types[:,0], dih_types[:,1], dih_types[:,2], dih_types[:,3], 0] = np.array(vn)
+    vnArr[dih_types[:,3], dih_types[:,2], dih_types[:,1], dih_types[:,0], 0] = np.array(vn)
+    vnArr[dih_types[:,0], dih_types[:,1], dih_types[:,2], dih_types[:,3], 1] = np.array(gn)
+    vnArr[dih_types[:,3], dih_types[:,2], dih_types[:,1], dih_types[:,0], 1] = np.array(gn)
+    
+#    print(kbArr[51,29])
+#    print(kbArr[29,51])
+#                                
+#    print(bond_types)
     
 #    def find(a,b):
 #        return atom_types.index(a), atom_types.index(b)
