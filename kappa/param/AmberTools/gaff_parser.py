@@ -1,13 +1,12 @@
 """
-A module that parses the GAFF parameter file.
+An ugly parser of ff parameter files.
 
 @author: Alex Kerr
 """
 
-from itertools import chain
 import csv
 
-import pandas as pd
+import numpy as np
 
 file_ = './gaff.dat'
 
@@ -49,7 +48,6 @@ def parse():
         a,b,c = map(str.rstrip, [line[:2],line[3:5],line[6:8]])
         angle_types.append([a,b,c])
         kt.append(float(line[10:16]))
-        print(line)
         t0.append(float(line[21:28]))
         
     dih_types = []
@@ -63,7 +61,31 @@ def parse():
         dih_types.append([a,b,c,d])
         vn.append(float(line[18:24]))
         gn.append(float(line[31:38]))
-        nn.append(abs(int(49,54)))
+        nn.append(abs(int(float(line[49:54]))))
+        
+    #the ugly way to do this
+    dim = len(atom_types)
+    
+    bond_types = np.array([(atom_types.index(a), atom_types.index(b))
+                            for a,b in bond_types])
+                                
+    kbArr = np.zeros((dim,dim,2))
+    kbArr[bond_types[:,0], bond_types[:,1],0] = np.array(kb)
+    kbArr[bond_types[:,1], bond_types[:,0],0] = np.array(kb)
+    kbArr[bond_types[:,0], bond_types[:,1],1] = np.array(b0)
+    kbArr[bond_types[:,1], bond_types[:,0],1] = np.array(b0)
+    
+    print(kbArr[51,29])
+    print(kbArr[29,51])
+                                
+    print(bond_types)
+    
+#    def find(a,b):
+#        return atom_types.index(a), atom_types.index(b)
+#    
+#    bond_types = starmap(find, bond_types)
+#    print(bond_types)
+    
         
 #    print(atom_types)
 #    print(bond_types)
@@ -72,5 +94,12 @@ def parse():
 #    print(angle_types)
 #    print(kt)
 #    print(t0)
+#    print(vn)
+#    print(nn)
+#    print(gn)
+    
+#    bond_types = np.array(bond_types, dtype="str")
+
+    
     
 parse()
