@@ -28,10 +28,11 @@ ATD  CM    *   6   3   *   *   [RG6,AR1.AR2.AR3]        (C3,C3(N2(C3(N3(C3))))) 
 ATD  CM    *   6   3   *   *   [RG6,AR1.AR2.AR3]        (C3,C3(N3(C3(N3(C3))))) &
 ATD  CM    *   6   3   *   *   [RG6,AR1.AR2.AR3]        (C3,N3(C3(N2(C3(C3))))) &
 ATD  CM    *   6   3   *   *   [RG6,AR1.AR2.AR3]        (N3,C3(C3(N3(C3(N3))))) &
-ATD  CA    *   6   3   *   *   [AR1.AR2.AR3]             &    
+ATD  CA    *   6   3   *   *   [AR1.AR2.AR3]            &    
 ATD  CA    *   6   3   *   *   *                        (N3,N3,N3)              &
 ATD  CD    *   6   3   *   *   *                        (C3,C3)                 & 
 ATD  CM    *   6   3   &
+ATD  CA    *   6   2   *   *   [AR1.AR2.AR3]            (C,C)                   &  #edit
 ATD  CZ    *   6   2   &
 ATD  H     *   1   1   *   *   *                        (N)                     &
 ATD  HO    *   1   1   *   *   *                        (O)                     &
@@ -42,6 +43,7 @@ ATD  H3    *   1   1   *   3   *                        (C4)                    
 ATD  H2    *   1   1   *   2   *                        (C4)                    &
 ATD  H1    *   1   1   *   1   *                        (C4)                    &
 ATD  HC    *   1   1   *   *   *                        (C4)                    &
+ATD  HA    *   1   1   *   *   *                        (C3[AR1.AR2.AR3])       &  #edit
 ATD  HC    *   1   1   *   *   *                        (C3)                    &  #edit
 ATD  H5    *   1   1   *   2   *                        (XX[AR1.AR2.AR3])       &
 ATD  H4    *   1   1   *   1   *                        (XX[AR1.AR2.AR3])       &

@@ -187,7 +187,7 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
 #    import pprint
 #    pprint.pprint(mullenTable)
     print(kappa)
-    return kappa, None
+    return kappa
 #    return kappa, mullenTable
     
 def _calculate_power_loop(i,j, val, vec, coeff, kMatrix, driverList, mullenTable):
