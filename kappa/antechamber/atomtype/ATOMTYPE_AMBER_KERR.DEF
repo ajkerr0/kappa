@@ -32,8 +32,8 @@ ATD  CA    *   6   3   *   *   [AR1.AR2.AR3]            &
 ATD  CA    *   6   3   *   *   *                        (N3,N3,N3)              &
 ATD  CD    *   6   3   *   *   *                        (C3,C3)                 & 
 ATD  CM    *   6   3   &
-ATD  CA    *   6   2   *   *   [AR1.AR2.AR3]            (C,C)                   &  #edit
-ATD  CZ    *   6   2   &
+ATD  CA    *   6   2   *   *   [AR1.AR2.AR3]            (C,C)                   &  #edit to catch sp carbons in base structures
+ATD  CZ    *   6   &                                                               #edit to catch 'hanging' carbons in chains
 ATD  H     *   1   1   *   *   *                        (N)                     &
 ATD  HO    *   1   1   *   *   *                        (O)                     &
 ATD  HS    *   1   1   *   *   *                        (S)                     &

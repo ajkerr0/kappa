@@ -19,7 +19,7 @@ atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16]
 def main(molecule):
     """Main module execution."""
     
-    file_ = molecule.ff.atomtypeFile
+    file_ = molecule.ff.atomtype_file
     
     reader = csv.reader(open("%s/antechamber/atomtype/%s" % (package_dir,file_)), delimiter=" ", skipinitialspace=True)
     lines = []

@@ -239,12 +239,9 @@ class Molecule:
         self.atomtypes = main(self)
         if "DU" in self.atomtypes:
             warnings.warn("A dummy atom type was assigned.", stacklevel=2)
-#        self.atomtypes = ['CZ']*len(self)  #temporary to replicate previous error
-        #from these atomtypes, get their IDs
+        #from these atomtypes, get their ID numbers
         idList = []
-        ffatypes = list(np.load("{}/param/AmberTools/atomtypes.npy".format(package_dir)))
-#        for atomtype in self.atomtypes:
-#            idList.append(self.ff.atomTypeIDDict[atomtype])
+        ffatypes = list(np.load("{0}/param/{1}/atomtypes.npy".format(package_dir, self.ff.param_dir)))
         for atomtype in self.atomtypes:
             idList.append(ffatypes.index(atomtype))
         self.idList = np.array(idList)
@@ -252,18 +249,14 @@ class Molecule:
     def _configure_parameters(self):
         """Assign the force parameters to the molecule instance."""
         idList = self.idList
-#        filename = '%s/param/%s' % (package_dir, self.ff.name)
-        filename = '{0}/param/AmberTools'.format(package_dir)
+        filename = '{0}/param/{1}'.format(package_dir, self.ff.param_dir)
         
         if self.ff.lengths:
             #assign kr, r0 parameters
             try:
-#                kbArr, b0Arr = np.load(filename+"/kb.npy"), np.load(filename+"/b0.npy")
-#                self.kb = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
-#                self.b0 = b0Arr[idList[self.bondList[:,0]],idList[self.bondList[:,1]]]
-                kbArr = np.load(filename+"/kb.npy")
-                self.kb = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]],0]
-                self.b0 = kbArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]],1]
+                lengthArr = np.load(filename+"/blengths.npy")
+                self.kb = lengthArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]],0]
+                self.b0 = lengthArr[idList[self.bondList[:,0]],idList[self.bondList[:,1]],1]
             except IndexError:
                 self.kb, self.b0 = [], []
             

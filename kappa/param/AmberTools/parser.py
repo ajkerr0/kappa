@@ -45,7 +45,7 @@ def parse():
     kbArr[bond_types[:,1], bond_types[:,0],0] = np.array(kb)
     kbArr[bond_types[:,0], bond_types[:,1],1] = np.array(b0)
     kbArr[bond_types[:,1], bond_types[:,0],1] = np.array(b0)
-    np.save("kb", kbArr)
+    np.save("blengths", kbArr)
       
     #angles
     angle_types = []
@@ -64,7 +64,7 @@ def parse():
     ktArr[angle_types[:,2], angle_types[:,1], angle_types[:,0],0] = np.array(kt)
     ktArr[angle_types[:,0], angle_types[:,1], angle_types[:,2],1] = np.array(t0)
     ktArr[angle_types[:,2], angle_types[:,1], angle_types[:,0],1] = np.array(t0)
-    np.save("kt", ktArr)
+    np.save("bangles", ktArr)
     
     #dihedrals
     #dihedrals are different because we must handle wildcard atoms
