@@ -263,24 +263,31 @@ class Molecule:
         if self.ff.angles:
             #assign kt,t0 parameters
             try:
-                ktArr, t0Arr = np.load(filename+"/kt.npy"), np.load(filename+"/t0.npy")
-                self.kt = ktArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
-                                    idList[self.angleList[:,2]]]
-                self.t0 = t0Arr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
-                                    idList[self.angleList[:,2]]]
+                angleArr = np.load(filename+"/bangles.npy")
+                self.kt = angleArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                   idList[self.angleList[:,2]],0]
+                self.t0 = angleArr[idList[self.angleList[:,0]], idList[self.angleList[:,1]],
+                                   idList[self.angleList[:,2]],1]
             except IndexError:
                 self.kt, self.t0 = [],[]
                                 
         if self.ff.dihs:
             #assign, vn, nn, gn parameters
             try:
-                vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
-                self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-                self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-                self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+                dihArr = np.load(filename+"/bdih.npy")
+                self.vn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
+                                 :,0]
+                self.gn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
+                                 :,1]
+#                vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
+#                self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+#                self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+#                self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
             except IndexError:
                 self.vn, self.nn, self.gn = [], [], []
                                 

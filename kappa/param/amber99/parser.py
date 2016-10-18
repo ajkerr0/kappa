@@ -69,25 +69,40 @@ def parse():
     #dihedrals
     #dihedrals are different because we must handle wildcard atoms
     #we must also use every term in the Fourier series
-#    wc = 'X'
-#    dih_types = []
-#    vn = []
-#    nn = []
-#    gn = []
-#    
-#    for line in lines[section[2]+1:section[3]]:
-#        line=line[0]
-#        a,b,c,d = map(str.rstrip, [line[:2],line[3:5],line[6:8],line[9:11]])
-#        dih_types.append([a,b,c,d])
-#        vn.append(float(line[18:24]))
-#        gn.append(float(line[31:38]))
-#        nn.append(abs(int(float(line[49:54]))))
-#        
-#    vnArr = np.zeros((dim,dim,dim,dim,6))
-#    vnArr[dih_types[:,0], dih_types[:,1], dih_types[:,2], dih_types[:,3], 0] = np.array(vn)
-#    vnArr[dih_types[:,3], dih_types[:,2], dih_types[:,1], dih_types[:,0], 0] = np.array(vn)
-#    vnArr[dih_types[:,0], dih_types[:,1], dih_types[:,2], dih_types[:,3], 1] = np.array(gn)
-#    vnArr[dih_types[:,3], dih_types[:,2], dih_types[:,1], dih_types[:,0], 1] = np.array(gn)
+    wc = 'X'
+    dih_types = []
+    vns = []
+    
+    for line in lines[section[2]+1:section[3]]:
+        line=line[0]
+        a,b,c,d = map(str.rstrip, [line[:2],line[3:5],line[6:8],line[9:11]])
+        dih_types.append([a,b,c,d])
+        vns.append([float(line[18:24]),float(line[31:38]),abs(int(float(line[49:54])))])
+        
+#    print(vns)
+    
+    vnArr = np.zeros((dim,dim,dim,dim,4,2))
+    
+    slices = [[slice(None) if i == wc else a_types.index(i) for i in dih] for dih in dih_types]
+    
+    for slice_, vn in zip(slices,vns):
+        
+        #first make sure the array is cleared from wildcards
+#        print(slice_)
+        vnArr[slice_+[vn[-1]]] = 0.
+#        vnArr[slice_+[vn[-1], 0]] = vn[0]
+#        vnArr[slice_+[vn[-1], 1]] = vn[1]
+        vnArr[slice_+[vn[-1]]][0] = vn[0]
+        vnArr[slice_+[vn[-1]]][1] = vn[1]
+        slice_.reverse()
+        vnArr[slice_+[vn[-1]]] = 0.
+#        vnArr[slice_+[vn[-1], 0]] = vn[0]
+#        vnArr[slice_+[vn[-1], 1]] = vn[1]
+        vnArr[slice_+[vn[-1]]][0] = vn[0]
+        vnArr[slice_+[vn[-1]]][1] = vn[1]
+#        print(slice_)
+        
+    np.save("bdih", vnArr)
 
 if __name__ == "__main__":
     parse()
