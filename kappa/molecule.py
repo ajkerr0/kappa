@@ -274,13 +274,20 @@ class Molecule:
         if self.ff.dihs:
             #assign, vn, nn, gn parameters
             try:
-                dihArr = np.load(filename+"/bdih.npy")
-                self.vn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
-                                 :,0]
-                self.gn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
-                                 :,1]
+                dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
+                dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                  idList[self.dihList[:,2]], idList[self.dihList[:,2]]])
+                for dihedral in dihedrals:
+                    print(np.all(dihedral==dihArr, axis=1))
+                print(dihArr)
+                print(dihedrals)
+#                dihArr = np.load(filename+"/bdih.npy")
+#                self.vn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+#                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
+#                                 :,0]
+#                self.gn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+#                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
+#                                 :,1]
 #                vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
 #                self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
 #                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
