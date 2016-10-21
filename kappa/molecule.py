@@ -272,31 +272,57 @@ class Molecule:
                 self.kt, self.t0 = [],[]
                                 
         if self.ff.dihs:
-            #assign, vn, nn, gn parameters
+            #assign, vn, gn parameters
             try:
                 dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
                 dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                                  idList[self.dihList[:,2]], idList[self.dihList[:,2]]])
+                              idList[self.dihList[:,2]], idList[self.dihList[:,2]]])
+            
+                def store_dih_param(index, paramList, vnList):
+                    vns = vnList[index]
+                    paramList[0][abs(int(vns[2]))-1] = vns[0]
+                    paramList[1][abs(int(vns[2]))-1] = vns[1]
+                    if vns[2] >= 0.:
+                        return paramList
+                    else:
+                        store_dih_param(index+1, paramList, vnList)
+                        
+                valuesList = []
+                #find indices of wildcards in dihArr
+                first_num = np.nonzero(dihArr[:,0])[0][0]
                 for dihedral in dihedrals:
-                    print(np.all(dihedral==dihArr, axis=1))
-                print(dihArr)
-                print(dihedrals)
-#                dihArr = np.load(filename+"/bdih.npy")
-#                self.vn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-#                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
-#                                 :,0]
-#                self.gn = dihArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-#                                 idList[self.dihList[:,2]], idList[self.dihList[:,3]],
-#                                 :,1]
-#                vnArr, nnArr, gnArr = np.load(filename+"/vn.npy"), np.load(filename+"/nn.npy"), np.load(filename+"/gn.npy")
-#                self.vn = vnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-#                self.nn = nnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
-#                self.gn = gnArr[idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-#                                    idList[self.dihList[:,2]], idList[self.dihList[:,3]]]
+                    #check full definitions
+                    values = np.zeros((2,4))
+                    combo = np.where(np.all(dihedral==dihArr[first_num:], axis=1))[0]
+                    if combo:
+                        #assign values
+                        values = store_dih_param(combo[0], values, vnArr[first_num:])
+                        valuesList.append(values)
+                        continue
+                    #consider inversion symmetry
+                    combo = np.where(np.all(dihedral[::-1]==dihArr[first_num:], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[first_num:])
+                        valuesList.append(values)
+                        continue
+                    #check with wildcards
+                    combo = np.where(np.all(dihedral[1:3]==dihArr[:first_num][:,1:3], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[:first_num])
+                        valuesList.append(values)
+                        continue
+                    #inversion symmetry
+                    combo = np.where(np.all(dihedral[1:3][::-1]==dihArr[:first_num][:,1:3], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[:first_num])
+                        valuesList.append(values)
+                        continue
+                values = np.array(valuesList)
+                self.vn = values[:,0]
+                self.gn = values[:,1]
+            
             except IndexError:
-                self.vn, self.nn, self.gn = [], [], []
+                self.vn, self.gn = [], []
                                 
         if self.ff.lj:
             #assign Van-dr-Waals parameters
@@ -361,7 +387,10 @@ class Molecule:
                 m1 = np.cross(n1, poskj/rkj[:,None])
                 x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
                 omega = np.rad2deg(np.arctan2(y,x))
-                return np.sum(self.vn*(np.ones(len(self.dihList)) + np.cos(np.radians(self.nn*omega - self.gn))))
+                return np.sum(self.vn[:,0]*(1. + np.cos(np.radians(   omega - self.gn[:,0])))
+                            + self.vn[:,1]*(1. + np.cos(np.radians(2.*omega - self.gn[:,1])))
+                            + self.vn[:,2]*(1. + np.cos(np.radians(3.*omega - self.gn[:,2])))
+                            + self.vn[:,3]*(1. + np.cos(np.radians(4.*omega - self.gn[:,3]))))
                 
             e_funcs.append(e_dihs)
             
@@ -491,7 +520,10 @@ class Molecule:
                 dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
                 dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
-                uTerm = -(180./np.pi)*self.nn*self.vn*np.sin(self.nn*omega - self.gn)
+                uTerm = -(180./np.pi)*(   self.vn[:,0]*np.sin(   omega - self.gn[:,0])
+                                     + 2.*self.vn[:,1]*np.sin(2.*omega - self.gn[:,1])
+                                     + 3.*self.vn[:,2]*np.sin(3.*omega - self.gn[:,2])
+                                     + 4.*self.vn[:,3]*np.sin(4.*omega - self.gn[:,3]))
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
                 dudrk = uTerm[:,None]*dwdrk
