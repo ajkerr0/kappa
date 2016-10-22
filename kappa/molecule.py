@@ -276,7 +276,7 @@ class Molecule:
             try:
                 dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
                 dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
-                              idList[self.dihList[:,2]], idList[self.dihList[:,2]]])
+                                          idList[self.dihList[:,2]], idList[self.dihList[:,3]]])
             
                 def store_dih_param(index, paramList, vnList):
                     vns = vnList[index]
