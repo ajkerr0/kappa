@@ -978,6 +978,16 @@ def build_pvcl(ff, name="polyvinylidenechloride", count=2):
     
     return build_polyx((1,1,17,1), ff, name, count)
     
+def build_pvcl2(ff, name="polyvinylidenechloride2", count=2):
+    """Return a polyvinylidenechloride molecule."""
+    
+    return build_polyx((1,1,17,17), ff, name, count)
+    
+def build_pvcl3(ff, name="polyvinylidenechloride3", count=2):
+    """Return a polyvinylidenechloride molecule."""
+    
+    return build_polyx((17,1,17,1), ff, name, count)
+    
 def build_polyeth(ff, name="polyethylene", count=2):
     """Return a polyethylene chain."""
     
@@ -1040,7 +1050,8 @@ def build_cc(ff, name="CC"):
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
                 "imine":build_imine, "imine_chain":build_imine_chain, "pmma":build_pmma,
                 "pan":build_pan, 
-                "polyeth":build_polyeth, "pvf":build_pvf, "pvcl":build_pvcl, "teflon":build_teflon}
+                "polyeth":build_polyeth, "pvf":build_pvf, "teflon":build_teflon,
+                "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3}
 lattices = list(_latticeDict.keys())
 
 def build(ff, lattice, **kwargs):
