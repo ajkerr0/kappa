@@ -7,11 +7,13 @@
 
 import itertools
 from copy import deepcopy
+import csv
+import time
 
 import numpy as np
 import scipy.linalg as linalg
 
-from .molecule import build
+from .molecule import build, chains
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
@@ -90,27 +92,20 @@ class ParamSpaceExplorer(Calculation):
                     #find indices of attachment points
                     indices = [index for subindices in self.cnum[0:numcount+1] for index in subindices]
                     self.add([chain]*(numcount+1)*2, indices)
-                    self.values[idcount,lencount,numcount] = self.calculate_kappa(trial)
+                    kappa = self.calculate_kappa(trial)
+                    vals = [kappa.real, chains.index(_id), _len, numcount+1,
+                            self.gamma, self.base.ff.name, indices]
+                    self.write(self.base.name, vals)
+                    self.values[idcount,lencount,numcount] = kappa
                     trial += 1
                     
-    def write(self):
-        with open('values.kappa', 'w') as outfile:
-            for idnum, _id in enumerate(self.cid):
-#                outfile.write("{0}\n\n".format(_id))
-                outfile.write("\n\n")
-                outfile.write("%s\n\n" % _id)
-                outfile.write("rows %s\n" % self.clen)
-                outfile.write("cols %s\n" % self.cnum)
-#                outfile.write("rows {0}".format(self.clen))
-#                outfile.write("cols {0}".format(self.cnum))
-                with open('values.kappa', 'wb') as outfile2:
-#                for row in self.values[idnum]:
-                    print(self.values[idnum])
-                    np.savetxt(outfile2, self.values[idnum],)
-#            _file.write("%s\n\n" % _id)
-#            _file.write("rows %s" % self.clen)
-#            _file.write("cols %s" % self.cnum)
-#            _file.write(self.values[idnum])
+    @staticmethod               
+    def write(filename, vals):
+        kappa, cid, clen, cnum, gamma, ff, indices = vals
+        with open('{0}'.format(filename), 'a', newline='') as file:
+            line_writer = csv.writer(file, delimiter=';')
+            line_writer.writerow([kappa, cid, clen, cnum,0,0,0,gamma, ff, indices, time.strftime("%H:%M/%d/%m/%Y")])
+                
             
         
 def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):

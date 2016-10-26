@@ -785,7 +785,7 @@ def build_graphene(ff, name="", radius=3):
     posList,nList,faceList = lattice(radius)
     size = len(posList)
     if not name:
-        name = 'graphene_N%s' % (str(size))
+        name = 'graphene_r{0}'.format(str(radius))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int)  #full of carbons
     graphene = Molecule(ff, name, posList, nList, zList, cbase=True)
@@ -802,7 +802,7 @@ def build_cnt_armchair(ff, name="", radius=2, length=15):
     posList,nList,faceList = lattice(radius,length)
     size = len(posList)
     if not name:
-        name = 'cnt_R%s_L%s' % (str(radius), str(length))
+        name = 'cnt_r{0}_l{1}'.format(str(radius),str(length))
     posList = np.array(posList)
     zList = np.full(size, 6, dtype=int) #full of carbons
     cnt = Molecule( ff, name, posList, nList, zList, cbase=True)
@@ -1053,6 +1053,8 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "polyeth":build_polyeth, "pvf":build_pvf, "teflon":build_teflon,
                 "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3}
 lattices = list(_latticeDict.keys())
+chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
+          "imine_chain"]
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
