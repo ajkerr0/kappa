@@ -15,6 +15,8 @@ from matplotlib import colors
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from .molecule import chains
+
 plt.close("all")
 
 atomColors = {1:"white",6:"black",7:"skyblue",8:"red",9:"green",15:"orange",16:"yellow",17:"green"}
@@ -252,5 +254,45 @@ def grid(values):
         for row in block:
             ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
             count += 1
+            
+def kappa(filename, cid, dim, val):
+    """Plot kappa values along a particular dimension."""
     
+    data = np.genfromtxt(filename, 
+                         dtype=[('kappa', 'f8'), ('cid', 'i4'),('clen','i4'),
+                                ('cnum','i4'), ('dbav', 'i4'), ('param1', 'i4'),
+                                ('param2', 'i4'), ('g', 'f8'), ('ff', 'S5'),
+                                ('indices', 'S30'), ('time','S16')], delimiter=";")
     
+    kappa = []
+    param = []
+    for datum in data:
+        kappa.append(datum[0])
+        param.append(list(datum)[1:7])
+    kappa = np.array(kappa)
+    param = np.array(param)
+    
+    if dim.lower() == 'length':
+        index = 1
+        slice_ = 2
+    elif dim.lower() == 'num':
+        index = 2
+        slice_ = 1
+    else:
+        raise ValueError('Dimension string was invalid')
+    
+    p = param[np.where(param[:,index]==val)[0],:]
+    kappa = kappa[np.where(param[:,index]==val)[0]]
+    
+    for id_ in cid:
+        
+        idnum = chains.index(id_)
+        indices = np.where(p[:,0]==idnum)
+        
+#        print(p)
+#        print(p[indices,slice_][0])
+#        print(kappa[indices])
+        
+        plt.plot(p[indices,slice_][0], kappa[indices], 'o')
+        
+    plt.show()
