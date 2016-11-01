@@ -255,8 +255,10 @@ def grid(values):
             ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
             count += 1
             
-def kappa(filename, cid, dim, val):
+def kappa(filename, cid, dim, val, avg=False):
     """Plot kappa values along a particular dimension."""
+    
+    colors = ['b','r','y','c','m','g','k','w']
     
     data = np.genfromtxt(filename, 
                          dtype=[('kappa', 'f8'), ('cid', 'i4'),('clen','i4'),
@@ -284,15 +286,35 @@ def kappa(filename, cid, dim, val):
     p = param[np.where(param[:,index]==val)[0],:]
     kappa = kappa[np.where(param[:,index]==val)[0]]
     
-    for id_ in cid:
+    handles = []
+    
+    for count, id_ in enumerate(cid):
         
         idnum = chains.index(id_)
         indices = np.where(p[:,0]==idnum)
+        vals = p[indices,slice_][0]
         
-#        print(p)
-#        print(p[indices,slice_][0])
-#        print(kappa[indices])
+        if avg is True:
+            marker = '-'
+            xy={}
+            for val, k in zip(vals,kappa[indices]):
+                try:
+                    xy[val].append(k)
+                except KeyError:
+                    xy[val] = [k]
+                
+            x, y = [], []
+            for key in xy:
+                x.append(key)
+                y.append(np.average(xy[key]))
+        else:
+            marker = 'o'
+            x, y = vals, kappa[indices]
         
-        plt.plot(p[indices,slice_][0], kappa[indices], 'o')
+        idline, = plt.plot(x, y, colors[count]+marker,
+                          label=id_)
+        handles.append(idline)
+        
+    plt.legend(handles=handles)
         
     plt.show()
