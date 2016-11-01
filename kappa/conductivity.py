@@ -14,6 +14,7 @@ import numpy as np
 import scipy.linalg as linalg
 
 from .molecule import build, chains
+import ballnspring
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
@@ -106,9 +107,54 @@ class ParamSpaceExplorer(Calculation):
             line_writer = csv.writer(file, delimiter=';')
             line_writer.writerow([kappa, cid, clen, cnum,0,0,0,gamma, ff, indices, time.strftime("%H:%M/%d/%m/%Y")])
                 
-            
-        
+
 def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
+    
+    #find interactions that cross an interface        
+    crossings = []
+    atoms0 = mol.faces[0].attached
+    atoms1 = mol.faces[1].attached
+    
+    if mol.ff.dihs:
+        interactions = mol.dihList
+    elif mol.ff.angles:
+        interactions = mol.angleList
+    elif mol.ff.lengths:
+        interactions = mol.bondList
+
+    for it in interactions:
+        for atom in atoms0:
+            if atom in it:
+                #find elements that are part of the base molecule
+                #if there are any, then add them to interactions
+                elements = [x for x in it if x < baseSize]
+                for element in elements:
+                    crossings.append([atom, element])
+        for atom in atoms1:
+            if atom in it:
+                elements = [x for x in it if x < baseSize]
+                for element in elements:
+                    crossings.append([element, atom])
+                    
+    #add nonbonded interactions
+    ''' to 
+        be 
+        completed '''
+                    
+    #remove duplicate interactions
+    crossings.sort()
+    crossings = list(k for k,_ in itertools.groupby(crossings))
+    print(crossings)
+    
+    stapled_index = 30
+#    stapled_index=None
+    
+    from .operation import _calculate_hessian
+    kmat = _calculate_hessian(mol, stapled_index, numgrad=False)
+    
+    return ballnspring.kappa(mol.mass, kmat, driverList, crossings, gamma)
+        
+def calculate_thermal_conductivity2(mol, driverList, baseSize, gamma):
     
     #give each driver the same drag constant (Calculation gamma)
     
