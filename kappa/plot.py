@@ -269,8 +269,11 @@ def kappa(filename, cid, dim, val, avg=False):
     kappa = []
     param = []
     for datum in data:
-        kappa.append(datum[0])
-        param.append(list(datum)[1:7])
+        if datum[0] < 0.:
+            continue
+        else:
+            kappa.append(datum[0])
+            param.append(list(datum)[1:7])
     kappa = np.array(kappa)
     param = np.array(param)
     
