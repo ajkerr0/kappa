@@ -255,8 +255,10 @@ def grid(values):
             ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
             count += 1
             
-def kappa(filename, cid, dim, val, avg=False):
+def kappa(filename, cid, dim, dimval, avg=False):
     """Plot kappa values along a particular dimension."""
+    
+    fig = plt.figure()
     
     colors = ['b','r','y','c','m','g','k','w']
     
@@ -283,8 +285,8 @@ def kappa(filename, cid, dim, val, avg=False):
     else:
         raise ValueError('Dimension string was invalid')
     
-    p = param[np.where(param[:,index]==val)[0],:]
-    kappa = kappa[np.where(param[:,index]==val)[0]]
+    p = param[np.where(param[:,index]==dimval)[0],:]
+    kappa = kappa[np.where(param[:,index]==dimval)[0]]
     
     handles = []
     
@@ -312,8 +314,10 @@ def kappa(filename, cid, dim, val, avg=False):
             x, y = vals, kappa[indices]
         
         idline, = plt.plot(x, y, colors[count]+marker,
-                          label=id_)
+                          label=id_, markersize=8, linewidth=3)
         handles.append(idline)
+        
+    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
         
     plt.legend(handles=handles)
         
