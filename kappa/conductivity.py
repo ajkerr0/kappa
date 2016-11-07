@@ -11,13 +11,16 @@ import csv
 import time
 
 import numpy as np
-import scipy.linalg as linalg
+import matplotlib.pyplot as plt
 
 from .molecule import build, chains
+from .operation import _calculate_hessian
 import ballnspring
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
            15:30.79, 16:32.065, 17:35.45}
+           
+stapled_index = 30
            
 class Calculation:
     
@@ -106,7 +109,56 @@ class ParamSpaceExplorer(Calculation):
         with open('{0}'.format(filename), 'a', newline='') as file:
             line_writer = csv.writer(file, delimiter=';')
             line_writer.writerow([kappa, cid, clen, cnum,0,0,0,gamma, ff, indices, time.strftime("%H:%M/%d/%m/%Y")])
-                
+            
+class ModeInspector(Calculation):
+    """A class designed to inspect quantities related to the thermal conductivity
+    calculation.  Inherits from Calculation, but is intended to have only a single 
+    trial molecule."""
+    
+    def __init__(self, base, molList, indices, gamma, **minkwargs):
+        super().__init__(base, gamma=gamma, **minkwargs)
+        super().add(molList, indices)
+        self.mol = self.trialList[0]
+        self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
+        self.dim = len(self.k)//len(self.mol.mass)
+        
+    @property
+    def g(self):
+        return ballnspring.calculate_gamma_mat(self.dim, len(self.mol), self.gamma, self.driverList[0])
+        
+    @property
+    def m(self):
+        return np.diag(np.repeat(self.mol.mass,self.dim))
+        
+        
+    @property
+    def evec(self):
+        return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
+        
+    @property
+    def coeff(self):
+        print('coeff')
+        val, vec = self.evec
+        return ballnspring.calculate_coeff(val, vec, self.m, self.g)
+        
+    def plot_ppation(self):
+        
+        fig = plt.figure()
+        
+        N = len(self.mol.posList)
+        
+        val, vec = self.evec
+        
+        val, vec = val, vec[:N,:]
+        
+        num = np.sum((vec**2), axis=0)**2
+        den = len(vec)*np.sum(vec**4, axis=0)
+        
+        plt.scatter(val, num/den)
+        
+        fig.suptitle("Val vs p-ratio")
+        
+        plt.show()
 
 def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
@@ -146,10 +198,6 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     crossings = list(k for k,_ in itertools.groupby(crossings))
     print(crossings)
     
-    stapled_index = 30
-#    stapled_index=None
-    
-    from .operation import _calculate_hessian
     kmat = _calculate_hessian(mol, stapled_index, numgrad=False)
     
     return ballnspring.kappa(mol.mass, kmat, driverList, crossings, gamma)
