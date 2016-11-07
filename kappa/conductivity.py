@@ -71,8 +71,6 @@ class Calculation:
         
     def calculate_kappa(self, trial):
         from .plot import bonds
-#        print(self.driverList[trial])
-#        bonds3d(self.trialList[trial], indices=True)
         bonds(self.trialList[trial])
         return calculate_thermal_conductivity(self.trialList[trial], self.driverList[trial], len(self.base), self.gamma)
         
@@ -130,7 +128,6 @@ class ModeInspector(Calculation):
     def m(self):
         return np.diag(np.repeat(self.mol.mass,self.dim))
         
-        
     @property
     def evec(self):
         return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
@@ -158,6 +155,7 @@ class ModeInspector(Calculation):
         
         fig.suptitle("Val vs p-ratio")
         
+        plt.axis([-.1,.1, 0., 1.])        
         plt.show()
 
 def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):

@@ -255,7 +255,7 @@ def grid(values):
             ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
             count += 1
             
-def kappa(filename, cid, dim, dimval, avg=False):
+def kappa(filename, cid, dim, dimval, avg=False, legend=True):
     """Plot kappa values along a particular dimension."""
     
     fig = plt.figure()
@@ -322,6 +322,7 @@ def kappa(filename, cid, dim, dimval, avg=False):
         
     fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
         
-    plt.legend(handles=handles)
+    if legend:
+        plt.legend(handles=handles)
         
     plt.show()
