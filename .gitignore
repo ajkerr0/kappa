@@ -4,6 +4,7 @@
 *.npy
 
 #ignore test scripts
+test.py
 kappa/examples/test.py
 kappa_test.py
 

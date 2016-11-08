@@ -8,11 +8,14 @@ Define functions that draw molecule objects.
 """
 
 import copy
+from itertools import cycle
 
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+
+from .molecule import chains
 
 plt.close("all")
 
@@ -22,7 +25,7 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds(molecule, faces=True, ftrack=False, sites=False):
+def bonds(molecule, sites=False, indices=False, faces=False, order=False):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -44,6 +47,10 @@ def bonds(molecule, faces=True, ftrack=False, sites=False):
             cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
         plt.scatter(posList[:,0],posList[:,1],s=radList[molecule.zList],c=cList)
         
+    if indices:
+        for index, pos in enumerate(molecule.posList):
+            plt.annotate(index, (pos[0]+.1, pos[1]+.1), color='b', fontsize=10)
+        
     if faces:
         for i,face in enumerate(molecule.faces):
             openAtoms = [x for x in face.atoms if x not in face.closed]
@@ -55,10 +62,12 @@ def bonds(molecule, faces=True, ftrack=False, sites=False):
             if np.linalg.norm(face.norm[:2]) > 0.0001:
                 plt.quiver(face.pos[0]+.5*face.norm[0], face.pos[1]+.5*face.norm[1], 5.*face.norm[0], 5.*face.norm[1],
                 color='r', headwidth=1, units='width', width=5e-3, headlength=2.5)
-                         
-    if ftrack:
-        for ft,pos in zip(molecule.facetrack, molecule.posList):
-            plt.annotate(ft, (pos[0]+.1, pos[1]+.1))
+                
+    if order:
+        for index, bo in enumerate(molecule.bondorder):
+            i,j = molecule.bondList[index]
+            midpoint = (molecule.posList[i]+molecule.posList[j])/2.
+            plt.annotate(bo, (midpoint[0], midpoint[1]), color='k', fontsize=20)
     
     fig.suptitle(figTitle, fontsize=18)
     plt.axis('equal')
@@ -67,7 +76,7 @@ def bonds(molecule, faces=True, ftrack=False, sites=False):
     
     plt.show()
 
-def bonds3d(molecule, sites=False, indices=False):
+def bonds3d(molecule, sites=False, indices=False, save=False):
     """Draw the molecule's bonds
     Keywords:
         sites (bool): Set True to draw atomic sites.  Default is False.
@@ -105,12 +114,17 @@ def bonds3d(molecule, sites=False, indices=False):
             ax.text(x+ds,y+ds,z+ds,str(index),color="blue")           
     
     fig.suptitle(figTitle, fontsize=18)
+    ax.grid(False)
+    ax._axis3don = False
     ax.set_xlim3d(-plotSize,plotSize)
     ax.set_ylim3d(-plotSize,plotSize)
     ax.set_zlim3d(-plotSize,plotSize)
     ax.set_xlabel('x-position' + ' (' + r'$\AA$' + ')')
     ax.set_ylabel('y-position' + ' (' + r'$\AA$' + ')')
     ax.set_zlabel('z-position' + ' (' + r'$\AA$' + ')')
+    
+    if save:
+        plt.savefig("./kappa_save/%s.png" % molecule.name)
     
     plt.show()
     
@@ -149,49 +163,166 @@ def face(molecule, facenum):
     for atom in face.atoms:
         plt.text(mol.posList[atom][0]+ds, mol.posList[atom][1]+ds, str(atom), color='blue')
     
-    fig.suptitle("Interface %s of Molecule %s" % (str(facenum), map(str, face.atoms)), fontsize=18)
+    fig.suptitle("Interface %s of %s" % (facenum, molecule), fontsize=18)
     plt.axis('equal')
     
     plt.show()
     
+def faces(molecule):
+    for count in range(len(molecule.faces)):
+        face(molecule, count)
     
-def normal_modes(molecule,evec):
-    """Draw a visualization of a normal mode of a molecule."""
+def normal_modes(mol,evec, track=None):
+    """Draw a visualization of a normal mode of a molecule.
+    
+    Keywords:
+        track (array-like): An array of indices to highlight in the plots.
+            Indices should be in '3*index' format to reflect direction."""
     
     fig = plt.figure()
     ax=Axes3D(fig)
     
-    length = len(molecule)
-    x = np.zeros(length)
-    y = np.zeros(length)
-    z = np.zeros(length)
-    u = np.zeros(length)
-    v = np.zeros(length)
-    w = np.zeros(length)
+    length = len(mol)
+    ar = np.arange(length, dtype=int)
+
+    ax.scatter(mol.posList[:,0],mol.posList[:,1],mol.posList[:,2])
+    ax.quiver( mol.posList[:,0],mol.posList[:,1],mol.posList[:,2],
+               evec[3*ar].real, evec[3*ar + 1].real, evec[3*ar + 2].real, pivot='tail')
+               
+    if track is not None:
+        for index in track:
+            atom = int(index/3.)
+            ax.scatter(mol.posList[atom,0], mol.posList[atom,1], mol.posList[atom,2], 
+                       s=100., c='red', zorder=-3)
+            point_index = index%3
+            point = np.array([0.,0.,0.])
+            point[point_index] = 1.
+            ax.quiver(mol.posList[atom,0], mol.posList[atom,1], mol.posList[atom,2], 
+                      point[0], point[1], point[2], pivot='tail', cmap='Reds', zorder=-2, lw=5.)
     
-    for index,pos in enumerate(molecule.posList):
-        xi,yi,zi = pos
-        ui,vi,wi = np.real((evec[3*index],evec[3*index +1],evec[3*index +2]))
-#        print(xi,yi,zi)
-#        print(ui,vi,wi)
-        x[index] = xi
-        y[index] = yi
-        z[index] = zi
-        u[index] = ui
-        v[index] = vi
-        w[index] = wi
-        
-#    ax.quiver(x,y,z,u,v,w, length=1e-2, pivot="tail")
-    ax.scatter(x,y,z)
-    ax.quiver(x,y,z,u,v,w, pivot='tail')
-    
-    size = 10
+    size = 12
     ax.set_xlim3d(-size,size)
     ax.set_ylim3d(-size,size)
     ax.set_zlim3d(-size,size)    
     
     ax._axis3don = False
     
-#    fig.savefig("fig_nm.png",transparent=False,bbox_inches='tight')
+    plt.show()
     
+def density(val):
+    
+#    density = gaussian_kde(val.flatten())
+#    x = np.linspace(-20, 20, 1000)
+#    density.covariance_factor = lambda: .25
+#    density._compute_covariance()
+#    plt.plot(x, density(x))
+    
+    n, bins, patches = plt.hist(val.flatten(), bins=200)
+    plt.axis([-10000, 10000, 0, 1e6])
+    plt.show()
+    
+def participation(mol):
+    """Plot the participation ratios of each normal mode as a function of their frequencies."""
+    
+    fig = plt.figure()
+    
+    from .operation import hessian, evecs
+    hess = hessian(mol)
+    val, vec = evecs(hess)
+    
+    num = np.sum((vec**2), axis=0)**2
+    den = len(vec)*np.sum(vec**4, axis=0)
+    
+    plt.scatter(val, num/den)
+    
+    fig.suptitle("Participation ratios of %s" % mol.name)
+    
+    plt.show()
+    
+def grid(values):
+    """Plot a grid of values."""
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    colors = ['b', 'r', 'g', 'y']   
+
+    xs = np.arange(values.shape[2])
+    
+    count = 0
+    for block, c in zip(values, cycle(colors)):
+        for row in block:
+            ax.bar(xs, row, zs=count*2, zdir='y', color=c, alpha=.85)
+            count += 1
+            
+def kappa(filename, cid, dim, dimval, avg=False, legend=True):
+    """Plot kappa values along a particular dimension."""
+    
+    fig = plt.figure()
+    
+    colors = ['b','r','y','c','m','g','k','w']
+    
+    data = np.genfromtxt(filename, 
+                         dtype=[('kappa', 'f8'), ('cid', 'i4'),('clen','i4'),
+                                ('cnum','i4'), ('dbav', 'i4'), ('param1', 'i4'),
+                                ('param2', 'i4'), ('g', 'f8'), ('ff', 'S5'),
+                                ('indices', 'S30'), ('time','S16')], delimiter=";")
+    
+    kappa = []
+    param = []
+    for datum in data:
+        if datum[0] < 0.:
+            continue
+        else:
+            kappa.append(datum[0])
+            param.append(list(datum)[1:7])
+    kappa = np.array(kappa)
+    param = np.array(param)
+    
+    if dim.lower() == 'length':
+        index = 1
+        slice_ = 2
+    elif dim.lower() == 'num':
+        index = 2
+        slice_ = 1
+    else:
+        raise ValueError('Dimension string was invalid')
+    
+    p = param[np.where(param[:,index]==dimval)[0],:]
+    kappa = kappa[np.where(param[:,index]==dimval)[0]]
+    
+    handles = []
+    
+    for count, id_ in enumerate(cid):
+        
+        idnum = chains.index(id_)
+        indices = np.where(p[:,0]==idnum)
+        vals = p[indices,slice_][0]
+        
+        if avg is True:
+            marker = '-'
+            xy={}
+            for val, k in zip(vals,kappa[indices]):
+                try:
+                    xy[val].append(k)
+                except KeyError:
+                    xy[val] = [k]
+                
+            x, y = [], []
+            for key in xy:
+                x.append(key)
+                y.append(np.average(xy[key]))
+        else:
+            marker = 'o'
+            x, y = vals, kappa[indices]
+        
+        idline, = plt.plot(x, y, colors[count]+marker,
+                          label=id_, markersize=8, linewidth=3)
+        handles.append(idline)
+        
+    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
+        
+    if legend:
+        plt.legend(handles=handles)
+        
     plt.show()

@@ -15,8 +15,9 @@ package_dir = os.path.dirname(os.path.abspath(__file__))
 #this method may be frowned upon, please someone educate me
 from .molecule import *
 from .forcefield import *
+from .conductivity import *
 from .operation import *
-from .minimize import minimize_energy
-from .antechamber.atomtype import main as atomtype
+from ._minimize import minimize
+from .antechamber.atomtype.atomtype import main as atomtype
 from . import plot
 from .md.generate import *

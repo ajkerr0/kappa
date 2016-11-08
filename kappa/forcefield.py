@@ -47,15 +47,20 @@ class Amber(Forcefield):
     """Amber forcefield inheriting from Forcefield,
     as presented by Cornell et al. (1994)"""
     
-    def __init__(self, lengths=True, angles=True, dihs=True, lj=False):
+    def __init__(self, lengths=True, angles=False, dihs=False, lj=False):
         super().__init__("amber", 1.0, 1.0,
                          lengths, angles, dihs, lj, False, False)
-        self.atomTypeIDDict = {"CT":1, "C":2,  "CA":3,  "CM":4, "CC":5,  "CV":6, "CW":7, "CR":8, "CB":9, "C*":10, "CZ":3,
-                               "CN":11,"CK":12,"CQ":13, "N":14, "NA":15, "NB":16,"NC":17,"N*":18,"N2":19,"N3":20, "NT":19,
-                               "OW":21,"OH":22,"OS":23, "O":24, "O2":25, "S":26, "SH":27,"P":28, "H":29, "HW":30, 
-                               "HO":31,"HS":32,"HA":33, "HC":34,"H1":35, "H2":36,"H3":37,"HP":38,"H4":39,"HS":40,
-                               "DU":1}
-        self.atomtypeFile = "AMBER_kerr_edit.txt"
+        self.atomtype_file = "ATOMTYPE_AMBER_KERR.DEF"
+        self.param_dir = "amber99"
+        
+class Gaff(Forcefield):
+    """General Amber Forcefield"""
+    
+    def __init__(self, lengths=True, angles=False, dihs=False, lj=False):
+        super().__init__("amber", 1.0, 1.0,
+                         lengths, angles, dihs, lj, False, False)
+        self.atomtype_file = "ATOMTYPE_GFF_KERR.DEF"
+        self.param_dir = "gaff"
             
 class Tersoff(Forcefield):
     """Under construction, a remnant of code past."""

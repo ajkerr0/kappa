@@ -10,7 +10,7 @@ Rules are defined by 'ANTECHAMBER, AN ACCESSORY SOFTWARE PACKAGE FOR MOLECULE ME
 
 import csv
 import re
-from .. import package_dir
+from ... import package_dir
 
 nums = ["1", "2", "3", "4"]
 atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16], "Cl":[17], 
@@ -19,15 +19,18 @@ atomicSymDict = {"H":[1], "C":[6], "N":[7], "O":[8], "F":[9], "P":[15], "S":[16]
 def main(molecule):
     """Main module execution."""
     
-    file_ = molecule.ff.atomtypeFile
+    file_ = molecule.ff.atomtype_file
     
-    reader = csv.reader(open("%s/antechamber/%s" % (package_dir,file_)), delimiter=" ")
+    reader = csv.reader(open("%s/antechamber/atomtype/%s" % (package_dir,file_)), delimiter=" ", skipinitialspace=True)
     lines = []
     for line in reader:
         #populate lineList
         #this is because reader object cycles only once; was a surprising bug!
-        lines.append(line)
-    
+        #reader is a generator
+        if line:
+            if line[0] == "ATD":
+                lines.append(line)
+                
     typeList = []
     for atom in range(len(molecule)):
         
@@ -43,35 +46,10 @@ def main(molecule):
         typeList.append(type_)
         
     return typeList
-        
-def atomic_num(entry, num):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == num:
-        return True
-    else:
-        return False
-
-def neighbors(entry, nList):
-    """Return True if the number of neighbors matches the entry, False otherwise."""
-    entry = int(entry)
-    if entry == len(nList):
-        return True
-    else:
-        return False
-
-def hneighbors(entry, hcount):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == hcount:
-        return True
-    else:
-        return False
-
-def wneighbors(entry, wcount):
-    """Return True if two given integers match, False otherwise"""
-    entry = int(entry)
-    if entry == wcount:
+    
+def compare_int(entry, num):
+    """Return True if the integer matches the line entry, False otherwise."""
+    if int(entry) == num:
         return True
     else:
         return False
@@ -224,18 +202,18 @@ def path_parser(pathString, masterList, pathList):
             masterList.append(newList)
 
 
-funcList = [atomic_num, neighbors, hneighbors, wneighbors, atomic_prop, chem_env]
+funcList = [compare_int, compare_int, compare_int, compare_int, atomic_prop, chem_env]
         
 def parse_line(line, atom, molecule):
     """Return True and atomtype if atom matches a line entry, False otherwise."""
 
-    for entryIndex, entry in enumerate(line[2:]):
+    for entryIndex, entry in enumerate(line[3:]):
         
-        type_ = 'dummy'
+        atype = 'dummy'
         
         if entry == '&':
             match = True
-            type_ = line[1]
+            atype = line[1]
             break
         elif entry == '*':
             continue
@@ -248,7 +226,7 @@ def parse_line(line, atom, molecule):
                 match = False
                 break
             
-    return match, type_
+    return match, atype
 
 def find_input(molecule, atomIndex, funcIndex):
     """Return the corresponding input for given entry checking function index."""
@@ -258,7 +236,7 @@ def find_input(molecule, atomIndex, funcIndex):
         return molecule.zList[atomIndex]
     elif funcIndex == 1:
         #return the neighbor list
-        return molecule.nList[atomIndex]
+        return len(molecule.nList[atomIndex])
     elif funcIndex == 2:
         #find how many of these neighbors are hydrogens and return that number
         neighbors = molecule.nList[atomIndex]
@@ -301,6 +279,3 @@ def eliminate_subpaths(masterList, path):
                 listCopy.remove(subPath)
                 
     return listCopy     
-        
-if __name__ == "__main__":
-    main(amberFile)
