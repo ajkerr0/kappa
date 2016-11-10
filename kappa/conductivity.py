@@ -56,10 +56,10 @@ class Calculation:
             newTrial = _combine(newTrial, mol, index, 0, copy=False)
             #do minus 2 because 1 atom gets lost in combination
             #and another to account to the 'start at zero' indexing
-            dList[face1].append(mol.driver + sizetrial - 1)
+#            dList[face1].append(mol.driver + sizetrial - 1)
 #            #drive every hydrogen
-#            for hindex in np.where(mol.zList==1)[0]:
-#                dList[face1].append(hindex + sizetrial - 1)
+            for hindex in np.where(mol.zList==1)[0]:
+                dList[face1].append(hindex + sizetrial - 1)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
@@ -113,9 +113,10 @@ class ModeInspector(Calculation):
     calculation.  Inherits from Calculation, but is intended to have only a single 
     trial molecule."""
     
-    def __init__(self, base, molList, indices, gamma, **minkwargs):
+    def __init__(self, base, molList, indices, crossings, gamma, **minkwargs):
         super().__init__(base, gamma=gamma, **minkwargs)
         super().add(molList, indices)
+        self.crossings = crossings
         self.mol = self.trialList[0]
         self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
         self.dim = len(self.k)//len(self.mol.mass)
@@ -136,7 +137,16 @@ class ModeInspector(Calculation):
     def coeff(self):
         print('coeff')
         val, vec = self.evec
-        return ballnspring.calculate_coeff(val, vec, self.m, self.g)
+        return ballnspring.calculate_coeff(val, vec, self.m, self.g), val, vec
+        
+    @property
+    def tcond(self):
+        
+        coeff, val, vec = self.coeff
+        
+        kappaList = []
+        for crossing in self.crossings:
+            i,j = crossing        
         
     def plot_ppation(self):
         
