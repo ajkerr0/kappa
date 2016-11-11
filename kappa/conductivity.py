@@ -113,10 +113,9 @@ class ModeInspector(Calculation):
     calculation.  Inherits from Calculation, but is intended to have only a single 
     trial molecule."""
     
-    def __init__(self, base, molList, indices, crossings, gamma, **minkwargs):
+    def __init__(self, base, molList, indices, gamma, **minkwargs):
         super().__init__(base, gamma=gamma, **minkwargs)
         super().add(molList, indices)
-        self.crossings = crossings
         self.mol = self.trialList[0]
         self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
         self.dim = len(self.k)//len(self.mol.mass)
@@ -144,9 +143,15 @@ class ModeInspector(Calculation):
         
         coeff, val, vec = self.coeff
         
+        crossings = find_interface_crossings(self.mol, len(self.base))
+        
         kappaList = []
-        for crossing in self.crossings:
-            i,j = crossing        
+        kappa = 0.
+        for crossing in crossings:
+            i,j = crossing
+            kappa += ballnspring.calculate_power_list(val, vec, coeff, kappaList)
+            
+        return kappa, kappaList
         
     def plot_ppation(self):
         
@@ -167,10 +172,10 @@ class ModeInspector(Calculation):
         
         plt.axis([-.1,.1, 0., 1.])        
         plt.show()
-
-def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
+        
+def find_interface_crossings(mol, baseSize):
+    """Return the interfactions that cross the molecular interfaces."""
     
-    #find interactions that cross an interface        
     crossings = []
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
@@ -205,6 +210,12 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     crossings.sort()
     crossings = list(k for k,_ in itertools.groupby(crossings))
     print(crossings)
+    
+    return crossings
+
+def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
+    
+    crossings = find_interface_crossings(mol, baseSize)
     
     kmat = _calculate_hessian(mol, stapled_index, numgrad=False)
     
