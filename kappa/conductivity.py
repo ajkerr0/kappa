@@ -128,20 +128,17 @@ class ModeInspector(Calculation):
     def m(self):
         return np.diag(np.repeat(self.mol.mass,self.dim))
         
-    @property
     def evec(self):
         return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
         
-    @property
     def coeff(self):
         print('coeff')
-        val, vec = self.evec
+        val, vec = self.evec()
         return ballnspring.calculate_coeff(val, vec, self.m, self.g), val, vec
         
-    @property
     def tcond(self):
         
-        coeff, val, vec = self.coeff
+        coeff, val, vec = self.coeff()
         
         crossings = find_interface_crossings(self.mol, len(self.base))
         
@@ -155,7 +152,7 @@ class ModeInspector(Calculation):
         
     def plot_ppation(self):
         
-        kappa, kappaList, val, vec = self.tcond
+        kappa, kappaList, val, vec = self.tcond()
         
         N = len(self.mol.posList)
         
