@@ -149,24 +149,34 @@ class ModeInspector(Calculation):
         kappa = 0.
         for crossing in crossings:
             i,j = crossing
-            kappa += ballnspring.calculate_power_list(val, vec, coeff, kappaList)
+            kappa += ballnspring.calculate_power_list(i,j, self.dim, val, vec, coeff, self.k, self.driverList[0], kappaList)
             
-        return kappa, kappaList
+        return kappa, kappaList, val, vec
         
     def plot_ppation(self):
         
-        fig = plt.figure()
+        kappa, kappaList, val, vec = self.tcond
         
         N = len(self.mol.posList)
         
-        val, vec = self.evec
-        
-        val, vec = val, vec[:N,:]
+        vec = vec[:N,:]
         
         num = np.sum((vec**2), axis=0)**2
         den = len(vec)*np.sum(vec**4, axis=0)
         
-        plt.scatter(val, num/den)
+        fig = plt.figure()        
+        
+        plt.scatter(val, num/den, c='b')
+        
+        #plot points corresponding to the highest values
+        max_indices = []
+        for entry in kappaList:
+            #get the sigma, tau indices
+            max_indices.extend(entry[1:3])
+            
+        max_indices = np.array(max_indices)
+        
+        plt.scatter(val[max_indices], num[max_indices]/den[max_indices], c='y', zorder=-2)
         
         fig.suptitle("Val vs p-ratio")
         
