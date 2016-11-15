@@ -56,10 +56,10 @@ class Calculation:
             newTrial = _combine(newTrial, mol, index, 0, copy=False)
             #do minus 2 because 1 atom gets lost in combination
             #and another to account to the 'start at zero' indexing
-#            dList[face1].append(mol.driver + sizetrial - 1)
+            dList[face1].append(mol.driver + sizetrial - 1)
 #            #drive every hydrogen
-            for hindex in np.where(mol.zList==1)[0]:
-                dList[face1].append(hindex + sizetrial - 1)
+#            for hindex in np.where(mol.zList==1)[0]:
+#                dList[face1].append(hindex + sizetrial - 1)
         newTrial._configure()
         self.driverList.append(dList)
         self.trialList.append(newTrial)
@@ -163,7 +163,7 @@ class ModeInspector(Calculation):
         
         fig = plt.figure()        
         
-        plt.scatter(val, num/den, c='b')
+        plt.plot(val, num/den, 'bo')
         
         #plot points corresponding to the highest values
         max_indices = []
@@ -173,7 +173,7 @@ class ModeInspector(Calculation):
             
         max_indices = np.array(max_indices)
         
-        plt.scatter(val[max_indices], num[max_indices]/den[max_indices], c='y', zorder=-2)
+        plt.plot(val[max_indices], num[max_indices]/den[max_indices], 'rx', markersize=10)
         
         fig.suptitle("Val vs p-ratio")
         
