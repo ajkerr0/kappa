@@ -132,9 +132,8 @@ class ModeInspector(Calculation):
         return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
         
     def coeff(self):
-        print('coeff')
         val, vec = self.evec()
-        return ballnspring.calculate_coeff(val, vec, self.m, self.g), val, vec
+        return ballnspring.calculate_coeff(val, vec, np.diag(self.m), np.diag(self.g)), val, vec
         
     def tcond(self):
         
