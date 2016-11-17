@@ -179,6 +179,19 @@ class ModeInspector(Calculation):
         plt.axis([-.1,.1, 0., 1.])        
         plt.show()
         
+    def plot_val(self):
+        """Plot the real vs imag parts of the eigenvalues."""
+        
+        val,_ = self.evec()
+        
+        fig = plt.figure()
+        
+        plt.plot(np.real(val), np.imag(val), 'bo')
+        
+        fig.suptitle("Re[val] vs Im[val]")
+        
+        plt.show()
+        
 def find_interface_crossings(mol, baseSize):
     """Return the interfactions that cross the molecular interfaces."""
     
