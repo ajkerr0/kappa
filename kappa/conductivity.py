@@ -9,6 +9,7 @@ import itertools
 from copy import deepcopy
 import csv
 import time
+import pprint
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -153,6 +154,8 @@ class ModeInspector(Calculation):
         
         kappa, kappaList, val, vec = self.tcond()
         
+        pprint.pprint(kappaList)
+        
         N = len(self.mol.posList)
         
         vec = vec[:N,:]
@@ -168,7 +171,7 @@ class ModeInspector(Calculation):
         max_indices = []
         for entry in kappaList:
             #get the sigma, tau indices
-            max_indices.extend(entry[1:3])
+            max_indices.extend(entry[0:2])
             
         max_indices = np.array(max_indices)
         
