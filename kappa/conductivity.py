@@ -171,7 +171,7 @@ class ModeInspector(Calculation):
         max_indices = []
         for entry in kappaList:
             #get the sigma, tau indices
-            max_indices.extend(entry[0:2])
+            max_indices.extend([entry['sigma'], entry['tau']])
             
         max_indices = np.array(max_indices)
         
@@ -192,6 +192,24 @@ class ModeInspector(Calculation):
         plt.plot(np.real(val), np.imag(val), 'bo')
         
         fig.suptitle("Re[val] vs Im[val]")
+        
+        plt.show()
+        
+    def plot_contributions(self):
+        
+        kappa, kappaList,_,_ = self.tcond()
+        
+        size = len(kappaList)
+        val = np.zeros((size, 3))
+        
+        for index, entry in enumerate(kappaList):
+            val[index] = entry['kappa'], entry['val_num'], 1./entry['val_den']
+         
+        fig = plt.figure()         
+         
+        plt.plot(val[:,0], val[:,1], val[:,2])
+        
+        fig.suptitle("Distribution of max kappa contributions")
         
         plt.show()
         
