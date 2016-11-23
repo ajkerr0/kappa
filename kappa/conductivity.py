@@ -13,6 +13,7 @@ import pprint
 
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from .molecule import build, chains
 from .operation import _calculate_hessian
@@ -205,9 +206,14 @@ class ModeInspector(Calculation):
         for index, entry in enumerate(kappaList):
             val[index] = entry['kappa'], entry['val_num'], 1./entry['val_den']
          
-        fig = plt.figure()         
+        fig = plt.figure() 
+        ax = fig.add_subplot(111, projection='3d')        
          
-        plt.plot(val[:,0], val[:,1], val[:,2])
+        ax.scatter(val[:,0], val[:,1], val[:,2], c='b')
+        
+        ax.set_xlabel('kappa')
+        ax.set_ylabel('numerator')
+        ax.set_zlabel('denominator')
         
         fig.suptitle("Distribution of max kappa contributions")
         
