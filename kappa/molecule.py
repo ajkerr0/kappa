@@ -1055,6 +1055,18 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain"]
+          
+def build_mix(ff, idList):
+    
+    molList = [build(ff, idList[0], count=1)]
+    indexList = [(2,0)]
+    
+    for id_ in idList:
+        molList.append(build(ff, id_, count=1))
+        indexList.append((2,0))
+        
+    molList.append(build_ch(ff))
+    return chain(molList, indexList)        
 
 def build(ff, lattice, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
