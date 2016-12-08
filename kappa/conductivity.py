@@ -209,9 +209,10 @@ class ModeInspector(Calculation):
         fig = plt.figure() 
         ax = fig.add_subplot(111, projection='3d')        
         
-        dx = 1.
         ax.scatter(val[:,0], val[:,1], val[:,2], c='b')
-        ax.text(val[:,0]+dx, val[:,1]+dx, val[:,2]+dx, np.arange(val[:,0].shape[0]), color="blue")
+        dx = 1.015
+        for index in np.arange(val.shape[0]):
+            ax.text(val[index,0]*dx, val[index,1]*dx, val[index,2]*dx, index, color="red")
         
         ax.set_xlabel('kappa')
         ax.set_ylabel('numerator')
