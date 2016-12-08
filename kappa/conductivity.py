@@ -151,6 +151,11 @@ class ModeInspector(Calculation):
             
         return kappa, kappaList, val, vec
         
+    def plot_mode(self, mol_index, evec):
+        
+        from .plot import normal_modes
+        normal_modes(self.molList[mol_index], evec)
+        
     def plot_ppation(self):
         
         kappa, kappaList, val, vec = self.tcond()
