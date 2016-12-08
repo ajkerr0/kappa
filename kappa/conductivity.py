@@ -208,8 +208,10 @@ class ModeInspector(Calculation):
          
         fig = plt.figure() 
         ax = fig.add_subplot(111, projection='3d')        
-         
+        
+        dx = 1.
         ax.scatter(val[:,0], val[:,1], val[:,2], c='b')
+        ax.text(val[:,0]+dx, val[:,1]+dx, val[:,2]+dx, np.arange(val[:,0].shape[0]), color="blue")
         
         ax.set_xlabel('kappa')
         ax.set_ylabel('numerator')
