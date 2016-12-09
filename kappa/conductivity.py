@@ -120,7 +120,8 @@ class ModeInspector(Calculation):
         super().add(molList, indices)
         self.mol = self.trialList[0]
         self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
-        self.dim = len(self.k)//len(self.mol.mass)
+        self.N = len(self.k)
+        self.dim = self.N//len(self.mol.mass)
         self.evec = ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
         
     @property
@@ -147,12 +148,15 @@ class ModeInspector(Calculation):
             i,j = crossing
             kappa += ballnspring.calculate_power_list(i,j, self.dim, val, vec, coeff, self.k, self.driverList[0], kappaList)
             
+        self.kappa = kappa
+        self.kappaList = kappaList
+            
         return kappa, kappaList, val, vec
         
     def plot_mode(self, evec_index):
         
         from .plot import normal_modes
-        normal_modes(self.mol, self.evec[evec_index])
+        normal_modes(self.mol, self.evec[:self.N, evec_index])
         
     def plot_ppation(self):
         
@@ -224,6 +228,14 @@ class ModeInspector(Calculation):
         fig.suptitle("Distribution of max kappa contributions")
         
         plt.show()
+        
+    def plot_contrib_mode(self, kappa_index):
+        
+        dict_ = self.kappaList[kappa_index]
+        sigma, tau = dict_['sigma'], dict_['tau']
+        
+        self.plot_mode(sigma)
+        self.plot_mode(tau)
         
 def find_interface_crossings(mol, baseSize):
     """Return the interfactions that cross the molecular interfaces."""
