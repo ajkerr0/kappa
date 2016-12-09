@@ -121,6 +121,7 @@ class ModeInspector(Calculation):
         self.mol = self.trialList[0]
         self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
         self.dim = len(self.k)//len(self.mol.mass)
+        self.evec = ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
         
     @property
     def g(self):
@@ -130,11 +131,8 @@ class ModeInspector(Calculation):
     def m(self):
         return np.diag(np.repeat(self.mol.mass,self.dim))
         
-    def evec(self):
-        return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
-        
     def coeff(self):
-        val, vec = self.evec()
+        val, vec = self.evec
         return ballnspring.calculate_coeff(val, vec, np.diag(self.m), np.diag(self.g)), val, vec
         
     def tcond(self):
@@ -151,10 +149,10 @@ class ModeInspector(Calculation):
             
         return kappa, kappaList, val, vec
         
-    def plot_mode(self, mol_index, evec):
+    def plot_mode(self, evec_index):
         
         from .plot import normal_modes
-        normal_modes(self.molList[mol_index], evec)
+        normal_modes(self.mol, self.evec[evec_index])
         
     def plot_ppation(self):
         
