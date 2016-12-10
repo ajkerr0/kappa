@@ -156,7 +156,23 @@ class ModeInspector(Calculation):
     def plot_mode(self, evec_index):
         
         from .plot import normal_modes
-        normal_modes(self.mol, self.evec[:self.N, evec_index])
+        normal_modes(self.mol, self.evec[1][:self.N, evec_index])
+        
+    def plot_ppation_base(self, indices):
+        
+        val = self.evec[0][indices]
+        vec = self.evec[1][:self.N,indices]
+        
+        num = np.sum((vec**2), axis=0)**2
+        den = len(vec)*np.sum(vec**4, axis=0)
+        
+        fig = plt.figure()        
+        
+        plt.plot(val, num/den, 'bo')
+        
+        fig.suptitle("Val vs p-ratio of selected modes")
+        
+        plt.show()
         
     def plot_ppation(self):
         
@@ -164,9 +180,7 @@ class ModeInspector(Calculation):
         
         pprint.pprint(kappaList)
         
-        N = len(self.mol.posList)
-        
-        vec = vec[:N,:]
+        vec = vec[:self.N,:]
         
         num = np.sum((vec**2), axis=0)**2
         den = len(vec)*np.sum(vec**4, axis=0)
@@ -233,6 +247,7 @@ class ModeInspector(Calculation):
         
         dict_ = self.kappaList[kappa_index]
         sigma, tau = dict_['sigma'], dict_['tau']
+        print(sigma, tau)
         
         self.plot_mode(sigma)
         self.plot_mode(tau)
