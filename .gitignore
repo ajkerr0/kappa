@@ -1,5 +1,8 @@
 #taken from https://github.com/github/gitignore
 
+#ignore ballnspring manually placed in directory on some machines
+ballnspring/
+
 #ignore .npy files
 *.npy
 

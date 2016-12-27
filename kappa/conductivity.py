@@ -9,9 +9,11 @@ import itertools
 from copy import deepcopy
 import csv
 import time
+import pprint
 
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from .molecule import build, chains
 from .operation import _calculate_hessian
@@ -118,7 +120,9 @@ class ModeInspector(Calculation):
         super().add(molList, indices)
         self.mol = self.trialList[0]
         self.k = _calculate_hessian(self.mol, stapled_index, numgrad=False)
-        self.dim = len(self.k)//len(self.mol.mass)
+        self.N = len(self.k)
+        self.dim = self.N//len(self.mol.mass)
+        self.evec = ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
         
     @property
     def g(self):
@@ -128,39 +132,129 @@ class ModeInspector(Calculation):
     def m(self):
         return np.diag(np.repeat(self.mol.mass,self.dim))
         
-    @property
-    def evec(self):
-        return ballnspring.calculate_thermal_evec(self.k, self.g, self.m)
-        
-    @property
     def coeff(self):
-        print('coeff')
         val, vec = self.evec
-        return ballnspring.calculate_coeff(val, vec, self.m, self.g)
+        return ballnspring.calculate_coeff(val, vec, np.diag(self.m), np.diag(self.g)), val, vec
         
-    def plot_ppation(self):
+    def tcond(self):
         
-        fig = plt.figure()
+        coeff, val, vec = self.coeff()
         
-        N = len(self.mol.posList)
+        crossings = find_interface_crossings(self.mol, len(self.base))
         
-        val, vec = self.evec
+        kappaList = []
+        kappa = 0.
+        for crossing in crossings:
+            i,j = crossing
+            kappa += ballnspring.calculate_power_list(i,j, self.dim, val, vec, coeff, self.k, self.driverList[0], kappaList)
+            
+        self.kappa = kappa
+        self.kappaList = kappaList
+            
+        return kappa, kappaList, val, vec
         
-        val, vec = val, vec[:N,:]
+    def plot_mode(self, evec_index):
+        
+        from .plot import normal_modes
+        normal_modes(self.mol, self.evec[1][:self.N, evec_index])
+        
+    def plot_ppation_base(self, indices):
+        
+        val = self.evec[0][indices]
+        vec = self.evec[1][:self.N,indices]
         
         num = np.sum((vec**2), axis=0)**2
         den = len(vec)*np.sum(vec**4, axis=0)
         
-        plt.scatter(val, num/den)
+        fig = plt.figure()        
+        
+        plt.plot(val, num/den, 'bo')
+        
+        fig.suptitle("Val vs p-ratio of selected modes")
+        
+        plt.show()
+        
+    def plot_ppation(self):
+        
+        kappa, kappaList, val, vec = self.tcond()
+        
+        pprint.pprint(kappaList)
+        
+        vec = vec[:self.N,:]
+        
+        num = np.sum((vec**2), axis=0)**2
+        den = len(vec)*np.sum(vec**4, axis=0)
+        
+        fig = plt.figure()        
+        
+        plt.plot(val, num/den, 'bo')
+        
+        #plot points corresponding to the highest values
+        max_indices = []
+        for entry in kappaList:
+            #get the sigma, tau indices
+            max_indices.extend([entry['sigma'], entry['tau']])
+            
+        max_indices = np.array(max_indices)
+        
+        plt.plot(val[max_indices], num[max_indices]/den[max_indices], 'rx', markersize=10)
         
         fig.suptitle("Val vs p-ratio")
         
         plt.axis([-.1,.1, 0., 1.])        
         plt.show()
-
-def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
+        
+    def plot_val(self):
+        """Plot the real vs imag parts of the eigenvalues."""
+        
+        val,_ = self.evec()
+        
+        fig = plt.figure()
+        
+        plt.plot(np.real(val), np.imag(val), 'bo')
+        
+        fig.suptitle("Re[val] vs Im[val]")
+        
+        plt.show()
+        
+    def plot_contributions(self):
+        
+        kappa, kappaList,_,_ = self.tcond()
+        
+        size = len(kappaList)
+        val = np.zeros((size, 3))
+        
+        for index, entry in enumerate(kappaList):
+            val[index] = entry['kappa'], entry['val_num'], 1./entry['val_den']
+         
+        fig = plt.figure() 
+        ax = fig.add_subplot(111, projection='3d')        
+        
+        ax.scatter(val[:,0], val[:,1], val[:,2], c='b')
+        dx = 1.015
+        for index in np.arange(val.shape[0]):
+            ax.text(val[index,0]*dx, val[index,1]*dx, val[index,2]*dx, index, color="red")
+        
+        ax.set_xlabel('kappa')
+        ax.set_ylabel('numerator')
+        ax.set_zlabel('denominator')
+        
+        fig.suptitle("Distribution of max kappa contributions")
+        
+        plt.show()
+        
+    def plot_contrib_mode(self, kappa_index):
+        
+        dict_ = self.kappaList[kappa_index]
+        sigma, tau = dict_['sigma'], dict_['tau']
+        print(sigma, tau)
+        
+        self.plot_mode(sigma)
+        self.plot_mode(tau)
+        
+def find_interface_crossings(mol, baseSize):
+    """Return the interfactions that cross the molecular interfaces."""
     
-    #find interactions that cross an interface        
     crossings = []
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
@@ -195,6 +289,12 @@ def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     crossings.sort()
     crossings = list(k for k,_ in itertools.groupby(crossings))
     print(crossings)
+    
+    return crossings
+
+def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
+    
+    crossings = find_interface_crossings(mol, baseSize)
     
     kmat = _calculate_hessian(mol, stapled_index, numgrad=False)
     
