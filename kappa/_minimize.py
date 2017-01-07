@@ -13,6 +13,7 @@ import numpy as np
 
 EP = sys.float_info.epsilon
 SQRTEP = EP**.5
+GOLD = 1.6
                                   
 def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
              eprec=1e-2, fprec=1e-2,
@@ -194,7 +195,41 @@ def line_search_brent(mol, stepList, e, grad, calc_e, alpha=None):
         grad (ndarray): A N x 3 array of the forces on the atoms before the step is taken.
         calc_e (function): Callable function that returns the energy of the molecule"""
         
+    a, b, c = bracket_minimum(mol, stepList, e, calc_e)
+        
     return 0.
+    
+def bracket_minimum(mol, stepList, ea, calc_e):
+    """Return a tuple of 3 points a,b,c such that
+    f(a) > f(b) < f(c).  These points are stepsizes along the step direction
+    along the potential energy surface of the molecule."""
+    
+    #a will be the zero point
+    a = 0.
+    
+    #b will be some small distance away (we assume our step direction will minimize the energy within a finite range)
+    b = a + SQRTEP
+    mol.posList += b*stepList
+    eb = calc_e()
+    mol.posList += -b*stepList
+    
+    if eb > ea:
+        raise ValueError("There was an error in bracketing the minimum!")
+    
+    #c will be found through an iterative process
+    def ec(c):
+        mol.posList += c*stepList
+        e = calc_e()
+        mol.posList += -c*stepList
+        return e
+        
+    c = b + GOLD*(b-a)
+    
+    while ec(c) < eb:
+        
+        c += GOLD*(c-b)
+        
+    return a, b, c
         
 descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
 searchDict = {"backtrack":line_search_backtrack, "brent":line_search_brent}
