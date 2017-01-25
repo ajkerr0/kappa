@@ -892,7 +892,11 @@ def build_pmma(ff, name="pmma", count=1):
         indexList.append((15,0))
     
     molList.append(build_ch(ff))
-    return chain(molList, indexList)
+    pmma = chain(molList, indexList)
+
+    pmma.driver = len(pmma)-1
+    
+    return pmma    
     
 def build_imine(ff, name="imine"):
 
@@ -1054,7 +1058,7 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3}
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
-          "imine_chain"]
+          "imine_chain", "pmma"]
           
 def build_mix(ff, idList):
     
