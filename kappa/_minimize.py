@@ -8,12 +8,13 @@ Contains class definition(s) used to minimize the energy of Molecules
 """
 
 import sys
+from math import copysign
 
 import numpy as np
 
 EP = sys.float_info.epsilon
 SQRTEP = EP**.5
-GOLD = 1.6
+GR = 1.618
                                   
 def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
              eprec=1e-2, fprec=1e-2,
@@ -146,6 +147,12 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
             break
     
     return mol, eList
+    
+def parabolic_interpolation(a,b,c,fa,fb,fc):
+    
+    m = (b-a)*(fb-fc)
+    n = (b-c)*(fb-fa)
+    return b - ((b-c)*n - (b-a)*m)/(2.*copysign(max(abs(n-m), EP), n-m))
 
 def line_search_backtrack(mol, stepList, e, grad, calc_e, alpha=None):
     """Return the stepsize determined by the backtracking strategies of
@@ -217,17 +224,54 @@ def bracket_minimum(mol, stepList, ea, calc_e):
         raise ValueError("There was an error in bracketing the minimum!")
     
     #c will be found through an iterative process
-    def ec(c):
+    def ef(c):
         mol.posList += c*stepList
         e = calc_e()
         mol.posList += -c*stepList
         return e
         
-    c = b + GOLD*(b-a)
+    c = b + GR*(b-a)
+    ec = ef(c)
     
-    while ec(c) < eb:
+    while ec <= eb:
         
-        c += GOLD*(c-b)
+        x = parabolic_interpolation(a,b,c,ea,eb,ec)
+        xedge = b + 100.*(c-b)
+        
+        #if x is between b,c...
+        if ((b-x)*(x-c)) > 0.:
+            #check f(x)
+            ex = ef(x)
+            if ex < ec:
+                a,b = b,x
+                ea,eb = eb, ex
+                continue
+            elif ex > eb:
+                c,ec = x,ex
+                continue
+            x = c + GR*(c-b)
+            ex = ef(x)
+            
+        #if x is between c and our defined edge
+        elif ((c-x)*(x-xedge)) > 0.:
+            #check f(x)
+            ex=ef(x)
+            if ex < ec:
+                b,c,x = c,x,c+GR*(c-b)
+                eb,ec,ex = ec,ex,ef(x)
+        
+        #put x on the edge        
+        elif ((x-xedge)*(xedge-c)) > 0.:
+            x = xedge
+            ex = ef(x)
+         
+        #just slide along the search direction
+        else:
+            x = c + GR*(c-b)
+            ex = ef(x)
+        
+        a,b,c = b,c,x
+        ea,eb,ec = eb,ec,ex
         
     return a, b, c
         
