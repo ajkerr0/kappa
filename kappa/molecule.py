@@ -108,16 +108,18 @@ class Molecule:
             
     def hydrogenate(self):
         """Attach a hydrogen atom to every open interface atom."""
+        if not self.faces:
+            warnings.warn("This molecule has no interfaces.", stacklevel=2)
+            return self
         #find all the open atoms
         openList = []
         for face in self.faces:
             openList.extend([x for x in face.atoms if x not in face.closed])
-        ch = build_ch(self.ff, bond=False)
+        ch = build_ch(self.ff, bond=True)
         #populate indexList
         indexList = []
         for openatom in openList:
             indexList.append((openatom, 0))
-        from .operation import _combine
         for pair in indexList:
             i,j = pair
             self = _combine(self, ch, i, j, copy=False)
@@ -243,7 +245,10 @@ class Molecule:
         idList = []
         ffatypes = list(np.load("{0}/param/{1}/atomtypes.npy".format(package_dir, self.ff.param_dir)))
         for atomtype in self.atomtypes:
-            idList.append(ffatypes.index(atomtype))
+            try:
+                idList.append(ffatypes.index(atomtype))
+            except ValueError:
+                idList.append(0)
         self.idList = np.array(idList)
         
     def _configure_parameters(self):
