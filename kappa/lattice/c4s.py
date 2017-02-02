@@ -20,7 +20,7 @@ def main(count, length):
     
 def get_sites(a, count, length):
     
-    a1 = a1 = a*np.array([1.,0.,0.])
+    a1 = a*np.array([1.,0.,0.])
     a2 = a*np.array([-.5,np.sqrt(3.)*.5,0.])
     
     pos0 = a*np.array([0.,0.,0.])

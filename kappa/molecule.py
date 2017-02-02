@@ -914,6 +914,17 @@ def build_imine(ff, name="imine"):
     Interface([1], np.array([1.,0.,0.]), imine)    
     
     return imine
+    
+def build_carboxyl(ff, name="carboxyl"):
+    
+    from .lattice.carboxyl import main as lattice
+    posList, nList, zList = lattice()
+    posList = np.array(posList)
+    carb = Molecule(ff, name, posList, nList, zList)
+    
+    Interface([0], np.array([-1.,0.,0.]), carb)
+    
+    return carb
         
 def build_benzene_block(ff, name="bblock"):
 
@@ -1060,7 +1071,8 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "imine":build_imine, "imine_chain":build_imine_chain, "pmma":build_pmma,
                 "pan":build_pan, 
                 "polyeth":build_polyeth, "pvf":build_pvf, "teflon":build_teflon,
-                "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3}
+                "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3,
+                "carboxyl":build_carboxyl}
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain", "pmma"]
