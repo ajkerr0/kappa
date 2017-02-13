@@ -120,10 +120,13 @@ class Molecule:
         indexList = []
         for openatom in openList:
             indexList.append((openatom, 0))
+        size1 = len(self)
         for pair in indexList:
             i,j = pair
             self = _combine(self, ch, i, j, copy=False)
         self._configure()
+        size2 = len(self)
+        self.hcap = np.arange(size1, size2, dtype=int)
         return self
         
     def _check_neighbors(self):
