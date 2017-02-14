@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb  3 12:24:17 2016
 
 @author: alex
 """

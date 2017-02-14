@@ -846,13 +846,21 @@ def build_dingus(ff, name="", count=5, angle=160.):
         dingus.idList = np.full(len(dingus),3, dtype=np.int8)
     dingus._configure_parameters()
     return dingus
+    
+def build_ammonia(ff, name="ammonia"):
+    
+    from .lattice.ammonia import main as lattice
+    posList, nList = lattice()
+    posList = np.array(posList)
+    zList = np.array([7,1,1,1], dtype=int)
+    return Molecule(ff, name, posList, nList, zList)
 
 def build_amine(ff, name="amine"):
     
     from .lattice.amine import main as lattice
     posList, nList = lattice()
     posList = np.array(posList)
-    zList = np.array([6,7,1,1])
+    zList = np.array([6,7,1,1], dtype=int)
     amine = Molecule( ff, name, posList, nList, zList)
     
     Interface([0], np.array([0.,-1.,0.]), amine)
@@ -1086,7 +1094,8 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "pan":build_pan, 
                 "polyeth":build_polyeth, "pvf":build_pvf, "teflon":build_teflon,
                 "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3,
-                "carboxyl":build_carboxyl}
+                "carboxyl":build_carboxyl,
+                "ammonia":build_ammonia}
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain", "pmma"]
