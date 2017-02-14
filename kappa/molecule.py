@@ -120,10 +120,13 @@ class Molecule:
         indexList = []
         for openatom in openList:
             indexList.append((openatom, 0))
+        size1 = len(self)
         for pair in indexList:
             i,j = pair
             self = _combine(self, ch, i, j, copy=False)
         self._configure()
+        size2 = len(self)
+        self.hcap = np.arange(size1, size2, dtype=int)
         return self
         
     def _check_neighbors(self):
@@ -663,6 +666,17 @@ def _combine(mol1, mol2, index1, index2, copy=True):
         if index2 in face.atoms:
             face2 = count
             norm2 = face.norm
+            
+    #check to see if specified indices are closed, raise error if either are
+    closed_msg = "Cannot combine molecules, atom {0} in interface {1} of molecule {2} is occupied!"
+    if index1 in mol1.faces[face1].closed:
+        raise ValueError(closed_msg.format(index1, face1, "1"))
+    if index2 in mol2.faces[face2].closed:
+        raise ValueError(closed_msg.format(index2, face2, "2"))
+        
+    #now mark the indices closed
+    mol1.faces[face1].closed.append(index1)
+    mol2.faces[face2].closed.append(index2)
             
     #change position of mol2 to put it in place
     #rotate mol2
