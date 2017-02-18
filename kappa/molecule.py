@@ -528,10 +528,10 @@ class Molecule:
                 dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
                 dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
-                uTerm = -(180./np.pi)*(   self.vn[:,0]*np.sin(   omega - self.gn[:,0])
-                                     + 2.*self.vn[:,1]*np.sin(2.*omega - self.gn[:,1])
-                                     + 3.*self.vn[:,2]*np.sin(3.*omega - self.gn[:,2])
-                                     + 4.*self.vn[:,3]*np.sin(4.*omega - self.gn[:,3]))
+                uTerm = (    self.vn[:,0]*np.sin(np.radians(omega - self.gn[:,0]))
+                        + 2.*self.vn[:,1]*np.sin(np.radians(2.*omega - self.gn[:,1]))
+                        + 3.*self.vn[:,2]*np.sin(np.radians(3.*omega - self.gn[:,2]))
+                        + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
                 dudrk = uTerm[:,None]*dwdrk
