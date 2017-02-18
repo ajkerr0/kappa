@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 21 13:09:30 2016
 
@@ -846,6 +846,24 @@ def build_dingus(ff, name="", count=5, angle=160.):
         dingus.idList = np.full(len(dingus),3, dtype=np.int8)
     dingus._configure_parameters()
     return dingus
+    
+def build_dingus2(ff, name="dingus2", angle=45.):
+    """Return a molecule that exists only to test dihedral force interactions."""
+    
+    from .lattice.dingus2 import main as lattice
+    posList,nList,zList= lattice(angle)
+    posList = np.array(posList)
+    dingus2 = Molecule(ff, name, posList, nList, zList)
+    dingus2._configure_topology_lists()
+    dingus2.idList = np.zeros(len(dingus2), dtype=np.int8)
+    dingus2._configure_parameters()
+    
+    dingus2.vn = np.array([[10.,0.,0.,0.]])
+    dingus2.gn = np.array([[180.,0.,0.,0.]])
+#    dingus2.vn = np.array([[0.,10.,0.,0.]])
+#    dingus2.gn = np.array([[0.,90.,0.,0.]])
+    
+    return dingus2
     
 def build_ammonia(ff, name="ammonia"):
     
