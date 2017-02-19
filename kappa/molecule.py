@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 21 13:09:30 2016
 
@@ -528,10 +528,10 @@ class Molecule:
                 dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
                 dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
-                uTerm = -(180./np.pi)*(   self.vn[:,0]*np.sin(   omega - self.gn[:,0])
-                                     + 2.*self.vn[:,1]*np.sin(2.*omega - self.gn[:,1])
-                                     + 3.*self.vn[:,2]*np.sin(3.*omega - self.gn[:,2])
-                                     + 4.*self.vn[:,3]*np.sin(4.*omega - self.gn[:,3]))
+                uTerm = (    self.vn[:,0]*np.sin(np.radians(omega - self.gn[:,0]))
+                        + 2.*self.vn[:,1]*np.sin(np.radians(2.*omega - self.gn[:,1]))
+                        + 3.*self.vn[:,2]*np.sin(np.radians(3.*omega - self.gn[:,2]))
+                        + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
                 dudrk = uTerm[:,None]*dwdrk
@@ -846,13 +846,39 @@ def build_dingus(ff, name="", count=5, angle=160.):
         dingus.idList = np.full(len(dingus),3, dtype=np.int8)
     dingus._configure_parameters()
     return dingus
+    
+def build_dingus2(ff, name="dingus2", angle=45.):
+    """Return a molecule that exists only to test dihedral force interactions."""
+    
+    from .lattice.dingus2 import main as lattice
+    posList,nList,zList= lattice(angle)
+    posList = np.array(posList)
+    dingus2 = Molecule(ff, name, posList, nList, zList)
+    dingus2._configure_topology_lists()
+    dingus2.idList = np.zeros(len(dingus2), dtype=np.int8)
+    dingus2._configure_parameters()
+    
+    dingus2.vn = np.array([[10.,0.,0.,0.]])
+    dingus2.gn = np.array([[180.,0.,0.,0.]])
+#    dingus2.vn = np.array([[0.,10.,0.,0.]])
+#    dingus2.gn = np.array([[0.,90.,0.,0.]])
+    
+    return dingus2
+    
+def build_ammonia(ff, name="ammonia"):
+    
+    from .lattice.ammonia import main as lattice
+    posList, nList = lattice()
+    posList = np.array(posList)
+    zList = np.array([7,1,1,1], dtype=int)
+    return Molecule(ff, name, posList, nList, zList)
 
 def build_amine(ff, name="amine"):
     
     from .lattice.amine import main as lattice
     posList, nList = lattice()
     posList = np.array(posList)
-    zList = np.array([6,7,1,1])
+    zList = np.array([6,7,1,1], dtype=int)
     amine = Molecule( ff, name, posList, nList, zList)
     
     Interface([0], np.array([0.,-1.,0.]), amine)
@@ -1086,7 +1112,8 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "pan":build_pan, 
                 "polyeth":build_polyeth, "pvf":build_pvf, "teflon":build_teflon,
                 "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3,
-                "carboxyl":build_carboxyl}
+                "carboxyl":build_carboxyl,
+                "ammonia":build_ammonia}
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain", "pmma"]
