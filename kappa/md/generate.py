@@ -55,15 +55,17 @@ def pdb(molecule, ff='amber', save=True, fn='cnt.pdb', save_dir='.'):
 
 def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
     """Creates a .gro file for gromacs, holds atom coordinates and unit cell size
-    We assume coordinates are in nm"""
+    Coordinates exported in nm, originally in angstroms"""
     gro_lines = []
     res_num = 1
     res_name = "CNT"
     elemtypes = []
-    # here we check if the atomtype is not a standard element
+    a_num = []
     for i in range(len(molecule.atomtypes)):
-        a_num = atomtype.inv_atomicSymDict[molecule.zList[i]]
-        elemtypes.append(a_num)
+        a_num_temp = atomtype.inv_atomicSymDict[molecule.zList[i]]  # get atomic number
+        elemtypes_temp = molecule.atomtypes[i][0]  # element only (first char.)
+        a_num.append(a_num_temp)
+        elemtypes.append(elemtypes_temp)
     dist_to_orig = []
     for i in range(len(molecule.posList)):
         temp_dist = np.sqrt(molecule.posList[i][0]**2 + molecule.posList[i][1]**2 + molecule.posList[i][2]**2)
@@ -110,7 +112,7 @@ def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
         _index = i + 1
         temp_dist = np.sqrt(posDist_new[i][0] ** 2 + posDist_new[i][1] ** 2 + posDist_new[i][2] ** 2)
         temp_line = "{0:>5}{1:<5}{2:>5}{3:>5}{4:>8.3f}{5:>8.3f}{6:>8.3f}"\
-            .format(res_num, res_name, molecule.atomtypes[i], _index,
+            .format(res_num, res_name, elemtypes[i], _index,
                     posDist_new[i][0], posDist_new[i][1], posDist_new[i][2])
         gro_lines.append(temp_line)
     box_line = "{0:>8.3f}{1:>8.3f}{2:>8.3f}".format(box_dim, box_dim, box_dim)
@@ -124,9 +126,10 @@ def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
 def restrains(mol, save=True, fn='posre.itp', save_dir='.', fc=1000):
     """Generates posre.itp file used by GROMACS to restrain atoms to a location, can be read by x2top"""
     # force constant of position restraint (kJ mol^-1 nm^-2)
-    # make sure molecule is hydrogenated first
+
+    # **********MAKE SURE MOLECULE IS HYDROGENATED FIRST********** #
+
     itp_lines = []
-    index = 0
     funct = 1
     itp_lines.extend(["; file for defining restraints in CNT, read in through X.top", ""])
     itp_lines.extend(["[ position_restraints ]", "; ai  funct  fcx    fcy    fcz"])
