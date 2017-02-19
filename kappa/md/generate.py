@@ -1,7 +1,8 @@
 import numpy as np
 from ..antechamber.atomtype import atomtype
 
-def pdb(molecule, ff='amber'):
+
+def pdb(molecule, ff='amber', save=True, fn='cnt.pdb', save_dir='.'):
     """Creates a .pdb (protein data bank) type list for use with molecular dynamics packages.
     pdb_lines returns list holding every line of .pdb file."""
     print("Recommended that MD export is done using .gro file only.")
@@ -46,9 +47,13 @@ def pdb(molecule, ff='amber'):
     pdb_lines = atom_lines + conect_lines
     pdb_lines.append("TER")
     pdb_lines.append("END")
+    if save:
+        save_file(pdb_lines, save_dir, fn)
+    print('Successfully exported %s to %s' % (fn, save_dir))
     return pdb_lines
 
-def gro(molecule, scale=2.0):
+
+def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
     """Creates a .gro file for gromacs, holds atom coordinates and unit cell size
     We assume coordinates are in nm"""
     gro_lines = []
@@ -67,7 +72,7 @@ def gro(molecule, scale=2.0):
     # move tube to true origin at 0,0,0
     move_dist = np.abs(molecule.posList[index_min])
     posList_cent = molecule.posList
-    posList_cent += move_dist  # now centered at origin
+    #posList_cent += move_dist  # now centered at origin
     x_list, y_list, z_list = zip(*molecule.posList)
     # center tube in quadrant 1 box
     max_x = np.max(x_list)
@@ -79,12 +84,16 @@ def gro(molecule, scale=2.0):
     length_x = np.abs(max_x-min_x)
     length_y = np.abs(max_y-min_y)
     length_z = np.abs(max_z-min_z)
+    dist_to_move = np.abs([min_x, min_y, min_z])
     max_length = np.max([length_x, length_y, length_z])
+    idx_max_dim = np.argmax([length_x, length_y, length_z])
+    dims = ['X','Y','Z']
+    print('Length of tube is in the %s direction.' % dims[idx_max_dim])
     box_dim = scale * max_length
     new_move_dist = box_dim/2.0
     # measure dist to new box origin in move in every direction
     posDist_new = posList_cent
-    posDist_new += new_move_dist
+    posDist_new += (new_move_dist + dist_to_move)
     # now tube is centered in quadrant 0 box
     # scale everything by bond
     posDist_new *= 0.1
@@ -106,10 +115,33 @@ def gro(molecule, scale=2.0):
         gro_lines.append(temp_line)
     box_line = "{0:>8.3f}{1:>8.3f}{2:>8.3f}".format(box_dim, box_dim, box_dim)
     gro_lines.append(box_line)
+    if save:
+        save_file(gro_lines, save_dir, fn)
+    print('Successfully exported %s to %s' % (fn, save_dir))
     return gro_lines
 
 
-def top(mol, ff='amber'):
+def restrains(mol, save=True, fn='posre.itp', save_dir='.', fc=1000):
+    """Generates posre.itp file used by GROMACS to restrain atoms to a location, can be read by x2top"""
+    # force constant of position restraint (kJ mol^-1 nm^-2)
+    # make sure molecule is hydrogenated first
+    itp_lines = []
+    index = 0
+    funct = 1
+    itp_lines.extend(["; file for defining restraints in CNT, read in through X.top", ""])
+    itp_lines.extend(["[ position_restraints ]", "; ai  funct  fcx    fcy    fcz"])
+    for i in mol.hcap:
+        index = i + 1
+        temp_line = "{0:>4}{1:>6}{2:>9}{3:>8}{4:>8}".format(index, funct, fc, fc, fc)
+        itp_lines.append(temp_line)
+    itp_lines.append("")  # EOL
+    if save:
+        save_file(itp_lines, save_dir, fn)
+    print('Successfully exported %s to %s' % (fn, save_dir))
+    return itp_lines
+
+
+def top(mol, ff='amber', save=True, fn='cnt.top', save_dir='.'):
     """Creates a .top (topology) type list for use in MD packages
     AMBER99SB or OPLS-AA forcefields can being used"""
     print("Recommended that MD export is done using .gro file only.")
@@ -173,8 +205,12 @@ def top(mol, ff='amber'):
 
     top_lines.extend(["", "[ system ]", "CNT"])
     top_lines.extend(["", "[ molecules ]", "CNT     1", ""])
+    if save:
+        save_file(top_lines, save_dir, fn)
+    print('Successfully exported %s to %s' % (fn, save_dir))
     return top_lines
-    
+
+
 def _build_lines(columns, spaces, size, innerColumns):
     listSection = []
     line = ";"
