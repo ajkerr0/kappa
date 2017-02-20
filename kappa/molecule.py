@@ -402,6 +402,28 @@ class Molecule:
                 
             e_funcs.append(e_dihs)
             
+        if self.ff.imptors:
+            
+            idih, jdih, kdih, ldih = self.imptorsList[:,0], self.imptorsList[:,1], self.imptorsList[:,2], self.imptorsList[:,3]
+            def e_imptors():
+                posji = self.posList[jdih] - self.posList[idih]
+                poskj = self.posList[kdih] - self.posList[jdih]
+                poslk = self.posList[ldih] - self.posList[kdih]
+                rkj = np.linalg.norm(poskj,axis=1)
+                cross12 = np.cross(posji, poskj)
+                cross23 = np.cross(poskj, poslk)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)[:,None]
+                n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
+                m1 = np.cross(n1, poskj/rkj[:,None])
+                x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
+                omega = np.rad2deg(np.arctan2(y,x))
+                return np.sum(self.vn[:,0]*(1. + np.cos(np.radians(   omega - self.gn[:,0])))
+                            + self.vn[:,1]*(1. + np.cos(np.radians(2.*omega - self.gn[:,1])))
+                            + self.vn[:,2]*(1. + np.cos(np.radians(3.*omega - self.gn[:,2])))
+                            + self.vn[:,3]*(1. + np.cos(np.radians(4.*omega - self.gn[:,3]))))
+                
+            e_funcs.append(e_imptors)
+            
         #non-bonded interactions
             
         if self.ff.lj:
@@ -542,6 +564,44 @@ class Molecule:
                 np.add.at(grad, ldih, dudrl)
                 
             grad_funcs.append(grad_dihs)
+            
+        if self.ff.imptors:
+            
+            idih,jdih,kdih,ldih = self.imptorsList[:,0], self.imptorsList[:,1], self.imptorsList[:,2], self.imptorsList[:,3]
+            
+            def grad_imptors(grad):
+                posij = self.posList[idih] - self.posList[jdih]
+                poskj = self.posList[kdih] - self.posList[jdih]
+                poskl = self.posList[kdih] - self.posList[ldih]
+                rkj = np.linalg.norm(poskj, axis=1)
+                cross12 = np.cross(-posij, poskj)
+                cross23 = np.cross(poskj, -poskl)
+                n1 = cross12/np.linalg.norm(cross12, axis=1)[:,None]
+                n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
+                m1 = np.cross(n1, poskj/rkj[:,None])
+                x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
+                omega = np.rad2deg(np.arctan2(y,x))
+                print(omega)
+                dotijkj = np.einsum('ij,ij->i',posij,poskj)/(rkj**2)
+                dotklkj = np.einsum('ij,ij->i',poskl,poskj)/(rkj**2)
+                dwdri = -cross12*(rkj/(np.linalg.norm(cross12, axis=1)**2))[:,None]
+                dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
+                dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
+                dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
+                uTerm = (    self.vn[:,0]*np.sin(np.radians(omega - self.gn[:,0]))
+                        + 2.*self.vn[:,1]*np.sin(np.radians(2.*omega - self.gn[:,1]))
+                        + 3.*self.vn[:,2]*np.sin(np.radians(3.*omega - self.gn[:,2]))
+                        + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))
+                dudri = uTerm[:,None]*dwdri
+                dudrj = uTerm[:,None]*dwdrj
+                dudrk = uTerm[:,None]*dwdrk
+                dudrl = uTerm[:,None]*dwdrl
+                np.add.at(grad, idih, dudri)
+                np.add.at(grad, jdih, dudrj)
+                np.add.at(grad, kdih, dudrk)
+                np.add.at(grad, ldih, dudrl)
+                
+            grad_funcs.append(grad_imptors)
             
         if self.ff.lj:
             

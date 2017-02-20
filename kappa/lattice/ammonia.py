@@ -28,8 +28,6 @@ def generate_ammonia_sites():
     h2 = n - a*y/2. + a*x*(np.sqrt(3)/2)
     h3 = h2 - a*x*np.sqrt(3)
     
-    print(h1)
-    
     return n,h1,h2,h3
         
         
