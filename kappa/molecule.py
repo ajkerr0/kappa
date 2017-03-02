@@ -857,6 +857,21 @@ def chain(molList, indexList, name=None):
         molChain.name = name
         
     return molChain
+    
+def attach(base, molList, indices):
+    """Return a molecule that is the base inputted molecule with list of attachments attached
+    at the specified indices.  Only works for attachments with 0 chain index"""
+    
+    #copy the base molecule, don't want to alter it
+    base = deepcopy(base)
+    
+    for mol, index in zip(molList, indices):
+        
+        _combine(base, mol, index, 0, copy=False)
+        
+    base._configure()
+        
+    return base
         
 def build_graphene(ff, name="", radius=3):
         
