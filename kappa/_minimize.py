@@ -42,7 +42,7 @@ def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
     else:
         grad_routine = mol.define_gradient_routine_analytical()
         
-    descentDict[descent](mol, n, searchDict[search], mol.define_energy_routine(), grad_routine,
+    return descentDict[descent](mol, n, searchDict[search], mol.define_energy_routine(), grad_routine,
                          efreq, nbnfreq, eprec*mol.ff.eunits, fprec*mol.ff.eunits/mol.ff.lunits)
         
 def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
@@ -74,12 +74,12 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec
         energy = calc_e()
         gradient, maxForce, totalMag = calc_grad()
         
-        eList.append(energy)
         #for every multiple of efreq, print the status
         if step % efreq == 0:
             print('step:     %s' % step)
             print('energy:   %s' % energy)
             print('maxforce: %s' % maxForce)
+            eList.append(energy)
             
         #break the iteration if our forces are small enough
         if maxForce < fprec:
@@ -131,12 +131,12 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
         gradient, maxForce, totalMag = calc_grad()
         gamma = calculate_gamma(gradient, prevGrad)
         
-        eList.append(energy)
         #for every multiple of efreq, print the status
         if step % efreq == 0:
             print('step:     %s' % step)
             print('energy:   %s' % energy)
             print('maxforce: %s' % maxForce)
+            eList.append(energy)
             
         #break the iteration if our forces are small enough
         if maxForce < fprec:
