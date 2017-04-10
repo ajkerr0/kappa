@@ -320,9 +320,12 @@ def kappa(filename, cid, dim, dimval, avg=False, legend=True):
                           label=id_, markersize=8, linewidth=3)
         handles.append(idline)
         
-    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
+#    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
+    fig.suptitle("Thermal conductivity vs. Chain Length", fontsize=18)
         
     if legend:
         plt.legend(handles=handles)
-        
+    
+    plt.xlabel("Chain Length (molecular units)", fontsize=15)
+    plt.ylabel("Total Driving Power (ff units)", fontsize=15)
     plt.show()
