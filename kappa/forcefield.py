@@ -31,7 +31,7 @@ class Forcefield:
         tersoff (bool): Determines Tersoff-type interactions."""
     
     def __init__(self, name, eunits, lunits,
-                 lengths, angles, dihs, lj, es, tersoff):
+                 lengths, angles, dihs, imptors, lj, es, tersoff):
         self.name = name
         self.eunits = eunits    #relative to kcal/mol
         self.lunits = lunits    #relative to angstroms
@@ -39,6 +39,7 @@ class Forcefield:
         self.lengths = lengths       #bond length interaction
         self.angles = angles         #bond angle interaction
         self.dihs = dihs             #dihedral angle interaction
+        self.imptors = imptors       #improper dihedral angle interaction
         self.lj = lj                 #lennard-jones, non-bonded interaction
         self.es = es                 #electrostatic (point charge), non-bonded interaction
         self.tersoff = tersoff       #tersoff interaction
@@ -47,18 +48,18 @@ class Amber(Forcefield):
     """Amber forcefield inheriting from Forcefield,
     as presented by Cornell et al. (1994)"""
     
-    def __init__(self, lengths=True, angles=False, dihs=False, lj=False):
+    def __init__(self, lengths=True, angles=False, dihs=False, imptors=False, lj=False):
         super().__init__("amber", 1.0, 1.0,
-                         lengths, angles, dihs, lj, False, False)
+                         lengths, angles, dihs, imptors, lj, False, False)
         self.atomtype_file = "ATOMTYPE_AMBER_KERR.DEF"
         self.param_dir = "amber99"
         
 class Gaff(Forcefield):
     """General Amber Forcefield"""
     
-    def __init__(self, lengths=True, angles=False, dihs=False, lj=False):
+    def __init__(self, lengths=True, angles=False, dihs=False, imptors=False, lj=False):
         super().__init__("amber", 1.0, 1.0,
-                         lengths, angles, dihs, lj, False, False)
+                         lengths, angles, dihs, imptors, lj, False, False)
         self.atomtype_file = "ATOMTYPE_GFF_KERR.DEF"
         self.param_dir = "gaff"
             
