@@ -3,6 +3,11 @@
 #ignore ballnspring manually placed in directory on some machines
 ballnspring/
 
+#ignore tutorial outputs
+tutorial/*.gro
+tutorial/*.itp
+tutorial/*.pdb
+
 #ignore .npy files
 *.npy
 

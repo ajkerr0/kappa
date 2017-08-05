@@ -11,7 +11,6 @@ The spacing between the lattice sites are made to be at the minimum potential of
 """
 
 #create lattice points
-from __future__ import division
 import numpy as np
 
 def main(radius, length):
@@ -19,10 +18,6 @@ def main(radius, length):
     
     #lattice constant
     a = 1
-    
-    #approximate radius for triangular lattice foundation 
-#    triRadius = 3
-#    length = 10
     
     #return triangular lattice position list
     triList = triangular_lattice(a, radius, length)
@@ -37,10 +32,10 @@ def main(radius, length):
     rmin = 1.40
     
     #return resized position list
-    resizedSheet = resize(rmin, hexList)
+    finalSheet = resize(rmin, hexList)
     
     #return curled up sheet
-    finalSheet = curl(resizedSheet, a, rmin)
+    finalSheet = curl(finalSheet, a, rmin)
     
     #return list of nearest neighbors, to be used to calculate TB potential
     nList = find_neighbors(a, rmin, finalSheet)
@@ -143,13 +138,13 @@ def curl(posList, a, rmin):
     maxX = max(xList)
     minX = min(xList)
     
-    circum = maxX - minX + (np.sqrt(3)*a*rmin/2)
+    circum = maxX - minX + (a*rmin/2.)
     radius = circum/2/np.pi
     
     for i in posList:
         x = i[0]
         y = i[1]
-        theta = 2*np.pi*(x-minX)/circum
+        theta = 2.*np.pi*(x-minX)/circum
         
         newX = radius*np.cos(theta)
         newZ = radius*np.sin(theta)
@@ -186,7 +181,7 @@ def find_neighbors(a, rmin, honeyLattice):
                 zj = j[2]
                 rij = np.sqrt((xj-xi)*(xj-xi) + (yj-yi)*(yj-yi) + (zj-zi)*(zj-zi))
             
-                if rij < (3*a*rmin/2.0 + 0.2):   
+                if rij < (a*rmin + 0.1):   
                     neighbors.append(jcounter)
                 else:
                     pass

@@ -25,7 +25,8 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds(molecule, sites=False, indices=False, faces=False, order=False):
+def bonds(molecule, sites=False, indices=False, faces=False, order=False,
+          linewidth=4.):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -38,14 +39,14 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False):
         i,j = bond
         plt.plot([posList[i][0],posList[j][0]],
                  [posList[i][1],posList[j][1]],
-                 color='k', zorder=-1)
+                 color='k', zorder=-1, linewidth=linewidth)
         
     cList = np.zeros([length,3])
     
     if sites:
         for count in range(len(molecule)):
             cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
-        plt.scatter(posList[:,0],posList[:,1],s=radList[molecule.zList],c=cList)
+        plt.scatter(posList[:,0],posList[:,1],s=1.5*radList[molecule.zList],c=cList)
         
     if indices:
         for index, pos in enumerate(molecule.posList):
@@ -76,7 +77,8 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False):
     
     plt.show()
 
-def bonds3d(molecule, sites=False, indices=False, save=False):
+def bonds3d(molecule, sites=False, indices=False, save=False,
+            linewidth=2.):
     """Draw the molecule's bonds
     Keywords:
         sites (bool): Set True to draw atomic sites.  Default is False.
@@ -95,7 +97,7 @@ def bonds3d(molecule, sites=False, indices=False, save=False):
         ax.plot([posList[i][0],posList[j][0]],
                 [posList[i][1],posList[j][1]],
                 [posList[i][2],posList[j][2]],
-                color='k', zorder=-1)
+                color='k', zorder=-1, linewidth=linewidth)
         
     cList = np.zeros([length,3])
     
@@ -320,9 +322,12 @@ def kappa(filename, cid, dim, dimval, avg=False, legend=True):
                           label=id_, markersize=8, linewidth=3)
         handles.append(idline)
         
-    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
+#    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
+    fig.suptitle("Thermal conductivity vs. Chain Length", fontsize=18)
         
     if legend:
         plt.legend(handles=handles)
-        
+    
+    plt.xlabel("Chain Length (molecular units)", fontsize=15)
+    plt.ylabel("Total Driving Power (ff units)", fontsize=15)
     plt.show()
