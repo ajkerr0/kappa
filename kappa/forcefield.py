@@ -53,7 +53,7 @@ class Amber(Forcefield):
                          lengths, angles, dihs, imptors, lj, False, False)
         self.atomtype_file = "ATOMTYPE_AMBER_KERR.DEF"
         self.param_dir = "amber99"
-        
+
 class Gaff(Forcefield):
     """General Amber Forcefield"""
     
