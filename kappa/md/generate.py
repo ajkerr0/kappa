@@ -2,7 +2,7 @@ import numpy as np
 from ..antechamber.atomtype import atomtype
 
 
-def pdb(molecule, ff='amber', save=True, fn='cnt.pdb', save_dir='.'):
+def pdb(molecule, ff='amber', fn='cnt.pdb', save_dir='.'):
     """Creates a .pdb (protein data bank) type list for use with molecular dynamics packages.
     pdb_lines returns list holding every line of .pdb file."""
     print("Recommended that MD export is done using .gro file only.")
@@ -47,13 +47,11 @@ def pdb(molecule, ff='amber', save=True, fn='cnt.pdb', save_dir='.'):
     pdb_lines = atom_lines + conect_lines
     pdb_lines.append("TER")
     pdb_lines.append("END")
-    if save:
-        save_file(pdb_lines, save_dir, fn)
+    save_file(pdb_lines, save_dir, fn)
     print('Successfully exported %s to %s' % (fn, save_dir))
-    return pdb_lines
 
 
-def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
+def gro(molecule, scale=2.0, fn='cnt.gro', save_dir='.', periodic=False):
     """Creates a .gro file for gromacs, holds atom coordinates and unit cell size
     Coordinates exported in nm, originally in angstroms"""
     gro_lines = []
@@ -90,17 +88,33 @@ def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
     max_length = np.max([length_x, length_y, length_z])
     idx_max_dim = np.argmax([length_x, length_y, length_z])
     dims = ['X','Y','Z']
-    print('Length of tube is in the %s direction.' % dims[idx_max_dim])
+    dims_dict = {0:x_list, 1:y_list, 2:z_list}
+    length_str = dims[idx_max_dim]
+    print('Length of tube is in the %s direction.' % length_str)
     box_dim = scale * max_length
     new_move_dist = box_dim/2.0
     # measure dist to new box origin in move in every direction
     posDist_new = posList_cent
     posDist_new += (new_move_dist + dist_to_move)
     # now tube is centered in quadrant 0 box
+    if periodic:
+        dir_to_cut = dims_dict[idx_max_dim]
+        left = np.min(dir_to_cut)  # picks first smallest value in list
+        right = np.max(dir_to_cut)
+        split = (right-left) / 2.0
+        print('Splitting %s direction around %.2f' % (length_str, split))
+        # find an atom closest to split line
+        dist_to_split = []
+        for i in range(len(molecule.posList)):
+            temp_dist = np.abs(posDist_new[i][idx_max_dim] - split)
+            dist_to_split.append(temp_dist)
+        index_split = np.argmin(dist_to_split)  # closest pt in object to split
+
+
     # scale everything by bond
     posDist_new *= 0.1
     box_dim *= 0.1
-    print("Box with be %dX the maximum dimension of the object.\nUsing a %dX%dX%d box." %
+    print("Box with be %dX the maximum dimension of the object.\nUsing a %.2fX%.2fX%.2f box." %
           (scale, box_dim, box_dim, box_dim))
     # lets write to list
     tit = "SWCNT armchair"
@@ -112,21 +126,19 @@ def gro(molecule, scale=2.0, save=True, fn='cnt.gro', save_dir='.'):
         _index = i + 1
         temp_dist = np.sqrt(posDist_new[i][0] ** 2 + posDist_new[i][1] ** 2 + posDist_new[i][2] ** 2)
         temp_line = "{0:>5}{1:<5}{2:>5}{3:>5}{4:>8.3f}{5:>8.3f}{6:>8.3f}"\
-            .format(res_num, res_name, elemtypes[i], _index,
+            .format(res_num, res_name, a_num[i], _index,
                     posDist_new[i][0], posDist_new[i][1], posDist_new[i][2])
         gro_lines.append(temp_line)
     box_line = "{0:>8.3f}{1:>8.3f}{2:>8.3f}".format(box_dim, box_dim, box_dim)
     gro_lines.append(box_line)
-    if save:
-        save_file(gro_lines, save_dir, fn)
+    save_file(gro_lines, save_dir, fn)
     print('Successfully exported %s to %s' % (fn, save_dir))
-    return gro_lines
 
 
-def restrains(mol, save=True, fn='posre.itp', save_dir='.', fc=1000):
+def restrains(mol, fn='posre.itp', save_dir='.', fc=1000):
     """Generates posre.itp file used by GROMACS to restrain atoms to a location, can be read by x2top"""
     # force constant of position restraint (kJ mol^-1 nm^-2)
-
+    # IF NEEDED. REMOVING CM TRANSLATION AND ROTATION IS PROBABLY BEST.
     # **********MAKE SURE MOLECULE IS HYDROGENATED FIRST********** #
 
     itp_lines = []
@@ -138,13 +150,90 @@ def restrains(mol, save=True, fn='posre.itp', save_dir='.', fc=1000):
         temp_line = "{0:>4}{1:>6}{2:>9}{3:>8}{4:>8}".format(index, funct, fc, fc, fc)
         itp_lines.append(temp_line)
     itp_lines.append("")  # EOL
-    if save:
-        save_file(itp_lines, save_dir, fn)
+    save_file(itp_lines, save_dir, fn)
     print('Successfully exported %s to %s' % (fn, save_dir))
-    return itp_lines
 
 
-def top(mol, ff='amber', save=True, fn='cnt.top', save_dir='.'):
+def lammps(molecule, cushion=5.0, fn='cnt.lammps', save_dir='.'):
+    """Generates data file for use in LAMMPS
+    Assuming 'real' units (the unit type)
+    mass = grams/mole
+    distance = Angstroms
+    time = femtoseconds
+    energy = Kcal/mole
+    velocity = Angstroms/femtosecond
+    force = Kcal/mole-Angstrom
+    torque = Kcal/mole
+    temperature = Kelvin
+    pressure = atmospheres
+    dynamic viscosity = Poise
+    charge = multiple of electron charge (1.0 is a proton)
+    dipole = charge*Angstroms
+    electric field = volts/Angstrom
+    density = gram/cm^dim
+    bond_const_K =  Kcal/(mole*Angstrom^2)
+    bond_const_r0 = Angstrom
+
+    """
+    vdwDict = {1: 1.2, 6: 1.7, 7: 1.55, 8: 1.52, 9: 1.47, 15: 1.8, 16: 1.8, 17: 2.75}
+    amuDict = {1: 1.008, 6: 12.01, 7: 14.01, 8: 16.00, 9: 19.00,
+               15: 30.79, 16: 32.065, 17: 35.45}
+    l_lines = []
+    l_lines.append('LAMMPS Description')
+    l_lines.append('')
+    l_lines.append('%d atoms' % len(molecule.posList))
+    l_lines.append('%d bonds' % len(molecule.bondList))
+    l_lines.append('%d angles' % len(molecule.angleList))
+    l_lines.append('%d dihedrals' % 0)
+    l_lines.append('%d impropers' % 0)
+    l_lines.append('')
+    l_lines.append('%d atom types' % len(molecule.zList))
+    l_lines.append('%d bond types' % len(molecule.bondList))
+    l_lines.append('%d angle types' % len(molecule.angleList))
+    l_lines.append('')
+    # find box dims
+    box_min = np.ceil(np.min(molecule.posList)) - cushion
+    box_max = np.ceil(np.max(molecule.posList)) + cushion
+    #atom_type = {}
+    l_lines.append('%d %d xlo xhi' % (box_min, box_max))
+    l_lines.append('%d %d ylo yhi' % (box_min, box_max))
+    l_lines.append('%d %d zlo zhi' % (box_min, box_max))
+    l_lines.append('')
+    l_lines.append('Masses')
+    l_lines.append('')
+    for i in range(len(molecule.mass)):
+        l_lines.append('%d %.5f' % ((i+1), molecule.mass[i]))
+    l_lines.append('')
+    l_lines.append('Bond Coeffs')
+    l_lines.append('')
+    for i in range(len(molecule.bondList)):
+        l_lines.append('%d %.5f %.5f' % ((i+1), molecule.kb[i], molecule.b0[i]))
+    l_lines.append('')
+    l_lines.append('Angle Coeffs')
+    l_lines.append('')
+    for i in range(len(molecule.angleList)):
+        l_lines.append('%d %.5f %.5f' % ((i + 1), molecule.kt[i], molecule.t0[i]))
+    l_lines.append('')
+    l_lines.append('Atoms')
+    l_lines.append('')
+    for i in range(len(molecule.posList)):
+        l_lines.append('%d 1 %d %.5f %.5f %.5f' % ((i+1), (i+1), molecule.posList[i,0], molecule.posList[i,1], molecule.posList[i,2]))
+    l_lines.append('')
+    l_lines.append('Bonds')
+    l_lines.append('')
+    for i in range(len(molecule.bondList)):
+        l_lines.append('%d 1 %d %d' % ((i+1), (molecule.bondList[i,0]+1), (molecule.bondList[i,1]+1)))
+    l_lines.append('')
+    l_lines.append('Angles')
+    l_lines.append('')
+    for i in range(len(molecule.angleList)):
+        l_lines.append('%d 1 %d %d %d' % ((i+1), (molecule.angleList[i,0]+1), (molecule.angleList[i,1]+1), (molecule.angleList[i,2]+1)))
+    l_lines.append('')
+    save_file(l_lines, save_dir, fn)
+    print('Successfully exported %s to %s' % (fn, save_dir))
+
+
+def top(mol, ff='amber', fn='cnt.top', save_dir='.'):
     """Creates a .top (topology) type list for use in MD packages
     AMBER99SB or OPLS-AA forcefields can being used"""
     print("Recommended that MD export is done using .gro file only.")
@@ -208,10 +297,8 @@ def top(mol, ff='amber', save=True, fn='cnt.top', save_dir='.'):
 
     top_lines.extend(["", "[ system ]", "CNT"])
     top_lines.extend(["", "[ molecules ]", "CNT     1", ""])
-    if save:
-        save_file(top_lines, save_dir, fn)
+    save_file(top_lines, save_dir, fn)
     print('Successfully exported %s to %s' % (fn, save_dir))
-    return top_lines
 
 
 def _build_lines(columns, spaces, size, innerColumns):
