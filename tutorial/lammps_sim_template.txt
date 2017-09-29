@@ -4,7 +4,7 @@
 
 # settings
 
-variable	name equal 34 # naming of file output
+variable	name equal X # naming of file output
 variable	rho equal 0.6
 variable    t equal 300
 variable	rc equal 5.0
@@ -12,6 +12,9 @@ variable	rc equal 5.0
 variable    p equal 400     # correlation length of J output  (make sure heat flux ACF dissipates to zero within this window)
 variable    s equal 10     # sample interval
 variable    d equal $p*$s   # dump interval
+
+variable    equil_timesteps equal 100000
+variable    thermo_timesteps equal 2500000
 
 # convert from LAMMPS real units to SI
 
@@ -32,10 +35,9 @@ bond_style	harmonic
 angle_style	harmonic
 dimension 	3
 atom_modify	sort 1000 2.0
-#read_data 	cnt${name}.lammps group CNT
-read_data	cnt_pristine_stubby.lammps group CNT
+read_data 	cnt${name}iter${iter}.lammps group CNT
 
-velocity 	CNT create $t 79843 mom yes rot yes dist uniform units box  # uniform important! Change seed for independent runs
+velocity 	CNT create $t $random mom yes rot yes dist uniform units box  # uniform important! Change seed for independent runs
 
 neighbor        2.0 bin
 neigh_modify    delay 0 every 1
@@ -61,7 +63,7 @@ thermo		100
 run_style 	verlet
 timestep  	${dt}
 
-run		100000
+run		${equil_timesteps}
 
 velocity	all scale $t
 
@@ -82,7 +84,7 @@ variable        Jz equal c_flux[3]/$V
 fix	        3 CNT nve
 fix             JJ CNT ave/correlate $s $p $d &
                 c_flux[1] c_flux[2] c_flux[3] type auto &
-	        file cnt${name}profile.heatflux ave running
+	        file cnt_${name}_iter_${iter}.heatflux ave running
 
 #variable       scale equal $s*dt/$t/$t/$V
 variable        scale equal ${convert}/${kB}/$t/$t/$V*$s*${dt}
@@ -94,8 +96,10 @@ variable        k33 equal trap(f_JJ[5])*${scale}
 thermo	        $d
 thermo_style    custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
 
-run             2500000
+run             ${thermo_timesteps}
 
 variable        k equal (v_k11+v_k22+v_k33)/3.0
 variable     	ndens equal count(all)/$V
+dump            k CNT custom ${thermo_timesteps} cnt_${name}_iter_${iter}.k ${k}
+dump            k CNT custom ${thermo_timesteps} cnt_${name}_iter_${iter}.ndens ${ndens}
 print        	"average conductivity: $k[W/mK] @ $t K, ${ndens} /A^3"
