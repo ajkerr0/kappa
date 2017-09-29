@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --partition=normal
-#SBATCH --job-name conduction
+#SBATCH --job-name Z
 #SBATCH --ntasks=20
 #SBATCH --ntasks-per-node=20
 #SBATCH -t 12:00:00

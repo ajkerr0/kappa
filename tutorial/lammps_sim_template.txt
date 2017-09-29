@@ -100,6 +100,4 @@ run             ${thermo_timesteps}
 
 variable        k equal (v_k11+v_k22+v_k33)/3.0
 variable     	ndens equal count(all)/$V
-dump            k CNT custom ${thermo_timesteps} cnt_${name}_iter_${iter}.k ${k}
-dump            k CNT custom ${thermo_timesteps} cnt_${name}_iter_${iter}.ndens ${ndens}
 print        	"average conductivity: $k[W/mK] @ $t K, ${ndens} /A^3"
