@@ -1,11 +1,11 @@
 import numpy as np
 from ..antechamber.atomtype import atomtype
+import math
 
 
 def pdb(molecule, ff='amber', fn='cnt.pdb', save_dir='.'):
     """Creates a .pdb (protein data bank) type list for use with molecular dynamics packages.
     pdb_lines returns list holding every line of .pdb file."""
-    print("Recommended that MD export is done using .gro file only.")
     amber_2_opls = {"CA": "CA", "HC": "HA"}
     atom_lines = []
     conect_lines = []
@@ -154,7 +154,7 @@ def restrains(mol, fn='posre.itp', save_dir='.', fc=1000):
     print('Successfully exported %s to %s' % (fn, save_dir))
 
 
-def lammps(molecule, cushion=5.0, fn='cnt.lammps', save_dir='.'):
+def lammps(molecule, fn='cnt.lammps', save_dir='.', type_list=None):
     """Generates data file for use in LAMMPS
     Assuming 'real' units (the unit type)
     mass = grams/mole
@@ -178,6 +178,8 @@ def lammps(molecule, cushion=5.0, fn='cnt.lammps', save_dir='.'):
     vdwDict = {1: 1.2, 6: 1.7, 7: 1.55, 8: 1.52, 9: 1.47, 15: 1.8, 16: 1.8, 17: 2.75}
     amuDict = {1: 1.008, 6: 12.01, 7: 14.01, 8: 16.00, 9: 19.00,
                15: 30.79, 16: 32.065, 17: 35.45}
+    if type_list is None:
+        type_list = np.ones(len(molecule.posList))
     l_lines = []
     l_lines.append('LAMMPS Description')
     l_lines.append('')
@@ -192,9 +194,8 @@ def lammps(molecule, cushion=5.0, fn='cnt.lammps', save_dir='.'):
     l_lines.append('%d angle types' % len(molecule.angleList))
     l_lines.append('')
     # find box dims
-    box_min = np.ceil(np.min(molecule.posList)) - cushion
-    box_max = np.ceil(np.max(molecule.posList)) + cushion
-    #atom_type = {}
+    box_min = np.ceil(np.min(molecule.posList)) - 5.0
+    box_max = np.ceil(np.max(molecule.posList)) + 5.0
     l_lines.append('%d %d xlo xhi' % (box_min, box_max))
     l_lines.append('%d %d ylo yhi' % (box_min, box_max))
     l_lines.append('%d %d zlo zhi' % (box_min, box_max))
@@ -217,7 +218,7 @@ def lammps(molecule, cushion=5.0, fn='cnt.lammps', save_dir='.'):
     l_lines.append('Atoms')
     l_lines.append('')
     for i in range(len(molecule.posList)):
-        l_lines.append('%d 1 %d %.5f %.5f %.5f' % ((i+1), (i+1), molecule.posList[i,0], molecule.posList[i,1], molecule.posList[i,2]))
+        l_lines.append('%d %d %d %.5f %.5f %.5f' % ((i+1), type_list[i], (i+1), molecule.posList[i,0], molecule.posList[i,1], molecule.posList[i,2]))
     l_lines.append('')
     l_lines.append('Bonds')
     l_lines.append('')
