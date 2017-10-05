@@ -86,9 +86,8 @@ fix             JJ CNT ave/correlate $s $p $d &
                 c_flux[1] c_flux[2] c_flux[3] type auto &
 	        file cnt_${name}_iter_${iter}.heatflux ave running
 
-#variable       scale equal $s*dt/$t/$t/$V
 variable        scale equal ${convert}/${kB}/$t/$t/$V*$s*${dt}
-#variable     	scale equal (${convert})/(${kB}*$V*$s*dt)
+
 variable        k11 equal trap(f_JJ[3])*${scale}
 variable        k22 equal trap(f_JJ[4])*${scale}
 variable        k33 equal trap(f_JJ[5])*${scale}

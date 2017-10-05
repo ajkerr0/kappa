@@ -7,5 +7,5 @@
 
 for i in {1..10}; do
 RAND=$(echo $RANDOM)  # random initial velocity seed
-mpirun lmp_mpi < X -var random '$RAND' -var iter '$i'
+mpirun lmp_mpi < X -var random $RAND -var iter $i -var name Z
 done
