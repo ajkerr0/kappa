@@ -260,8 +260,6 @@ def grid(values):
 def kappa(filename, cid, dim, dimval, avg=False, legend=True):
     """Plot kappa values along a particular dimension."""
     
-    fig = plt.figure()
-    
     colors = ['b','r','y','c','m','g','k','w']
     
     data = np.genfromtxt(filename, 
@@ -293,8 +291,6 @@ def kappa(filename, cid, dim, dimval, avg=False, legend=True):
     p = param[np.where(param[:,index]==dimval)[0],:]
     kappa = kappa[np.where(param[:,index]==dimval)[0]]
     
-    handles = []
-    
     for count, id_ in enumerate(cid):
         
         idnum = chains.index(id_)
@@ -318,16 +314,28 @@ def kappa(filename, cid, dim, dimval, avg=False, legend=True):
             marker = 'o'
             x, y = vals, kappa[indices]
         
-        idline, = plt.plot(x, y, colors[count]+marker,
+        plt.figure(1)
+        plt.plot(x, y, colors[count]+marker,
                           label=id_, markersize=8, linewidth=3)
-        handles.append(idline)
         
-#    fig.suptitle("{0}, {1}, {2}".format(filename, dim.lower(), dimval), fontsize=15)
-    fig.suptitle("Thermal conductivity vs. Chain Length", fontsize=18)
+        plt.figure(2)
+        plt.plot(x, np.cumsum(y), colors[count]+marker,
+                          label=id_, markersize=8, linewidth=3)
+        
+    plt.suptitle("Integrated Thermal Conductivity")
+    plt.figure(1)
+    plt.suptitle("Thermal conductivity vs. Chain Length", fontsize=18)
         
     if legend:
-        plt.legend(handles=handles)
+        plt.legend()
+        plt.figure(2)
+        plt.legend()
+        
+    plt.xlabel("Chain Length (molecular units)", fontsize=15)
+    plt.ylabel("Integrated Driving Power", fontsize=15)
     
+    plt.figure(1)
     plt.xlabel("Chain Length (molecular units)", fontsize=15)
     plt.ylabel("Total Driving Power (ff units)", fontsize=15)
+    
     plt.show()
