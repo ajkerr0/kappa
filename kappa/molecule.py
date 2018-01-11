@@ -223,7 +223,7 @@ class Molecule:
                 aromaticList.append(None)
         self.aromaticList = aromaticList
         
-    def _configure_bondtypes(self):
+    def _configure_bondtypes(self, bondtype_kwargs={}):
         """Assign the bondtypes to the molecule instance."""
         if self.cbase is True:
             #assign valence state based on connectivity
@@ -236,7 +236,7 @@ class Molecule:
                 raise ValueError("Bond order assignment did not work for base molecule.")
         else:
             from .antechamber.bondtype.bondtype import main
-            self.bondorder, self.bondtypes = main(self)
+            self.bondorder, self.bondtypes = main(self, **bondtype_kwargs)
         
     def _configure_atomtypes(self):
         """Assign the atomtypes and corresponding parameter IDs to the molecule instance."""
@@ -338,7 +338,7 @@ class Molecule:
             self.rvdw0 = rvdw0Arr[idList]
             self.epvdw = epvdwArr[idList]
         
-    def _configure(self):
+    def _configure(self, bondtype_kwargs):
         """Call the 'configure' methods sequentially."""
         self._check_neighbors()
         self._configure_mass()
@@ -346,7 +346,7 @@ class Molecule:
         self._configure_nonbonded_neighbors()
         self._configure_ring_lists()
         self._configure_aromaticity()
-#        self._configure_bondtypes()
+        self._configure_bondtypes(bondtype_kwargs)
         self._configure_atomtypes()
         self._configure_parameters()
         
@@ -1143,7 +1143,7 @@ def build_c4s(ff, count=4, length=1, name=""):
          name  = "c4s_C%s_L%s" % (count, length)
      
      mol = Molecule(ff, name, posList, nList, zList)
-     mol._configure()
+#     mol._configure()
      
      return mol
         
@@ -1189,6 +1189,8 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
                 "pvcl":build_pvcl, "pvcl2":build_pvcl2, "pvcl3":build_pvcl3,
                 "carboxyl":build_carboxyl,
                 "ammonia":build_ammonia}
+
+
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain", "pmma"]
@@ -1205,9 +1207,9 @@ def build_mix(ff, idList):
     molList.append(build_ch(ff))
     return chain(molList, indexList)        
 
-def build(ff, lattice, **kwargs):
+def build(ff, lattice, bondtype_kwargs={}, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
-    mol._configure()
+    mol._configure(bondtype_kwargs)
     mol.posList *= mol.ff.lunits
     return mol
         

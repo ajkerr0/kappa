@@ -11,41 +11,40 @@ import numpy as np
 
 from ... import package_dir
 
-def main(mol):
+def main(mol, nstates=2000, mintps=0, maxtps=None):
     """Return the perceived bond types list for `mol`,
     indexed like `mol.bondList`."""
     
-    max_valence_state = 2000
-    maxtps = 64*len(mol)
-    state_num = 0
+    if maxtps is None:
+        maxtps = 64*len(mol)
     
-    tps = 0
-    
-    #first we need to numerate the possible valences and respective penalty scores for each atom
+    # first numerate the possible valences and respective penalty scores 
+    # for each atom
     av = find_atomic_valences(mol)
     
+    # instantiate valence states
     vstates = np.array([np.zeros(len(mol), dtype=int)])
     
-    while state_num < max_valence_state:
+    # loop through each possible total penalty score
+    for tps in np.arange(mintps, maxtps):
         
-        #find states of given tps
-        newstates = bondtype(tps, av, max_valence_state-state_num)
+        # find states of given tps up to the max number of valance states
+        newstates = bondtype(tps, av, nstates)
         
-        print(tps)
-        print(newstates)
         if newstates is not None:
             vstates = np.concatenate((vstates, newstates),axis=0)
             num = len(newstates)
         else:
             num = 0
         
-        #increment tps and state number
-        tps += 1
-        state_num += num
+        # adjust number of valence states to be found
+        nstates -= num
         
-        if tps > maxtps:
+        # break out of loop if max number of valance states are found
+        if nstates < 1:
             break
         
+    # attempt to assign a bond order to each of the     
     for vstate in vstates[1:]:
         
         match, b_order = boaf(vstate, mol.bondList)
@@ -56,19 +55,20 @@ def main(mol):
         raise ValueError("Valid bond order assignments were not found. \
                           Consider increasing the max valance state count")
         
-    #develop bond types from bond order
+    # develop bond types from bond order
     b_types = b_order
         
     return b_order, b_types
     
 def bondtype(tps, av, maxadd):
-    """Return all the combinations of valence states for the given tps."""
+    """Return all the combinations of valence states for the given
+    total penalty score (tps) up to a limit."""
     
     vstates = []
     
     def dfs(index, vstate, runsum):
         """A recursive function to fill `vstates` will all valence states
-        of total penalty score `tps`"""
+        of total penalty score `tps`."""
         for valence, ps in av[index]:
             newstate = vstate[:]
             newsum = runsum
@@ -87,28 +87,19 @@ def bondtype(tps, av, maxadd):
     
     if length < 1:
         return None
-    elif length > maxadd:
-        return np.array(vstates)[:maxadd]
     else:
-        return np.array(vstates)
+        return np.array(vstates)[:maxadd]
     
 def boaf(vstate, bondList):
-    """Return True if bond order assignment of the valence state is successful,
-    otherwise return False."""
+    """Return True & the bond order if bond order assignment of the 
+    valence state is successful, otherwise return False & None."""
     
-    #connectivity and bond order lists
-    con0 = np.bincount(bondList[:,0])
-    con1 = np.bincount(bondList[:,1])
-    l0, l1 = len(con0), len(con1)
-    if l0 > l1:
-        con1 = np.concatenate((con1, np.zeros(l0-l1, dtype=int)))
-    elif l1 > l0:
-        con0 = np.concatenate((con0, np.zeros(l1-l0, dtype=int))) 
-    conList = con0 + con1
-    boList = np.zeros(len(bondList), dtype=int)   #zero order means unassigned
+    # connectivity and bond order lists
+    conList = bonds2connectivity(bondList)
+    boList = np.zeros(len(bondList), dtype=int)   # zero order means unassigned
             
-    #first run helper function that applies rules
-    fail = apply_rules123(vstate, conList, bondList, boList)
+    # first run helper function that applies rules
+    fail = apply_rules123_old(vstate, conList, bondList, boList)
     
     if fail:
         return False, None
@@ -116,7 +107,7 @@ def boaf(vstate, bondList):
     elif check_match(vstate, conList):
         return True, boList
     
-    #if there are unassigned bonds, perform trial and error
+    # if there are unassigned bonds, perform trial and error
     while 0 in boList:
         firstzero = np.where(boList==0)[0][0]
         for trialorder in [1,2,3]:
@@ -124,13 +115,13 @@ def boaf(vstate, bondList):
             testvs = np.copy(vstate)
             testcon = np.copy(conList)
             testbo[firstzero] = trialorder
-            #apply rule 1
+            # apply rule 1
             i,j = bondList[firstzero]
             testcon[i] += -1
             testcon[j] += -1
             testvs[i]  += -trialorder
             testvs[j]  += -trialorder
-            fail = apply_rules123(testvs, testcon, bondList, testbo)
+            fail = apply_rules123_old(testvs, testcon, bondList, testbo)
             if fail:
                 continue
             elif check_match(testvs, testcon):
@@ -151,14 +142,54 @@ def check_match(vstate, conList):
     else:
         return False
     
-def apply_rules123(vstate, conList, bondList, boList):
-    """A helper function to enforce rules 1,2, and 3."""
+def apply_rules123(vstate, cons, bonds, bos):
+    """ """
+    
+    # Rule 1: For each atom in a bond, if the bond order bo is determined,
+    #   con is deducted by 1 and av is deducted by bo
+    #######
+    # Since no bond orders are known at the start we don't start looping through
+    #   bonds
+    
+    # Rule 2: For one atom, if its con equals to av, the bond orders 
+    # of its unassigned bonds are set to 1
+    
+    # Rule 3: For one atom, if its con equals to 1, the bond order 
+    # of the last bond is set to av
+    
+    while True:
+        
+        # apply rule 2
+        # where unassigned bonds (bo == 0) of atoms of con == av are set to single valence
+        where_con_is_av = np.where(np.intersect1d(vstate == cons, vstate != 0))
+        bos[np.intersect(find_bonds(where_con_is_av), bos==0)] = 1
+        
+        # apply rule 3
+        # where unassigned bonds (bo == 0) of atoms of con == 1 are set to av
+        where_con_is_one = np.where(cons == 1)
+        bonds_where_con1 = find_bonds(where_con_is_one)
+        bos[bonds_where_con1] = vstate[bonds_where_con1]
+        
+        # apply rule 1
+        # where bo is determined (!= 0), substract av by bo
+        # then subtract con by 1 at this atoms
+        where_bo_known = np.where(bos != 0)[0]
+        sub_bos_by_av, sub_con_by_1 = find_atoms(vstate.shape[0], 
+                                                 bonds[where_bo_known], 
+                                                 bos[where_bo_known])
+        vstate -= sub_bos_by_av
+        cons -= sub_con_by_1
+        
+        
+    
+def apply_rules123_old(vstate, conList, bondList, boList):
+    """A helper function to enforce rules 1, 2, and 3. This is an old version of the function"""
     
     atom = 0
     while atom < len(vstate):
-        #check for rules 2 and 3; if True apply rule 1
+        # check for rules 2 and 3; if True apply rule 1
     
-        #2: set the orders of remaining bonds to 1 if con == av
+        # 2: set the orders of remaining bonds to 1 if con == av
         if conList[atom] == vstate[atom] and conList[atom] > 0:
             #set bond order to 1 for all remaining bonds
             bonds1 = np.where(bondList==atom)[0]
@@ -209,6 +240,8 @@ def apply_rules123(vstate, conList, bondList, boList):
     return False
     
 def find_atomic_valences(mol):
+    """Return a list of list of tuples containing all possible valences and 
+    their respective penalty scores."""
     
     file_ = "APS_kerr_edit.DAT"
     
@@ -243,6 +276,39 @@ def find_atomic_valences(mol):
             raise ValueError("Atom type could not be assigned for bond type perception")
             
     return av
+
+def find_bonds(atoms, bonds):
+    """Return the indices of the BONDS that contain the input atomic indices."""
+    return np.where(bonds==atoms)[0]
+
+def find_atoms(mol_length, bonds, bos):
+    """Return the total known bond orders indexed by the atoms making up the
+    respective bonds, the bond orders are added if known atoms are in multiple
+    known bonds."""
+    
+    known_bos = np.zeros(mol_length)
+    sub_con = np.zeros(mol_length)
+    
+    for (i,j), bo in zip(bonds, bos):
+        known_bos[i] += bo
+        known_bos[j] += bo
+        sub_con[i] += 1
+        sub_con[j] += 1
+        
+    return known_bos, sub_con
+    
+def bonds2connectivity(bondList):
+    """Return the connectivities for each atomic index given a 2d list of
+    bonds."""
+    
+    con0 = np.bincount(bondList[:,0])
+    con1 = np.bincount(bondList[:,1])
+    l0, l1 = len(con0), len(con1)
+    if l0 > l1:
+        con1 = np.concatenate((con1, np.zeros(l0-l1, dtype=int)))
+    elif l1 > l0:
+        con0 = np.concatenate((con0, np.zeros(l1-l0, dtype=int))) 
+    return con0 + con1
     
 def parse_line(line,):
     """Return a list of 2-tuples of the possible atomic valences for a given line from
