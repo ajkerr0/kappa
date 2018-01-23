@@ -1135,17 +1135,84 @@ def build_teflon(ff, name="teflon", count=2):
     
 def build_c4s(ff, count=4, length=1, name=""):
     
-     from .lattice.c4s import main as lattice
-     posList,nList,zList = lattice(count, length)
-     posList = np.array(posList)
+    from .lattice.c4s import main as lattice
+    posList,nList,zList = lattice(count, length)
+    posList = np.array(posList)
      
-     if not name:
-         name  = "c4s_C%s_L%s" % (count, length)
+    if not name:
+        name  = "c4s_C%s_L%s" % (count, length)
      
-     mol = Molecule(ff, name, posList, nList, zList)
-#     mol._configure()
+    mol = Molecule(ff, name, posList, nList, zList)
      
-     return mol
+    # hard-code the force-field parameters from GAFF
+     
+    # build the bondlists
+    mol._configure_mass()
+    mol._configure_topology_lists()
+    mol._configure_nonbonded_neighbors()
+     
+    # establish atom types (which are either 'ca' or 'ss')
+    # so really just the atomic number
+    z = mol.zList
+    atomtypes = []
+    for num in z:
+        if num == 6:
+            atomtypes.append('ca')
+        elif num == 16:
+            atomtypes.append('ss')
+        else:
+            raise ValueError("There should only be carbons and sulfur in c4s")
+    mol.atomtypes= atomtypes
+     
+    # bond length 
+    kb = np.zeros(mol.bondList.shape[0])
+    b0 = np.zeros(mol.bondList.shape[0])
+     
+    for index, (i,j) in enumerate(mol.bondList):
+        if z[i] == 16 or z[j] == 16:
+            kb[index] = 249.8
+            b0[index] = 1.7806
+        else:
+            kb[index] = 461.1
+            b0[index] = 1.3984
+    
+    mol.kb = kb
+    mol.b0 = b0
+    
+    # bond angle
+    kt = np.zeros(mol.angleList.shape[0])
+    t0 = np.zeros(mol.angleList.shape[0])
+    
+    for index, (i,j,k) in enumerate(mol.angleList):
+        if z[i] == 16 or z[k] == 16:
+            kt[index] = 61.60
+            t0[index] = 120.06
+        elif z[j] == 16:
+            kt[index] = 62.35
+            t0[index] = 98.83
+        else:
+            kt[index] = 66.62
+            t0[index] = 120.02
+            
+    mol.kt = kt
+    mol.t0 = t0
+            
+    # dihedral angle
+    vn = np.zeros((mol.dihList.shape[0], 4))
+    gn = np.zeros((mol.dihList.shape[0], 4))
+    
+    for index, (i,j,k,l) in enumerate(mol.dihList):
+        if z[j] == 16 or z[k] == 16:
+            vn[index, 1] = 0.8
+            gn[index, 1] = 180.
+        else:
+            vn[index, 1] = 14.5
+            gn[index, 1] = 180.
+            
+    mol.vn = vn
+    mol.gn = gn
+    
+    return mol
         
 def build_ch(ff, bond=True, name="CH"):
     
