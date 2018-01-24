@@ -1162,7 +1162,7 @@ def build_c4s(ff, count=4, length=1, name=""):
             atomtypes.append('ss')
         else:
             raise ValueError("There should only be carbons and sulfur in c4s")
-    mol.atomtypes= atomtypes
+    mol.atomtypes = atomtypes
      
     # bond length 
     kb = np.zeros(mol.bondList.shape[0])

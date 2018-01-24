@@ -46,7 +46,8 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False,
     if sites:
         for count in range(len(molecule)):
             cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
-        plt.scatter(posList[:,0],posList[:,1],s=1.5*radList[molecule.zList],c=cList)
+        plt.scatter(posList[:,0],posList[:,1],s=1.5*radList[molecule.zList],c=cList,
+                    edgecolors='k')
         
     if indices:
         for index, pos in enumerate(molecule.posList):
@@ -107,7 +108,8 @@ def bonds3d(molecule, sites=False, indices=False, save=False,
             
         ax.scatter(posList[:,0],posList[:,1],posList[:,2],
                    s=radList[molecule.zList],c=cList,
-                   marker='o',depthshade=False)
+                   marker='o',depthshade=False,
+                   edgecolors='k')
     
     if indices:
         ds = 0.1
