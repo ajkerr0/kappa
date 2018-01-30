@@ -7,17 +7,17 @@ Created on Tue Aug 02 22:31:39 2016
 
 import numpy as np
 
-def main(count, length):
+def main(width, length):
     
-    a = 1.52
+    a = 1.50
     
-    posList, zList = get_sites(a, count, length)
+    posList, zList = get_sites(a, width, length)
     
     nList = find_neighbors(a, posList)
     
     return posList,nList,zList
     
-def get_sites(a, count, length):
+def get_sites(a, width, length):
     
     a1 = a*np.array([1.,0.,0.])
     a2 = a*np.array([-.5,np.sqrt(3.)*.5,0.])
@@ -41,38 +41,52 @@ def get_sites(a, count, length):
                       pos10,pos11])
     unitz = np.array([6,6,6,6,6,6,6,6,6,6,16,16])
     
-    xShift = 4.*a*np.array([1.,0.,0.])
+    xShift = 4.*a*np.array([1.,0.,0.])/np.sqrt(2)
     yShift = 2.*a*np.sqrt(3.)*np.array([0.,1.,0.])
+    zShift = a*np.array([0.,0.,1.])/np.sqrt(2.)
     
     totalpos = unitpos
     totalz = unitz
     
-    for i in range(1,count):
+    # rotate the first slab
+    totalpos[:,0] *= -1
+    totalpos = rotate(totalpos, np.array([0.,1.,0.]), 45.)
+    unitpos = rotate(unitpos, np.array([0.,1.,0.]), 45.)
+    
+    rh = 1
+    for i in range(1,length):
         
-        totalpos = np.concatenate((totalpos, unitpos + i*xShift))
+        unitpos = rotate(unitpos, np.array([0.,1.,0.]), -90*rh)
+        totalpos = np.concatenate((totalpos, unitpos + i*xShift + (1. + rh)*zShift/2.))
         totalz = np.concatenate((totalz, unitz))
+        rh *= -1
         
     newUnitPos = totalpos
     newUnitZ = totalz
         
-    for i in range(1,length):
+    for i in range(1,width):
         
         totalpos = np.concatenate((totalpos, newUnitPos + i*yShift))
         totalz = np.concatenate((totalz, newUnitZ))
         
-    #eliminate 'double' atoms
+    # eliminate 'double' atoms
     deleteList = []
     for i,ipos in enumerate(totalpos):
         for j,jpos in enumerate(totalpos):
             if np.linalg.norm(ipos-jpos) < 0.1 and i > j:
                 deleteList.append(j)
+    # eliminate sulphurs at far x end
+    # find the atoms that are at the max x-position,
+    #   these are the end sulphurs
+    maxx = np.max(totalpos[:,0])
+    for index, xpos in enumerate(totalpos[:,0]):
+        if maxx-xpos < 0.15:
+            deleteList.append(index)
                 
     totalpos = np.delete(totalpos, deleteList, axis=0)
     totalz = np.delete(totalz, deleteList)
-    
-    curledPos = curl(a, totalpos)
          
-    return curledPos, totalz
+    return totalpos, totalz
     
 def find_neighbors(a, posList):
     
@@ -102,18 +116,4 @@ def rotate(posList, axis, angle):
                        [uy*ux*(1.-cos)+uz*sin, cos+uy*uy*(1.-cos), uy*uz*(1.-cos)-ux*sin], 
                        [uz*ux*(1.-cos)-uy*sin, uz*uy*(1.-cos)+ux*sin, cos+uz*uz*(1.-cos)]])              
     #rotate points
-    return np.transpose(np.dot(rotMat,np.transpose(posList)))
-    
-def curl(a, posList):
-    """Return the curled positions; in a tube."""
-    
-    maxX = np.amax(posList[:,0])
-    minX = np.amin(posList[:,0])
-    
-    circum = maxX - minX + a
-    radius = circum/2./np.pi
-    
-    theta = 2*np.pi*(posList[:,0]-np.ones(len(posList))*minX)/circum
-    
-    return np.transpose(np.array([radius*np.cos(theta),posList[:,1],radius*np.sin(theta)]))
-    
+    return np.transpose(np.dot(rotMat,np.transpose(posList)))    

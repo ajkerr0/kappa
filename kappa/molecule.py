@@ -1133,7 +1133,7 @@ def build_teflon(ff, name="teflon", count=2):
     
     return build_polyx((9,9,9,9), ff, name, count)
     
-def build_c4s(ff, count=4, length=1, name=""):
+def build_c4s_tube(ff, count=4, length=1, name=""):
     
     from .lattice.c4s import main as lattice
     posList,nList,zList = lattice(count, length)
@@ -1143,17 +1143,34 @@ def build_c4s(ff, count=4, length=1, name=""):
         name  = "c4s_C%s_L%s" % (count, length)
      
     mol = Molecule(ff, name, posList, nList, zList)
+    
+    return assign_cs_ff_params(mol)
+
+def build_c4s_plane(ff, width=2, length=4, name="", flat=False):
+    
+    from .lattice.c4s_plane import main as lattice
+    posList,nList,zList = lattice(width, length)
+    posList = np.array(posList)
      
+    if not name:
+        name = "c4s-plane_W{0}_L{1}".format(width, length)
+     
+    mol = Molecule(ff, name, posList, nList, zList)
+    
+    return assign_cs_ff_params(mol, flat=flat)
+
+def assign_cs_ff_params(cs_mol, flat=False):
+    
     # hard-code the force-field parameters from GAFF
      
     # build the bondlists
-    mol._configure_mass()
-    mol._configure_topology_lists()
-    mol._configure_nonbonded_neighbors()
+    cs_mol._configure_mass()
+    cs_mol._configure_topology_lists()
+    cs_mol._configure_nonbonded_neighbors()
      
     # establish atom types (which are either 'ca' or 'ss')
     # so really just the atomic number
-    z = mol.zList
+    z = cs_mol.zList
     atomtypes = []
     for num in z:
         if num == 6:
@@ -1162,13 +1179,13 @@ def build_c4s(ff, count=4, length=1, name=""):
             atomtypes.append('ss')
         else:
             raise ValueError("There should only be carbons and sulfur in c4s")
-    mol.atomtypes = atomtypes
+    cs_mol.atomtypes = atomtypes
      
     # bond length 
-    kb = np.zeros(mol.bondList.shape[0])
-    b0 = np.zeros(mol.bondList.shape[0])
+    kb = np.zeros(cs_mol.bondList.shape[0])
+    b0 = np.zeros(cs_mol.bondList.shape[0])
      
-    for index, (i,j) in enumerate(mol.bondList):
+    for index, (i,j) in enumerate(cs_mol.bondList):
         if z[i] == 16 or z[j] == 16:
             kb[index] = 249.8
             b0[index] = 1.7806
@@ -1176,43 +1193,49 @@ def build_c4s(ff, count=4, length=1, name=""):
             kb[index] = 461.1
             b0[index] = 1.3984
     
-    mol.kb = kb
-    mol.b0 = b0
+    cs_mol.kb = kb
+    cs_mol.b0 = b0
     
     # bond angle
-    kt = np.zeros(mol.angleList.shape[0])
-    t0 = np.zeros(mol.angleList.shape[0])
+    kt = np.zeros(cs_mol.angleList.shape[0])
+    t0 = np.zeros(cs_mol.angleList.shape[0])
     
-    for index, (i,j,k) in enumerate(mol.angleList):
+    for index, (i,j,k) in enumerate(cs_mol.angleList):
         if z[i] == 16 or z[k] == 16:
             kt[index] = 61.60
             t0[index] = 120.06
         elif z[j] == 16:
             kt[index] = 62.35
-            t0[index] = 98.83
+            if flat:
+                t0[index] = 180.
+            else:
+                t0[index] = 98.83
         else:
             kt[index] = 66.62
             t0[index] = 120.02
             
-    mol.kt = kt
-    mol.t0 = t0
+    cs_mol.kt = kt
+    cs_mol.t0 = t0
             
     # dihedral angle
-    vn = np.zeros((mol.dihList.shape[0], 4))
-    gn = np.zeros((mol.dihList.shape[0], 4))
+    vn = np.zeros((cs_mol.dihList.shape[0], 4))
+    gn = np.zeros((cs_mol.dihList.shape[0], 4))
     
-    for index, (i,j,k,l) in enumerate(mol.dihList):
+    for index, (i,j,k,l) in enumerate(cs_mol.dihList):
         if z[j] == 16 or z[k] == 16:
             vn[index, 1] = 0.8
             gn[index, 1] = 180.
         else:
             vn[index, 1] = 14.5
             gn[index, 1] = 180.
-            
-    mol.vn = vn
-    mol.gn = gn
+    if flat:
+        cs_mol.vn = np.zeros((cs_mol.dihList.shape[0], 4))
+        cs_mol.gn = 180.*np.ones((cs_mol.dihList.shape[0], 4))
+    else:
+        cs_mol.vn = vn
+        cs_mol.gn = gn
     
-    return mol
+    return cs_mol
         
 def build_ch(ff, bond=True, name="CH"):
     
