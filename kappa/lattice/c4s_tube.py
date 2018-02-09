@@ -7,17 +7,17 @@ Created on Tue Aug 02 22:31:39 2016
 
 import numpy as np
 
-def main(count, length):
+def main(count, length, curl=True):
     
     a = 1.52
     
-    posList, zList = get_sites(a, count, length)
+    posList, zList = get_sites(a, count, length, curl)
     
     nList = find_neighbors(a, posList)
     
     return posList,nList,zList
     
-def get_sites(a, count, length):
+def get_sites(a, count, length, roll):
     
     a1 = a*np.array([1.,0.,0.])
     a2 = a*np.array([-.5,np.sqrt(3.)*.5,0.])
@@ -70,9 +70,26 @@ def get_sites(a, count, length):
     totalpos = np.delete(totalpos, deleteList, axis=0)
     totalz = np.delete(totalz, deleteList)
     
-    curledPos = curl(a, totalpos)
-         
-    return curledPos, totalz
+    if roll:
+    
+        curledPos = curl(a, totalpos)
+             
+        return curledPos, totalz
+    
+    else:
+        
+        # find all far left positions, these are the extra sulfurs
+        deleteList = []
+        minx = np.min(totalpos[:,0])
+        for index, x in enumerate(totalpos[:,0]):
+            if x - minx < .2:
+                deleteList.append(index)
+                
+        totalpos = np.delete(totalpos, deleteList, axis=0)
+        totalz = np.delete(totalz, deleteList)
+        
+        return totalpos, totalz
+    
     
 def find_neighbors(a, posList):
     

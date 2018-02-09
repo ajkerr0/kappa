@@ -1133,10 +1133,10 @@ def build_teflon(ff, name="teflon", count=2):
     
     return build_polyx((9,9,9,9), ff, name, count)
     
-def build_c4s_tube(ff, count=4, length=1, name=""):
+def build_c4s_tube(ff, count=4, length=1, name="", curl=True):
     
-    from .lattice.c4s import main as lattice
-    posList,nList,zList = lattice(count, length)
+    from .lattice.c4s_tube import main as lattice
+    posList,nList,zList = lattice(count, length, curl=curl)
     posList = np.array(posList)
      
     if not name:

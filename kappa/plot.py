@@ -46,7 +46,7 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False,
     if sites:
         for count in range(len(molecule)):
             cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
-        plt.scatter(posList[:,0],posList[:,1],s=1.5*radList[molecule.zList],c=cList,
+        plt.scatter(posList[:,0],posList[:,1],s=.5*radList[molecule.zList],c=cList,
                     edgecolors='k')
         
     if indices:
