@@ -253,7 +253,7 @@ class ModeInspector(Calculation):
         self.plot_mode(tau)
         
 def find_interface_crossings(mol, baseSize):
-    """Return the interfactions that cross the molecular interfaces."""
+    """Return the interactions that cross the molecular interfaces."""
     
     crossings = []
     atoms0 = mol.faces[0].attached

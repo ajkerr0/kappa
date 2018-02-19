@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Mon Mar 21 13:09:30 2016
 
@@ -338,7 +338,7 @@ class Molecule:
             self.rvdw0 = rvdw0Arr[idList]
             self.epvdw = epvdwArr[idList]
         
-    def _configure(self, bondtype_kwargs):
+    def _configure(self, bondtype_kwargs=None):
         """Call the 'configure' methods sequentially."""
         self._check_neighbors()
         self._configure_mass()
@@ -346,7 +346,7 @@ class Molecule:
         self._configure_nonbonded_neighbors()
         self._configure_ring_lists()
         self._configure_aromaticity()
-        self._configure_bondtypes(bondtype_kwargs)
+#        self._configure_bondtypes(bondtype_kwargs)
         self._configure_atomtypes()
         self._configure_parameters()
         
@@ -845,6 +845,7 @@ def chain(molList, indexList, name=None):
         j = indexList[molNum][1]
         
         sizei = len(molChain)
+        print('check')
         molChain = _combine(molChain, mol, i, j)
         
         if nextI > j:
@@ -1284,18 +1285,38 @@ _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":bui
 lattices = list(_latticeDict.keys())
 chains = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf",
           "imine_chain", "pmma"]
+
+_mix_dict = {"polyeth":np.array([[1,1],[1,1]]),
+             "teflon":np.array([[9,9],[9,9]]),
+             "pvcl":np.array([[1,17],[1,1]]),
+             "pvcl2":np.array([[1,17],[1,17]]),
+             "pvcl3":np.array([[17,17],[1,1]]),
+             "pvf":np.array([[1,9],[1,9]]),
+             }
+
+_mix_ids = ["polyeth", "teflon", "pvcl", "pvcl2", "pvcl3", "pvf"]
+
+_mix_array = np.array([
+                      [[1,1],[1,1]],
+                      [[9,9],[9,9]],
+                      [[1,17],[1,1]],
+                      [[1,17],[1,17]],
+                      [[17,17],[1,1]],
+                      [[1,9],[1,9]],
+                      ])
           
 def build_mix(ff, idList):
     
-    molList = [build(ff, idList[0], count=1)]
-    indexList = [(2,0)]
+    side_z = np.hstack(_mix_array[idList])
+    from .lattice.polymix import main as lattice
+    posList, nList, zList = lattice(side_z)
+    mol = Molecule(ff, "mix", posList, nList, zList)
     
-    for id_ in idList:
-        molList.append(build(ff, id_, count=1))
-        indexList.append((2,0))
-        
-    molList.append(build_ch(ff))
-    return chain(molList, indexList)        
+    mol._configure()
+    
+    Interface([0], np.array([-1.,0.,0.]), mol)
+    
+    return mol
 
 def build(ff, lattice, bondtype_kwargs={}, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
