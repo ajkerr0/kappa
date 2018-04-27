@@ -1307,7 +1307,7 @@ _mix_array = np.array([
           
 def build_mix(ff, idList):
     
-    side_z = np.hstack(_mix_array[idList])
+    side_z = np.hstack(_mix_array[np.array(idList, dtype=int)])
     from .lattice.polymix import main as lattice
     posList, nList, zList = lattice(side_z)
     mol = Molecule(ff, "mix", posList, nList, zList)
