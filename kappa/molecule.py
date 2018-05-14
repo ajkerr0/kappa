@@ -1318,6 +1318,21 @@ def build_mix(ff, idList):
     
     return mol
 
+def build_sidechain_cnt(ff, idList, sites, cnt_params=None):
+    
+    side_chain = np.asarray(idList, dtype=int)
+    
+    # build the side chain that will be added to both sides symmetrically
+    side_chain = build_mix(ff, side_chain)
+    
+    # create the full molecule
+    mol = build_cnt_armchair(ff, **cnt_params)
+    for atom_index in sites:
+        mol = _combine(mol, side_chain, atom_index, 0, copy=False)
+    mol._configure()
+    
+    return mol
+
 def build(ff, lattice, bondtype_kwargs={}, **kwargs):
     mol = _latticeDict[lattice](ff, **kwargs)
     mol._configure(bondtype_kwargs)
