@@ -287,10 +287,7 @@ def find_interface_crossings(mol, baseSize):
                     
     #remove duplicate interactions
     crossings.sort()
-    crossings = list(k for k,_ in itertools.groupby(crossings))
-    print(crossings)
-    
-    return crossings
+    return list(k for k,_ in itertools.groupby(crossings))
 
 def calculate_thermal_conductivity(mol, driverList, baseSize, gamma):
     
