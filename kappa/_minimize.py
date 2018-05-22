@@ -18,7 +18,7 @@ GR = 1.618
                                   
 def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
              eprec=1e-2, fprec=1e-2,
-             efreq=1000, nbnfreq=15):
+             efreq=1000, nbnfreq=15, print_=True):
     """Minimize the energy of the inputted molecule.
     
     Args:
@@ -43,7 +43,8 @@ def minimize(mol, n=2500, descent="cg", search="backtrack", numgrad=False,
         grad_routine = mol.define_gradient_routine_analytical()
         
     return descentDict[descent](mol, n, searchDict[search], mol.define_energy_routine(), grad_routine,
-                         efreq, nbnfreq, eprec*mol.ff.eunits, fprec*mol.ff.eunits/mol.ff.lunits)
+                         efreq, nbnfreq, eprec*mol.ff.eunits, fprec*mol.ff.eunits/mol.ff.lunits,
+                         print_=print_)
         
 def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
     """Minimize the energy of the inputted molecule via the steepest descent approach."""
@@ -91,7 +92,8 @@ def steepest_descent(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec
     
     return mol, eList
     
-def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec):
+def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec,
+                       print_=True):
     """Minimize the energy of the inputted molecule via the conjugate gradient approach."""
     
     #initial guess for stepsize
@@ -101,8 +103,9 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
     energy = calc_e()
     gradient, maxForce, totalMag, = calc_grad()
     eList = [energy]
-    print('energy:   %s' % energy)
-    print('maxforce: %s' % maxForce)
+    if print_:
+        print('energy:   %s' % energy)
+        print('maxforce: %s' % maxForce)
     
     gamma = 0.0
     prevH = np.zeros([len(mol), 3])
@@ -132,14 +135,14 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
         gamma = calculate_gamma(gradient, prevGrad)
         
         #for every multiple of efreq, print the status
-        if step % efreq == 0:
+        if step % efreq == 0 & print_:
             print('step:     %s' % step)
             print('energy:   %s' % energy)
             print('maxforce: %s' % maxForce)
             eList.append(energy)
             
         #break the iteration if our forces are small enough
-        if maxForce < fprec:
+        if maxForce < fprec & print_:
             print('###########\n Finished! \n###########')
             print('step:     %s' % step)
             print('energy:   %s' % energy)
