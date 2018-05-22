@@ -142,11 +142,12 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
             eList.append(energy)
             
         #break the iteration if our forces are small enough
-        if (maxForce < fprec) & print_:
-            print('###########\n Finished! \n###########')
-            print('step:     %s' % step)
-            print('energy:   %s' % energy)
-            print('maxforce: %s' % maxForce)
+        if maxForce < fprec:
+            if print_:
+                print('###########\n Finished! \n###########')
+                print('step:     %s' % step)
+                print('energy:   %s' % energy)
+                print('maxforce: %s' % maxForce)
             break
     
     return mol, eList
