@@ -31,7 +31,7 @@ vdz = np.array([0.0,0.0,dz])
 #                     47.867])
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
-           15:30.79, 16:32.065, 17:35.45}
+           15:30.79, 16:32.065, 17:35.45, 35:79.904}
         
 class Molecule:
     """A molecule, representing a collection of interacting atoms
@@ -1304,6 +1304,25 @@ _mix_array = np.array([
                       [[17,17],[1,1]],
                       [[1,9],[1,9]],
                       ])
+
+_mix2_array = np.array([
+                      [[1],[1]],
+                      [[9],[1]],
+                      [[1],[9]],
+                      [[9],[9]],
+                      [[17],[1]],
+                      [[1],[17]],
+                      [[17],[9]],
+                      [[9],[17]],
+                      [[17],[17]],
+                      [[35],[1]],
+                      [[1],[35]],
+                      [[35],[9]],
+                      [[9],[35]],
+                      [[35],[17]],
+                      [[17],[35]],
+                      [[35],[35]]
+                      ])
           
 def build_mix(ff, idList):
     
@@ -1318,18 +1337,40 @@ def build_mix(ff, idList):
     
     return mol
 
-def build_sidechain_cnt(ff, idList, sites, cnt_params=None):
+def build_sidechain_cnt(ff, idList, sites, cnt_params=None, gen=1):
     
     side_chain = np.asarray(idList, dtype=int)
     
     # build the side chain that will be added to both sides symmetrically
-    side_chain = build_mix(ff, side_chain)
+    if gen == 1:
+        build_side = build_mix
+    elif gen == 2:
+        build_side = build_mix2
+    else:
+        raise ValueError("Invalid generation of sidechains specified")
+    side_chain = build_side(ff, side_chain)
     
     # create the full molecule
     mol = build_cnt_armchair(ff, **cnt_params)
     for atom_index in sites:
         mol = _combine(mol, side_chain, atom_index, 0, copy=False)
     mol._configure()
+    
+    return mol
+
+def build_mix2(ff, idList):
+    """Return a polymer sequence containing the '2nd' version of the components
+    (ie. CH_2, CClBr, CFBr, etc.) that are single carbons with halide or hydrogen
+    neighbors."""
+    
+    side_z = np.hstack(_mix2_array[np.array(idList, dtype=int)])
+    from .lattice.polymix import main as lattice
+    posList, nList, zList = lattice(side_z)
+    mol = Molecule(ff, "mix", posList, nList, zList)
+    
+    mol._configure()
+    
+    Interface([0], np.array([-1.,0.,0.]), mol)
     
     return mol
 
