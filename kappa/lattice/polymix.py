@@ -12,7 +12,7 @@ def main(side_z):
     
     # atomic distances
     ac = 1.40
-    ah = 1.23
+    ah = 1.15
     
     posList = generate_vinyl(ac,ah, side_z.shape[1])
     
@@ -25,13 +25,21 @@ def generate_vinyl(ac, ah, num):
     
     xmove = np.array([ac, 0., 0.])
     ymove = np.array([0., ah, 0.])
+    zmove = 0.4
     
     pos = [np.array([0.,0.,0.])]
     
     pos.extend([i*xmove for i in np.arange(1, num+1)])
-    pos.extend([ymove + i*xmove for i in np.arange(1, num+1)])
+    pos.extend([ ymove + i*xmove for i in np.arange(1, num+1)])
     pos.extend([-ymove + i*xmove for i in np.arange(1, num+1)])
     pos.append(xmove*(num+1))
+    
+    # adjust the z-position of the backbones
+    factor = zmove*np.ones(num)
+    factor[::2] *= -1
+    
+    pos = np.array(pos)
+    pos[1:num+1,2] += factor
     
     return pos
             
