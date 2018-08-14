@@ -11,6 +11,7 @@ import sys
 from math import copysign
 
 import numpy as np
+import scipy.optimize
 
 EP = sys.float_info.epsilon
 SQRTEP = EP**.5
@@ -151,6 +152,20 @@ def conjugate_gradient(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fpr
             break
     
     return mol, eList
+
+def scipy_method(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec,
+                 print_=True):
+    
+    def func(pos):
+        pos = pos.reshape(pos.shape[0]//3, 3)
+        mol.posList = pos
+        return calc_e()
+    
+    op_result = scipy.optimize.minimize(func, np.hstack(mol.posList), method='BFGS', options={'gtol':1e-8})
+    pos = op_result.x
+    pos = pos.reshape(pos.shape[0]//3, 3)
+    mol.posList = pos
+    return mol,None
     
 def parabolic_interpolation(a,b,c,fa,fb,fc):
     
@@ -279,7 +294,7 @@ def bracket_minimum(mol, stepList, ea, calc_e):
         
     return a, b, c
         
-descentDict = {"sd":steepest_descent, "cg":conjugate_gradient}
+descentDict = {"sd":steepest_descent, "cg":conjugate_gradient, "scipy":scipy_method}
 searchDict = {"backtrack":line_search_backtrack, "brent":line_search_brent}
 
 def calculate_gamma(grad, pgrad):
