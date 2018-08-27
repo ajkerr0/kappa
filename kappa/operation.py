@@ -48,7 +48,7 @@ def load(name):
     """Load a pickled molecule given a name"""
     return pickle.load(open(save_dir+name+"/mol.p", "rb"))
     
-def _calculate_hessian(molecule, stapled_index, numgrad=False):
+def _calculate_hessian(molecule, stapled_index, numgrad=False, onsite=None):
     """Return the Hessian matrix for the given molecule after calculation."""
     
     N = len(molecule)
@@ -91,6 +91,9 @@ def _calculate_hessian(molecule, stapled_index, numgrad=False):
         H[3*stapled_index  , 3*stapled_index  ] += dk
         H[3*stapled_index+1, 3*stapled_index+1] += dk
         H[3*stapled_index+2, 3*stapled_index+2] += dk
+        
+    if onsite is not None:
+        H += np.diag(onsite*np.ones(H.shape[0]))
        
     return H
     
