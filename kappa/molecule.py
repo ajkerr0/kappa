@@ -337,6 +337,9 @@ class Molecule:
             rvdw0Arr, epvdwArr = np.load(filename+"/rvdw0.npy"), np.load(filename+"/epvdw.npy")
             self.rvdw0 = rvdw0Arr[idList]
             self.epvdw = epvdwArr[idList]
+            
+    def _configure_energy(self):
+        return self.define_energy_routine(), self.define_gradient_routine_analytical()
         
     def _configure(self, bondtype_kwargs=None):
         """Call the 'configure' methods sequentially."""
@@ -659,8 +662,71 @@ class Molecule:
                         hess_slice[q,p] += 2*kb[count]*(d + (b0[count]/rij)*((qij*pij/rij/rij)-d))
                         
         return hess_slice
-                    
+    
+    @property                
+    def bond_vals(self):
+        """
+        Return r_{ij} for each of the defined bonds.
+        """
+        rij = self.posList[self.bondList[:,0]] - self.posList[self.bondList[:,1]]
+        return np.linalg.norm(rij, axis=1)
+    
+    @property
+    def angle_vals(self):
+        """
+        Return \theta_{ijk} for each of the defined angles, indexed like angleList
+        """
+        posij = self.posList[self.angleList[:,0]] - self.posList[self.angleList[:,1]]
+        rij = np.linalg.norm(posij, axis=1)
+        poskj = self.posList[self.angleList[:,2]] - self.posList[self.angleList[:,1]]
+        rkj = np.linalg.norm(poskj, axis=1)
+        cos_theta = np.einsum('ij,ij->i',posij,poskj)/rij/rkj
+        return np.rad2deg(np.arccos(cos_theta))
+    
+    @property
+    def dih_vals(self):
+        """
+        Return \omega_{ijkl} (the dihedral angles) for each of the defined angles,
+        indexed like dihList.
+        """
+        posji = self.posList[self.dihList[:,1]] - self.posList[self.dihList[:,0]]
+        poskj = self.posList[self.dihList[:,2]] - self.posList[self.dihList[:,1]]
+        poslk = self.posList[self.dihList[:,3]] - self.posList[self.dihList[:,2]]
+        rkj = np.linalg.norm(poskj,axis=1)
+        cross12 = np.cross(posji, poskj)
+        cross23 = np.cross(poskj, poslk)
+        n1 = cross12/np.linalg.norm(cross12, axis=1)[:,None]
+        n2 = cross23/np.linalg.norm(cross23, axis=1)[:,None]
+        m1 = np.cross(n1, poskj/rkj[:,None])
+        x,y = np.einsum('ij,ij->i', n1, n2),  np.einsum('ij,ij->i', m1, n2)
+        return np.rad2deg(np.arctan2(y,x))
+    
+    def internal_table(self):
+        """
+        Print values of the internal coordinates.
+        """
+        
+        print('---------------------------------------------------------')
+        
+        for (i,j), length in zip(self.bondList, self.bond_vals):
+            print('{0}-{1}, {2}-{3} , {4}'.format(i,j, self.atomtypes[i], self.atomtypes[j], length))
             
+        for (i,j, k), angle in zip(self.angleList, self.angle_vals):
+            print('{}-{}-{}, {}-{}-{} , {}'.format(i,j,k,
+                                                   self.atomtypes[i], 
+                                                   self.atomtypes[j],
+                                                   self.atomtypes[k],
+                                                   angle))
+            
+        for (i,j, k,l), angle, vn in zip(self.dihList, self.dih_vals, self.vn):
+            print('{}-{}-{}-{}, {}-{}-{}-{} , {}, {}'.format(i,j,k,l,
+                                                   self.atomtypes[i], 
+                                                   self.atomtypes[j],
+                                                   self.atomtypes[k],
+                                                   self.atomtypes[l],
+                                                   angle,
+                                                   vn))
+        print('---------------------------------------------------------')
         
 class Interface():
     """A molecular interface, calculate thermal conductivity across it.
