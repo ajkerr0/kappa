@@ -132,6 +132,60 @@ def bonds3d(molecule, sites=False, indices=False, save=False,
     
     plt.show()
     
+def bonds3d_list(molList, sites=False, indices=False, save=False,
+            linewidth=2.):
+    """Draw the molecule's bonds
+    Keywords:
+        sites (bool): Set True to draw atomic sites.  Default is False.
+        indices (bool): Set True to draw atomic site indices near atomic sites. Default is False."""
+    
+    fig = plt.figure()
+    ax=Axes3D(fig)
+    plotSize = 5
+    
+    for molecule in molList:
+    
+        posList = molecule.posList/molecule.ff.lunits
+        length = len(posList)
+    
+        for bond in molecule.bondList:
+            i,j = bond
+            ax.plot([posList[i][0],posList[j][0]],
+                    [posList[i][1],posList[j][1]],
+                    [posList[i][2],posList[j][2]],
+                    color='k', zorder=-1, linewidth=linewidth)
+            
+        cList = np.zeros([length,3])
+        
+        if sites:
+            for count in range(len(molecule)):
+                cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
+                
+            ax.scatter(posList[:,0],posList[:,1],posList[:,2],
+                       s=radList[molecule.zList],c=cList,
+                       marker='o',depthshade=False,
+                       edgecolors='k')
+        
+        if indices:
+            ds = 0.1
+            for index,pos in enumerate(posList):
+                x,y,z = pos
+                ax.text(x+ds,y+ds,z+ds,str(index),color="blue")           
+    
+    ax.grid(False)
+    ax._axis3don = False
+    ax.set_xlim3d(-plotSize,plotSize)
+    ax.set_ylim3d(-plotSize,plotSize)
+    ax.set_zlim3d(-plotSize,plotSize)
+    ax.set_xlabel('x-position' + ' (' + r'$\AA$' + ')')
+    ax.set_ylabel('y-position' + ' (' + r'$\AA$' + ')')
+    ax.set_zlabel('z-position' + ' (' + r'$\AA$' + ')')
+    
+    if save:
+        plt.savefig("./kappa_save/%s.png" % molecule.name)
+    
+    plt.show()
+    
 def face(molecule, facenum):
     """Plot the given interface of the molecule"""
     
