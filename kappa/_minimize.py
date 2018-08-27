@@ -161,7 +161,14 @@ def scipy_method(mol, n, search, calc_e, calc_grad, efreq, nbn, eprec, fprec,
         mol.posList = pos
         return calc_e()
     
-    op_result = scipy.optimize.minimize(func, np.hstack(mol.posList), method='BFGS', options={'gtol':1e-8})
+    def grad(pos):
+        pos = pos.reshape(pos.shape[0]//3, 3)
+        mol.posList = pos
+        return np.hstack(calc_grad()[0])
+    
+    op_result = scipy.optimize.minimize(func, np.hstack(mol.posList), method='BFGS', jac=grad,
+                                        options={'gtol':fprec})
+#    print(op_result)
     pos = op_result.x
     pos = pos.reshape(pos.shape[0]//3, 3)
     mol.posList = pos
@@ -190,6 +197,7 @@ def line_search_backtrack(mol, stepList, e, grad, calc_e, alpha=None):
     alpha /= tau
     
     m = np.dot(np.hstack(stepList),np.hstack(grad))
+    
     if m > 0.:
         raise ValueError("Step isn't a descent!")
         
