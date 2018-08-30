@@ -82,6 +82,40 @@ def parse():
     dihArr = [[None if i == wc else a_types.index(i) for i in dih_type] for dih_type in dih_types]
     np.save("dih", dihArr)
     np.save("vn", vns)
+    
+    # lennard-jones terms
+    eps = np.zeros(dim)
+    rvdw0 = np.zeros(dim)
+    # define duplicate params
+    vdw_dups = []
+    for line in lines[section[5]+1:section[6]]:
+        line=line[0]
+        line = line.split()
+        vdw_dups.append(line)
+
+    for line in lines[section[6]+2:section[7]-2]:
+        line = line[0]
+        line = line.split()
+        print(line)
+        print(line[0])
+        vdw_type = a_types.index(line[0])
+        for dup in vdw_dups:
+            if line[0] == dup[0]:
+                # place this value for all the points in the dup list
+                for type_ in dup:
+                    vdw_type = a_types.index(type_)
+                    eps[vdw_type] = float(line[2])
+                    rvdw0[vdw_type] = float(line[1])
+            else:
+                eps[vdw_type] = float(line[2])
+                rvdw0[vdw_type] = float(line[1])
+    
+    print(a_types)          
+    print(eps)
+    print(rvdw0)
+        
+    np.save("epvdw", eps)
+    np.save("rvdw0", rvdw0)
 
 if __name__ == "__main__":
     parse()
