@@ -25,8 +25,8 @@ radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
 for key,value in atomicRadii.items():
     radList[key] = value
 
-def bonds(molecule, sites=False, indices=False, faces=False, order=False,
-          linewidth=4.):
+def bonds(molecule, sites=False, indices=False, faces=False, order=False, 
+          atomtypes=False, linewidth=4.):
     """Draw a 2d 'overhead' view of a molecule."""
     
     fig = plt.figure()
@@ -52,6 +52,10 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False,
     if indices:
         for index, pos in enumerate(molecule.posList):
             plt.annotate(index, (pos[0]+.1, pos[1]+.1), color='b', fontsize=10)
+            
+    if atomtypes:
+        for atomtype, pos in zip(molecule.atomtypes, molecule.posList):
+            plt.annotate(atomtype, (pos[0]-.5, pos[1]-.5), color='b', fontsize=10)
         
     if faces:
         for i,face in enumerate(molecule.faces):
