@@ -252,7 +252,65 @@ class ModeInspector(Calculation):
         self.plot_mode(sigma)
         self.plot_mode(tau)
         
+def internal2interactions(internals):
+    """
+    Return an Nx2 array of indices which interact given a list of list
+    of indices that comprise internal coordinates.
+    """
+    interactions = []
+    for internal in internals:
+        for index in internal[1:]:
+            if index > internal[0]:
+                interactions.append([internal[0], index])
+    return interactions
+        
 def find_interface_crossings(mol, baseSize):
+    """Return the interactions that cross the molecular interfaces."""
+    
+    crossings = []
+    atoms0 = mol.faces[0].attached
+    atoms1 = mol.faces[1].attached
+    
+    interactions = np.array([[0,0]])
+    
+    if mol.ff.dihs:
+        interactions = np.concatenate((interactions, internal2interactions(mol.dihList)))
+    elif mol.ff.angles:
+        interactions = np.concatenate((interactions, internal2interactions(mol.angleList)))
+    elif mol.ff.lengths:
+        interactions = np.concatenate((interactions, internal2interactions(mol.bondList)))
+        
+    nbnbonds = []
+    for i,iNList in enumerate(mol.nbnList):
+        ineighbors = [j for j in iNList if j > i]
+        for j in ineighbors:
+            nbnbonds.append([i,j])
+    
+    if mol.ff.lj or mol.ff.es:    
+        interactions = np.concatenate((interactions, nbnbonds))
+        
+    # remove dummy line of interactions
+    interactions = interactions[1:]
+
+    for interaction in interactions:
+        for atom in atoms0:
+            if atom in it:
+                #find elements that are part of the base molecule
+                #if there are any, then add them to interactions
+                elements = [x for x in it if x < baseSize]
+                for element in elements:
+                    crossings.append([atom, element])
+        for atom in atoms1:
+            if atom in it:
+                elements = [x for x in it if x < baseSize]
+                for element in elements:
+                    crossings.append([element, atom])
+                    
+    #remove duplicate interactions
+    crossings.sort()
+    return list(k for k,_ in itertools.groupby(crossings))
+
+def find_interface_crossings_old(mol, baseSize):
     """Return the interactions that cross the molecular interfaces."""
     
     crossings = []
