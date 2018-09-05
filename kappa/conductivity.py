@@ -271,42 +271,45 @@ def find_interface_crossings(mol, baseSize):
     atoms0 = mol.faces[0].attached
     atoms1 = mol.faces[1].attached
     
-    interactions = np.array([[0,0]])
-    
     if mol.ff.dihs:
-        interactions = np.concatenate((interactions, internal2interactions(mol.dihList)))
+        interactions = mol.dihList
     elif mol.ff.angles:
-        interactions = np.concatenate((interactions, internal2interactions(mol.angleList)))
+        interactions = mol.angleList
     elif mol.ff.lengths:
-        interactions = np.concatenate((interactions, internal2interactions(mol.bondList)))
-        
-    nbnbonds = []
-    for i,iNList in enumerate(mol.nbnList):
-        ineighbors = [j for j in iNList if j > i]
-        for j in ineighbors:
-            nbnbonds.append([i,j])
+        interactions = mol.bondList
     
-    if mol.ff.lj or mol.ff.es:    
-        interactions = np.concatenate((interactions, nbnbonds))
-        
-    # remove dummy line of interactions
-    interactions = interactions[1:]
-
-    for interaction in interactions:
+    try:
+        for it in interactions:
+            for atom in atoms0:
+                if atom in it:
+                    #find elements that are part of the base molecule
+                    #if there are any, then add them to interactions
+                    elements = [x for x in it if x < baseSize]
+                    for element in elements:
+                        crossings.append([atom, element])
+            for atom in atoms1:
+                if atom in it:
+                    elements = [x for x in it if x < baseSize]
+                    for element in elements:
+                        crossings.append([element, atom])
+    except UnboundLocalError:
+        pass
+    
+    # add nonbonded interactions
+    # NOTE: this method only works if the interfacial atoms are indexed
+    #   smaller than the side chains
+    if mol.ff.lj or mol.ff.es:
         for atom in atoms0:
-            if atom in it:
-                #find elements that are part of the base molecule
-                #if there are any, then add them to interactions
-                elements = [x for x in it if x < baseSize]
-                for element in elements:
-                    crossings.append([atom, element])
+            x = np.intersect1d(np.where(mol.nbnList[:,1]==atom)[0], np.where(mol.nbnList[:,0] < baseSize)[0])
+            for nbn in mol.nbnList[x]:
+                crossings.append([atom, nbn[0]])
         for atom in atoms1:
-            if atom in it:
-                elements = [x for x in it if x < baseSize]
-                for element in elements:
-                    crossings.append([element, atom])
+            x = np.intersect1d(np.where(mol.nbnList[:,1]==atom)[0], np.where(mol.nbnList[:,0] < baseSize)[0])
+            for nbn in mol.nbnList[x]:
+                crossings.append([nbn[0], atom])
+    
                     
-    #remove duplicate interactions
+    # remove duplicate interactions
     crossings.sort()
     return list(k for k,_ in itertools.groupby(crossings))
 
