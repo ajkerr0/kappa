@@ -167,7 +167,7 @@ class Molecule:
             for l in [l for l in self.nList[i] if l != j and l > k]:
                 dihedralList.append([l,i,j,k])
             for l in [l for l in self.nList[j] if l > k]:
-                imptorsList.append([i,j,k,l])
+                imptorsList.append([i,k,j,l])
         self.bondList = np.array(bondList)
         self.angleList = np.array(angleList)
         self.dihList = np.array(dihedralList)
@@ -175,7 +175,7 @@ class Molecule:
         
     def _configure_nonbonded_neighbors(self):
         """Assign lists of non-bonded neighbor pairings; construct the Verlet neighbor lists"""
-        cutoff = 5.*self.ff.lunits
+        cutoff = 100.*self.ff.lunits
         nbnList = []
         for i, ipos in enumerate(self.posList):
             for j in [j for j in range(len(self)) if j > i]:
@@ -254,6 +254,30 @@ class Molecule:
                 idList.append(0)
         self.idList = np.array(idList)
         
+    def _configure_imptors(self):
+        """
+        Correctly arrange the improper torsional index lists such that the
+        center atom is the third element and the rest are in alphabetical
+        order.
+        """
+        
+        nimptorsList = []
+            
+        for imptors in self.imptorsList:
+            
+            nimptors = []
+            # rearrange indices 0,1,3 alphabetically
+            a,b,c = self.atomtypes[imptors[0]], self.atomtypes[imptors[1]], self.atomtypes[imptors[3]]
+            sort = np.argsort([a,b,c])
+            sort[np.where(sort==2)[0]] += 1
+#            print(imptors)
+#            print(np.array(self.atomtypes)[imptors])
+#            print(sort)
+            nimptors.extend([imptors[sort[0]], imptors[sort[1]], imptors[2], imptors[sort[2]]])
+            nimptorsList.append(nimptors)
+        
+        self.imptorsList = np.array(nimptorsList)
+        
     def _configure_parameters(self):
         """Assign the force parameters to the molecule instance."""
         idList = self.idList
@@ -331,6 +355,59 @@ class Molecule:
             
             except IndexError:
                 self.vn, self.gn = [], []
+                
+        if self.ff.imptors:
+            #assign, vni, gni parameters
+            try:
+                dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
+                dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
+                                          idList[self.dihList[:,2]], idList[self.dihList[:,3]]])
+            
+                def store_dih_param(index, paramList, vnList):
+                    vns = vnList[index]
+                    paramList[0][abs(int(vns[2]))-1] = vns[0]
+                    paramList[1][abs(int(vns[2]))-1] = vns[1]
+                    if vns[2] >= 0.:
+                        return paramList
+                    else:
+                        store_dih_param(index+1, paramList, vnList)
+                        
+                valuesList = []
+                #find indices of wildcards in dihArr
+                first_num = np.nonzero(dihArr[:,0])[0][0]
+                for dihedral in dihedrals:
+                    #check full definitions
+                    values = np.zeros((2,4))
+                    combo = np.where(np.all(dihedral==dihArr[first_num:], axis=1))[0]
+                    if combo:
+                        #assign values
+                        values = store_dih_param(combo[0], values, vnArr[first_num:])
+                        valuesList.append(values)
+                        continue
+                    #consider inversion symmetry
+                    combo = np.where(np.all(dihedral[::-1]==dihArr[first_num:], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[first_num:])
+                        valuesList.append(values)
+                        continue
+                    #check with wildcards
+                    combo = np.where(np.all(dihedral[1:3]==dihArr[:first_num][:,1:3], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[:first_num])
+                        valuesList.append(values)
+                        continue
+                    #inversion symmetry
+                    combo = np.where(np.all(dihedral[1:3][::-1]==dihArr[:first_num][:,1:3], axis=1))[0]
+                    if combo:
+                        values = store_dih_param(combo[0], values, vnArr[:first_num])
+                        valuesList.append(values)
+                        continue
+                values = np.array(valuesList)
+                self.vn = values[:,0]
+                self.gn = values[:,1]
+            
+            except IndexError:
+                self.vni, self.gni = [], []
                                 
         if self.ff.lj:
             #assign Van-dr-Waals parameters
@@ -351,6 +428,7 @@ class Molecule:
         self._configure_aromaticity()
 #        self._configure_bondtypes(bondtype_kwargs)
         self._configure_atomtypes()
+        self._configure_imptors()
         self._configure_parameters()
         
     def define_energy_routine(self):
@@ -432,11 +510,13 @@ class Molecule:
         if self.ff.lj:
             
             ipairs, jpairs = self.nbnList[:,0], self.nbnList[:,1]
-            def e_lj(grad):
+            def e_lj():
                 posij = self.posList[ipairs] - self.posList[jpairs]
                 rij = np.linalg.norm(posij, axis=1)
                 rTerm = ((self.rvdw0[ipairs] + self.rvdw0[jpairs])/rij)**6
-                return np.sum(np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm**2 - 2*(rTerm)))      
+                return np.sum(np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm**2 - 2*(rTerm)))
+            
+            e_funcs.append(e_lj)
             
         if self.ff.tersoff:
             #tersoff interaction here
@@ -613,7 +693,7 @@ class Molecule:
                 posij = self.posList[ipairs] - self.posList[jpairs]
                 rij = np.linalg.norm(posij, axis=1)
                 rTerm = ((self.rvdw0[ipairs] + self.rvdw0[jpairs])/rij)**6
-                ljTerm = 12.*np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm - rTerm**2)*posij/rij/rij
+                ljTerm = (12.*np.sqrt(self.epvdw[ipairs]*self.epvdw[jpairs])*(rTerm - rTerm**2)/rij/rij)[:,None]*posij
                 np.add.at(grad, ipairs, ljTerm)
                 np.add.at(grad, jpairs, -ljTerm)
                 
@@ -717,15 +797,17 @@ class Molecule:
                                                    self.atomtypes[j],
                                                    self.atomtypes[k],
                                                    angle))
-            
-        for (i,j, k,l), angle, vn in zip(self.dihList, self.dih_vals, self.vn):
-            print('{}-{}-{}-{}, {}-{}-{}-{} , {}, {}'.format(i,j,k,l,
-                                                   self.atomtypes[i], 
-                                                   self.atomtypes[j],
-                                                   self.atomtypes[k],
-                                                   self.atomtypes[l],
-                                                   angle,
-                                                   vn))
+        try:
+            for (i,j, k,l), angle, vn in zip(self.dihList, self.dih_vals, self.vn):
+                print('{}-{}-{}-{}, {}-{}-{}-{} , {}, {}'.format(i,j,k,l,
+                                                       self.atomtypes[i], 
+                                                       self.atomtypes[j],
+                                                       self.atomtypes[k],
+                                                       self.atomtypes[l],
+                                                       angle,
+                                                       vn))
+        except AttributeError:
+            pass
         print('---------------------------------------------------------')
         
 class Interface():
