@@ -633,7 +633,7 @@ class Molecule:
                 dwdrl = -cross23*(-rkj/(np.linalg.norm(cross23, axis=1)**2))[:,None]
                 dwdrj = (dotijkj - np.ones(len(rkj)))[:,None]*dwdri - dotklkj[:,None]*dwdrl
                 dwdrk = (dotklkj - np.ones(len(rkj)))[:,None]*dwdrl - dotijkj[:,None]*dwdri
-                uTerm = (    self.vn[:,0]*np.sin(np.radians(omega - self.gn[:,0]))
+                uTerm = (    self.vn[:,0]*np.sin(np.radians(   omega - self.gn[:,0]))
                         + 2.*self.vn[:,1]*np.sin(np.radians(2.*omega - self.gn[:,1]))
                         + 3.*self.vn[:,2]*np.sin(np.radians(3.*omega - self.gn[:,2]))
                         + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))
@@ -1069,14 +1069,20 @@ def build_dingus(ff, name="", count=5, angle=160.):
     if ff.name == "amber":
         dingus.idList = np.full(len(dingus),3, dtype=np.int8)
     dingus._configure_parameters()
+    
+    dingus.kt = np.array([100.]*(count-2))
+    dingus.t0 = np.array([120.]*(count-2))
     return dingus
     
 def build_dingus2(ff, name="dingus2", angle=45.):
     """Return a molecule that exists only to test dihedral force interactions."""
     
-    from .lattice.dingus2 import main as lattice
-    posList,nList,zList= lattice(angle)
-    posList = np.array(posList)
+#    from .lattice.dingus2 import main as lattice
+#    posList,nList,zList= lattice(angle)
+    posList = np.zeros((4,3))
+    posList[:,2] = 2.*np.arange(4)
+    nList = [[1], [0,2], [1,3], [2]]
+    zList = np.array([6,6,6,6], dtype=int)
     dingus2 = Molecule(ff, name, posList, nList, zList)
     dingus2._configure_topology_lists()
     dingus2.idList = np.zeros(len(dingus2), dtype=np.int8)
