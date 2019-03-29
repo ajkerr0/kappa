@@ -326,26 +326,26 @@ class Molecule:
                     #check full definitions
                     values = np.zeros((2,4))
                     combo = np.where(np.all(dihedral==dihArr[first_num:], axis=1))[0]
-                    if combo:
+                    if combo.size:
                         #assign values
                         values = store_dih_param(combo[0], values, vnArr[first_num:])
                         valuesList.append(values)
                         continue
                     #consider inversion symmetry
                     combo = np.where(np.all(dihedral[::-1]==dihArr[first_num:], axis=1))[0]
-                    if combo:
+                    if combo.size:
                         values = store_dih_param(combo[0], values, vnArr[first_num:])
                         valuesList.append(values)
                         continue
                     #check with wildcards
                     combo = np.where(np.all(dihedral[1:3]==dihArr[:first_num][:,1:3], axis=1))[0]
-                    if combo:
+                    if combo.size:
                         values = store_dih_param(combo[0], values, vnArr[:first_num])
                         valuesList.append(values)
                         continue
                     #inversion symmetry
                     combo = np.where(np.all(dihedral[1:3][::-1]==dihArr[:first_num][:,1:3], axis=1))[0]
-                    if combo:
+                    if combo.size:
                         values = store_dih_param(combo[0], values, vnArr[:first_num])
                         valuesList.append(values)
                         continue
@@ -1508,6 +1508,42 @@ def build_sidechain_cnt(ff, idList, sites, cnt_params=None, gen=1):
     mol = build_cnt_armchair(ff, **cnt_params)
     for atom_index in sites:
         mol = _combine(mol, side_chain, atom_index, 0, copy=False)
+    mol._configure()
+    
+    return mol
+
+def build_sidechain_cnt2(ff, idList, sites, cnt, gen=1):
+    
+    side_chain = np.asarray(idList, dtype=int)
+    
+    # build the side chain that will be added to both sides symmetrically
+    if gen == 1:
+        build_side = build_mix
+    elif gen == 2:
+        build_side = build_mix2
+    else:
+        raise ValueError("Invalid generation of sidechains specified")
+    side_chain = build_side(ff, side_chain)
+    
+    # create the full molecule
+    mol = deepcopy(cnt)
+    for atom_index in sites:
+        mol = _combine(mol, side_chain, atom_index, 0, copy=False)
+    mol._configure()
+    
+    return mol
+
+def build_thermal_test(ff, length):
+    """Return a polymer sequence containing the '2nd' version of the components
+    (ie. CH_2, CClBr, CFBr, etc.) that are single carbons with halide or hydrogen
+    neighbors."""
+    
+    side_z = np.hstack(_mix2_array[np.array([0]*length, dtype=int)])
+    from .lattice.polymix import main as lattice
+    posList, nList, zList = lattice(side_z)
+    zList[0] = 1
+    mol = Molecule(ff, "mix", posList, nList, zList)
+    
     mol._configure()
     
     return mol
