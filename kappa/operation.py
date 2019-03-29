@@ -130,42 +130,46 @@ def hess_bond_bending(pos, i, j, k, kt, t0):
     cos_t = np.einsum('ij,ij->i',posij,poskj)/(rij*rkj)
     sin_t = np.sqrt(1.-(cos_t**2))
     theta = np.rad2deg(np.arccos(cos_t))
+    
     dtdri = (posij*(cos_t/rij)[:,None] - poskj/(rkj[:,None]))/((rij*sin_t)[:,None])
     dtdrk = (poskj*(cos_t/rkj)[:,None] - posij/(rij[:,None]))/((rkj*sin_t)[:,None])
-    d2udri2  = (cos_t/rij)[:,None, None]*np.tile(np.eye(3), (i.shape[0],1,1))
-    d2udri2 -= (cos_t/rij**3)[:,None,None]*np.einsum('ki,kj->kij', posij, posij)
-    d2udri2 -= (sin_t/rij)[:,None,None]*(np.einsum('ki,kj->kij', posij, dtdri)+np.einsum('ki,kj->kij', dtdri, posij))
-    d2udri2 -= (rij*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdri, dtdri)
-    d2udri2 *= ((theta-t0)/(rij*sin_t))[:,None,None]*180./np.pi
-    d2udri2 += np.einsum('ki,kj->kij', dtdri, dtdri)*(180.*180./np.pi/np.pi)
-    d2udri2 *= 2.*kt[:,None,None]
+    
+    ii  = (cos_t/rij)[:,None, None]*np.tile(np.eye(3), (i.shape[0],1,1))
+    ii -= (cos_t/rij**3)[:,None,None]*np.einsum('ki,kj->kij', posij, posij)
+    ii -= (sin_t/rij)[:,None,None]*(np.einsum('ki,kj->kij', posij, dtdri)
+                                   +np.einsum('ki,kj->kij', dtdri, posij))
+    ii -= (rij*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdri, dtdri)
+    ii *= ((theta-t0)/(rij*sin_t))[:,None,None]*180./np.pi
+    ii += np.einsum('ki,kj->kij', dtdri, dtdri)*(180.*180./np.pi/np.pi)
+    ii *= 2.*kt[:,None,None]
     # w.r.t. rk now
-    d2udrk2  = (cos_t/rkj)[:,None, None]*np.tile(np.eye(3), (i.shape[0],1,1))
-    d2udrk2 -= (cos_t/rkj**3)[:,None,None]*np.einsum('ki,kj->kij', poskj, poskj)
-    d2udrk2 -= (sin_t/rkj)[:,None,None]*(np.einsum('ki,kj->kij', poskj, dtdrk)+np.einsum('ki,kj->kij', dtdrk, poskj))
-    d2udrk2 -= (rkj*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, dtdrk)
-    d2udrk2 *= ((theta-t0)/(rkj*sin_t))[:,None,None]*180./np.pi
-    d2udrk2 += np.einsum('ki,kj->kij', dtdrk, dtdrk)*(180.*180./np.pi/np.pi)
-    d2udrk2 *= 2.*kt[:,None,None]
+    kk  = (cos_t/rkj)[:,None, None]*np.tile(np.eye(3), (i.shape[0],1,1))
+    kk -= (cos_t/rkj**3)[:,None,None]*np.einsum('ki,kj->kij', poskj, poskj)
+    kk -= (sin_t/rkj)[:,None,None]*(np.einsum('ki,kj->kij', poskj, dtdrk)
+                                   +np.einsum('ki,kj->kij', dtdrk, poskj))
+    kk -= (rkj*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, dtdrk)
+    kk *= ((theta-t0)/(rkj*sin_t))[:,None,None]*180./np.pi
+    kk += np.einsum('ki,kj->kij', dtdrk, dtdrk)*(180.*180./np.pi/np.pi)
+    kk *= 2.*kt[:,None,None]
     # now the mixed derivative
-    d2udrkdri  = -(1./rkj)[:,None,None]*np.tile(np.eye(3), (i.shape[0],1,1))
-    d2udrkdri +=  (1./rkj**3)[:,None,None]*np.einsum('ki,kj->kij', poskj, poskj)
-    d2udrkdri += -(sin_t/rij)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, posij)
-    d2udrkdri += -(rij*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, dtdri)
-    d2udrkdri *=  ((theta-t0)/(rij*sin_t))[:,None,None]*180./np.pi
-    d2udrkdri += np.einsum('ki,kj->kij', dtdrk, dtdri)*(180.*180./np.pi/np.pi)
-    d2udrkdri *= 2.*kt[:,None,None]
+    ki  = -(1./rkj)[:,None,None]*np.tile(np.eye(3), (i.shape[0],1,1))
+    ki +=  (1./rkj**3)[:,None,None]*np.einsum('ki,kj->kij', poskj, poskj)
+    ki += -(sin_t/rij)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, posij)
+    ki += -(rij*cos_t)[:,None,None]*np.einsum('ki,kj->kij', dtdrk, dtdri)
+    ki *=  ((theta-t0)/(rij*sin_t))[:,None,None]*180./np.pi
+    ki += np.einsum('ki,kj->kij', dtdrk, dtdri)*(180.*180./np.pi/np.pi)
+    ki *= 2.*kt[:,None,None]
     # add subblocks to hessian
-    np.add.at(hess, (pos.shape[0]+1)*i, d2udri2)
-    np.add.at(hess, (pos.shape[0]+1)*k, d2udrk2)
-    np.add.at(hess, (pos.shape[0]+1)*j, d2udri2 + d2udrk2 + d2udrkdri + np.transpose(d2udrkdri, (0, 2, 1)))
+    np.add.at(hess, (pos.shape[0]+1)*i, ii)
+    np.add.at(hess, (pos.shape[0]+1)*k, kk)
+    np.add.at(hess, (pos.shape[0]+1)*j, ii + kk + ki + np.transpose(ki, (0, 2, 1)))
     # add off-diagonal blocks
-    np.add.at(hess, pos.shape[0]*i + k, np.transpose(d2udrkdri, (0, 2, 1)))
-    np.add.at(hess, pos.shape[0]*k + i, d2udrkdri)
-    np.add.at(hess, pos.shape[0]*i + j, -d2udri2 - np.transpose(d2udrkdri, (0, 2, 1)))
-    np.add.at(hess, pos.shape[0]*j + i, -d2udri2 - d2udrkdri)
-    np.add.at(hess, pos.shape[0]*k + j, -d2udrk2 - d2udrkdri)
-    np.add.at(hess, pos.shape[0]*j + k, -d2udrk2 - np.transpose(d2udrkdri, (0, 2, 1)))
+    np.add.at(hess, pos.shape[0]*i + k, np.transpose(ki, (0, 2, 1)))
+    np.add.at(hess, pos.shape[0]*k + i, ki)
+    np.add.at(hess, pos.shape[0]*i + j, -ii - np.transpose(ki, (0, 2, 1)))
+    np.add.at(hess, pos.shape[0]*j + i, -ii - ki)
+    np.add.at(hess, pos.shape[0]*k + j, -kk - ki)
+    np.add.at(hess, pos.shape[0]*j + k, -kk - np.transpose(ki, (0, 2, 1)))
     return np.hstack(np.hstack(hess.reshape(pos.shape[0],pos.shape[0],3,3)))
 
 def hess_dihedral(pos, i, j, k, l, vn, gn):
