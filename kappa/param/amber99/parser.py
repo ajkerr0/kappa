@@ -77,8 +77,7 @@ def parse():
         line=line[0]
         a,b,c,d = map(str.rstrip, [line[:2],line[3:5],line[6:8],line[9:11]])
         dih_types.append([a,b,c,d])
-        vns.append([float(line[18:24]),float(line[31:38]),float(line[49:54])])
-        
+        vns.append([float(line[18:24])/float(line[14:15]),float(line[31:38]),float(line[48:54])])
     dihArr = [[None if i == wc else a_types.index(i) for i in dih_type] for dih_type in dih_types]
     np.save("dih", dihArr)
     np.save("vn", vns)
@@ -96,8 +95,6 @@ def parse():
     for line in lines[section[6]+2:section[7]-2]:
         line = line[0]
         line = line.split()
-        print(line)
-        print(line[0])
         vdw_type = a_types.index(line[0])
         for dup in vdw_dups:
             if line[0] == dup[0]:
@@ -109,10 +106,6 @@ def parse():
             else:
                 eps[vdw_type] = float(line[2])
                 rvdw0[vdw_type] = float(line[1])
-    
-    print(a_types)          
-    print(eps)
-    print(rvdw0)
         
     np.save("epvdw", eps)
     np.save("rvdw0", rvdw0)

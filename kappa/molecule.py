@@ -309,7 +309,7 @@ class Molecule:
                 dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
                 dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
                                           idList[self.dihList[:,2]], idList[self.dihList[:,3]]])
-            
+
                 def store_dih_param(index, paramList, vnList):
                     vns = vnList[index]
                     paramList[0][abs(int(vns[2]))-1] = vns[0]
@@ -317,7 +317,7 @@ class Molecule:
                     if vns[2] >= 0.:
                         return paramList
                     else:
-                        store_dih_param(index+1, paramList, vnList)
+                        return store_dih_param(index+1, paramList, vnList)
                         
                 valuesList = []
                 #find indices of wildcards in dihArr
@@ -501,7 +501,7 @@ class Molecule:
                 return np.sum(self.vn[:,0]*(1. + np.cos(np.radians(   omega - self.gn[:,0])))
                             + self.vn[:,1]*(1. + np.cos(np.radians(2.*omega - self.gn[:,1])))
                             + self.vn[:,2]*(1. + np.cos(np.radians(3.*omega - self.gn[:,2])))
-                            + self.vn[:,3]*(1. + np.cos(np.radians(4.*omega - self.gn[:,3]))))
+                            + self.vn[:,3]*(1. + np.cos(np.radians(4.*omega - self.gn[:,3]))))/2.
                 
             e_funcs.append(e_imptors)
             
@@ -636,7 +636,7 @@ class Molecule:
                 uTerm = (    self.vn[:,0]*np.sin(np.radians(   omega - self.gn[:,0]))
                         + 2.*self.vn[:,1]*np.sin(np.radians(2.*omega - self.gn[:,1]))
                         + 3.*self.vn[:,2]*np.sin(np.radians(3.*omega - self.gn[:,2]))
-                        + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))
+                        + 4.*self.vn[:,3]*np.sin(np.radians(4.*omega - self.gn[:,3])))/2.
                 dudri = uTerm[:,None]*dwdri
                 dudrj = uTerm[:,None]*dwdrj
                 dudrk = uTerm[:,None]*dwdrk
@@ -1466,16 +1466,8 @@ _mix2_array = np.array([
                       [[9],[9]],
                       [[17],[1]],
                       [[1],[17]],
-                      [[17],[9]],
-                      [[9],[17]],
-                      [[17],[17]],
                       [[35],[1]],
                       [[1],[35]],
-                      [[35],[9]],
-                      [[9],[35]],
-                      [[35],[17]],
-                      [[17],[35]],
-                      [[35],[35]]
                       ])
           
 def build_mix(ff, idList):

@@ -274,15 +274,15 @@ def hess_dihedral(pos, i, j, k, l, vn, gn):
     term1 += -(1./rkj/rkj)[:,None]*poslk
     jj += np.einsum('ki,kj->kij', term1, dwdrl)
     
-    u2 = -(  vn[:,0]*np.sin(np.radians(   omega - gn[:,0]))
-        + 2.*vn[:,1]*np.sin(np.radians(2.*omega - gn[:,1]))
-        + 3.*vn[:,2]*np.sin(np.radians(3.*omega - gn[:,2]))
-        + 4.*vn[:,3]*np.sin(np.radians(4.*omega - gn[:,3])))
+    u2 = -.5*(  vn[:,0]*np.sin(np.radians(   omega - gn[:,0]))
+           + 2.*vn[:,1]*np.sin(np.radians(2.*omega - gn[:,1]))
+           + 3.*vn[:,2]*np.sin(np.radians(3.*omega - gn[:,2]))
+           + 4.*vn[:,3]*np.sin(np.radians(4.*omega - gn[:,3])))
     
-    u1 = -(   vn[:,0]*np.cos(np.radians(   omega - gn[:,0]))
-        +  4.*vn[:,1]*np.cos(np.radians(2.*omega - gn[:,1]))
-        +  9.*vn[:,2]*np.cos(np.radians(3.*omega - gn[:,2]))
-        + 16.*vn[:,3]*np.cos(np.radians(4.*omega - gn[:,3])))
+    u1 = -.5*(   vn[:,0]*np.cos(np.radians(   omega - gn[:,0]))
+           +  4.*vn[:,1]*np.cos(np.radians(2.*omega - gn[:,1]))
+           +  9.*vn[:,2]*np.cos(np.radians(3.*omega - gn[:,2]))
+           + 16.*vn[:,3]*np.cos(np.radians(4.*omega - gn[:,3])))
     
     ii = u2[:,None,None]*ii + u1[:,None,None]*np.einsum('ki,kj->kij', dwdri, dwdri)
     ji = u2[:,None,None]*ji + u1[:,None,None]*np.einsum('ki,kj->kij', dwdrj, dwdri)
