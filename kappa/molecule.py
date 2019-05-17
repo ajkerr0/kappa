@@ -175,7 +175,7 @@ class Molecule:
         
     def _configure_nonbonded_neighbors(self):
         """Assign lists of non-bonded neighbor pairings; construct the Verlet neighbor lists"""
-        cutoff = 100.*self.ff.lunits
+        cutoff = 4.*self.ff.lunits
         nbnList = []
         for i, ipos in enumerate(self.posList):
             for j in [j for j in range(len(self)) if j > i]:
@@ -1426,6 +1426,19 @@ def build_cc(ff, name="CC"):
     Interface([1], np.array([1.,0.,0.]), cc)
     
     return cc
+
+def build_ccc(ff, name="CCC"):
+    
+    posList = np.array([[0.,0.,0.], [1.3,0.,0.8], [2.6,0.,0.]])
+    nList = [[1],[0,2],[1]]
+    ccc = Molecule(ff, name, posList, nList, np.array([6,6,6], dtype=int))
+    
+    ccc._configure()
+    
+    ccc.kt[0] = 100.
+    ccc.t0[0] = 120.
+    
+    return ccc
             
 _latticeDict = {"graphene":build_graphene, "cnt":build_cnt_armchair, "amine":build_amine, 
                 "imine":build_imine, "imine_chain":build_imine_chain, "pmma":build_pmma,
