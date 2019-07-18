@@ -306,7 +306,7 @@ class Molecule:
         if self.ff.dihs:
             #assign, vn, gn parameters
             try:
-                dihArr, vnArr = np.load(filename+'/dih.npy'), np.load(filename+'/vn.npy')
+                dihArr, vnArr = np.load(filename+'/dih.npy', allow_pickle=True), np.load(filename+'/vn.npy', allow_pickle=True)
                 dihedrals = np.transpose([idList[self.dihList[:,0]], idList[self.dihList[:,1]],
                                           idList[self.dihList[:,2]], idList[self.dihList[:,3]]])
 
