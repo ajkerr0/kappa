@@ -81,6 +81,59 @@ def bonds(molecule, sites=False, indices=False, faces=False, order=False,
     plt.ylabel('y-position', fontsize=13)
     
     plt.show()
+    
+def bondsax(molecule, ax, sites=False, indices=False, faces=False, order=False, 
+          atomtypes=False, linewidth=4., size_scale=1.):
+    """Draw a 2d 'overhead' view of a molecule."""
+    
+    plt.sca(ax)
+    
+    posList = molecule.posList
+    length = len(molecule)
+    
+    for bond in molecule.bondList:
+        i,j = bond
+        plt.plot([posList[i][0],posList[j][0]],
+                 [posList[i][1],posList[j][1]],
+                 color='k', zorder=-1, linewidth=linewidth)
+        
+    cList = np.zeros([length,3])
+    
+    if sites:
+        for count in range(len(molecule)):
+            cList[count] = colors.hex2color(colors.cnames[atomColors[molecule.zList[count]]])
+        plt.scatter(posList[:,0],posList[:,1],s=1.5*radList[molecule.zList]*size_scale,c=cList,
+                    edgecolors='k')
+        
+    if indices:
+        for index, pos in enumerate(molecule.posList):
+            plt.annotate(index, (pos[0]+.1, pos[1]+.1), color='b', fontsize=10)
+            
+    if atomtypes:
+        for atomtype, pos in zip(molecule.atomtypes, molecule.posList):
+            plt.annotate(atomtype, (pos[0]-.5, pos[1]-.5), color='b', fontsize=10)
+        
+    if faces:
+        for i,face in enumerate(molecule.faces):
+            openAtoms = [x for x in face.atoms if x not in face.closed]
+            plt.plot(face.pos[0],face.pos[1], 'rx', markersize=15., zorder=-2)
+            plt.scatter(posList[openAtoms][:,0], posList[openAtoms][:,1], s=75., c='red')
+            plt.scatter(posList[face.closed][:,0], posList[face.closed][:,1], s=40, c='purple')
+            plt.annotate(i, (face.pos[0]-.35*face.norm[0], face.pos[1]-.35*face.norm[1]), 
+                         color='r', fontsize=20)
+            if np.linalg.norm(face.norm[:2]) > 0.0001:
+                plt.quiver(face.pos[0]+.5*face.norm[0], face.pos[1]+.5*face.norm[1], 5.*face.norm[0], 5.*face.norm[1],
+                color='r', headwidth=1, units='width', width=5e-3, headlength=2.5)
+                
+    if order:
+        for index, bo in enumerate(molecule.bondorder):
+            i,j = molecule.bondList[index]
+            midpoint = (molecule.posList[i]+molecule.posList[j])/2.
+            plt.annotate(bo, (midpoint[0], midpoint[1]), color='k', fontsize=20)
+    
+    plt.axis('equal')
+    
+    plt.show()
 
 def bonds3d(molecule, sites=False, indices=False, save=False,
             linewidth=2.):
