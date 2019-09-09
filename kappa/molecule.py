@@ -31,7 +31,8 @@ vdz = np.array([0.0,0.0,dz])
 #                     47.867])
 
 amuDict = {1:1.008, 6:12.01, 7:14.01, 8:16.00, 9:19.00,
-           15:30.79, 16:32.065, 17:35.45, 35:79.904}
+           15:30.79, 16:32.065, 17:35.45, 35:79.904,
+           21:14.03, 22:22.01, 23:50.01, 24:47.47, 25:91.92}  #amberedits types
         
 class Molecule:
     """A molecule, representing a collection of interacting atoms
@@ -1517,7 +1518,7 @@ def build_sidechain_cnt(ff, idList, sites, cnt_params=None, gen=1):
     
     return mol
 
-def build_sidechain_cnt2(ff, idList, sites, cnt, gen=1):
+def build_sidechain_cnt2(ff, idList, sites, cnt, gen=3):
     
     side_chain = np.asarray(idList, dtype=int)
     
@@ -1526,6 +1527,8 @@ def build_sidechain_cnt2(ff, idList, sites, cnt, gen=1):
         build_side = build_mix
     elif gen == 2:
         build_side = build_mix2
+    elif gen == 3:
+        build_side = build_mix3
     else:
         raise ValueError("Invalid generation of sidechains specified")
     side_chain = build_side(ff, side_chain)
@@ -1562,6 +1565,25 @@ def build_mix2(ff, idList):
     from .lattice.polymix import main as lattice
     posList, nList, zList = lattice(side_z)
     mol = Molecule(ff, "mix", posList, nList, zList)
+    
+    mol._configure()
+    
+    Interface([0], np.array([-1.,0.,0.]), mol)
+    
+    return mol
+
+def build_mix3(ff, idList):
+    """Return a mol composed of a sequence of 'T' atoms in the amberedit
+    forcefield"""
+    
+    conversion = np.array([21,22,23,24,25])
+    
+    from .lattice.tmix import main as lattice
+    posList, nList, zList = lattice(conversion[np.array(idList)])
+    
+    zList[1:-1] = conversion[idList]
+    
+    mol = Molecule(ff, "tmix", posList, nList, zList)
     
     mol._configure()
     

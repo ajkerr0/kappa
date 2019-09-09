@@ -19,9 +19,11 @@ from .molecule import chains
 
 plt.close("all")
 
-atomColors = {1:"white",6:"black",7:"skyblue",8:"red",9:"green",15:"orange",16:"yellow",17:"green",35:"orange"}
-atomicRadii = {1:25,6:70,7:65,8:60,9:50,15:100,16:100,17:100,35:115}
-radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int8)
+atomColors = {1:"white",6:"black",7:"skyblue",8:"red",9:"green",15:"orange",16:"yellow",17:"green",35:"orange",
+              21:"white", 22:"red", 23:"green", 24:"blue", 25:"orange"}
+atomicRadii = {1:25,6:70,7:65,8:60,9:50,15:100,16:100,17:100,35:115,
+               21:120, 22:150, 23:190, 24:200, 25:210}
+radList = np.zeros(max(list(atomicRadii.items()))[0]+1, dtype=np.int16)
 for key,value in atomicRadii.items():
     radList[key] = value
 

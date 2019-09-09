@@ -53,6 +53,17 @@ class Amber(Forcefield):
                          lengths, angles, dihs, imptors, lj, False, False)
         self.atomtype_file = "ATOMTYPE_AMBER_KERR.DEF"
         self.param_dir = "amber99"
+        
+class AmberEdit(Forcefield):
+    """Amber forcefield inheriting from Forcefield,
+    as presented by Cornell et al. (1994).  Edited to include
+    Kerr's united atoms for sidechains."""
+    
+    def __init__(self, lengths=True, angles=True, dihs=True, imptors=False, lj=True):
+        super().__init__("amberedit", 1.0, 1.0,
+                         lengths, angles, dihs, imptors, lj, False, False)
+        self.atomtype_file = "ATOMTYPE_AMBEREDIT_KERR.DEF"
+        self.param_dir = "amber99edit"
 
 class Gaff(Forcefield):
     """General Amber Forcefield"""
