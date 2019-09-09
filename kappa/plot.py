@@ -134,6 +134,25 @@ def bondsax(molecule, ax, sites=False, indices=False, faces=False, order=False,
     plt.axis('equal')
     
     plt.show()
+    
+def scatter_obj(size_scale, fs):
+    """
+    Return a scatter object for legend purposes.
+    """
+    
+    fig, ax = plt.subplots()
+    x,y = [], []
+    c, s = [],[]
+    for i, z, name in zip(np.arange(6), [1,6,9,17,35], ['H', 'C', 'F', 'Cl', 'Br']):
+        x.append(0.)
+        y.append(-i*.2)
+        c.append(atomColors[z])
+        s.append(1.5*size_scale*radList[z])
+        ax.text(.005, -i*.2, name, fontsize=fs)
+    ax.scatter(x,y , c=c, s=s, edgecolors='k')
+    ax.axis('off')
+        
+    
 
 def bonds3d(molecule, sites=False, indices=False, save=False,
             linewidth=2.):
