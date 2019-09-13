@@ -522,6 +522,13 @@ class Molecule:
         if self.ff.tersoff:
             #tersoff interaction here
             pass
+        
+        if self.ff.constrain:
+            ic, jc = self.constrainList[:,0], self.constrainList[:,1]
+            def e_constrain():
+                posij = self.posList[ic] - self.posList[jc]
+                rij = np.linalg.norm(posij, axis=1)
+                return np.sum(-self.kc*np.log(rij))
             
         def calculate_e():
             e = 0.0 #base energy level
@@ -699,6 +706,16 @@ class Molecule:
                 np.add.at(grad, jpairs, -ljTerm)
                 
             grad_funcs.append(grad_lj)
+            
+        if self.ff.constrain:
+            
+            ic, jc = self.constrainList[:,0], self.constrainList[:,1]
+            def grad_constrain(grad):
+                posij = self.posList[ic] - self.posList[jc]
+                rij = np.linalg.norm(posij, axis=1)
+                rTerm = -(self.kc/rij/rij)[:,None]*posij
+                np.add.at(grad, ic, rTerm)
+                np.add.at(grad, jc, -rTerm)
                 
         def calculate_grad():
             grad = np.zeros((len(self),3))

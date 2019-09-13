@@ -337,7 +337,26 @@ def hess_lennard_jones(pos, i, j, rvdw0, epvdw):
     np.add.at(hess, pos.shape[0]*i + j,  block)
     np.add.at(hess, pos.shape[0]*j + i,  block)
     return np.hstack(np.hstack(hess.reshape(pos.shape[0],pos.shape[0],3,3)))
-    
+
+def hess_constrain(pos, i, j, kc):
+    """
+    Return the Hessian of the -k_c log r_ij interaction
+    """
+    # create stack of 3x3 blocks that will compose the hessian
+    hess = np.zeros((pos.shape[0]**2,3,3))
+    posij = pos[i] - pos[j]
+    rij = np.linalg.norm(posij, axis=1)
+    # create stack of subblocks where each layer is the outerproduct of pos diffs
+    block  = (2./rij**4)[:,None,None]*np.einsum('ki,kj->kij', posij, posij)
+    block += (1./rij**2)[:,None,None]*np.tile(np.eye(3), (i.shape[0],1,1))
+    block  = kc[:,None,None]*block
+    # add subblocks to the hessian
+    np.add.at(hess, (pos.shape[0]+1)*i, -block)
+    np.add.at(hess, (pos.shape[0]+1)*j, -block)
+    # now add off diagonal blocks
+    np.add.at(hess, pos.shape[0]*i + j,  block)
+    np.add.at(hess, pos.shape[0]*j + i,  block)
+    return np.hstack(np.hstack(hess.reshape(pos.shape[0],pos.shape[0],3,3)))
     
 def hessian(molecule):
     """Return the Hessian for a molecule; if it doesn't exist calculate it otherwise load it
