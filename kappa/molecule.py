@@ -1500,6 +1500,14 @@ _mix2_array = np.array([
                       [[35],[1]],
                       [[1],[35]],
                       ])
+
+_mix4_array = np.array([
+                      [[1],[1]],
+                      [[9],[1]],
+                      [[9],[9]],
+                      [[17],[1]],
+                      [[35],[1]],
+                      ])
           
 def build_mix(ff, idList):
     
@@ -1535,7 +1543,7 @@ def build_sidechain_cnt(ff, idList, sites, cnt_params=None, gen=1):
     
     return mol
 
-def build_sidechain_cnt2(ff, idList, sites, cnt, gen=3):
+def build_sidechain_cnt2(ff, idList, sites, cnt, gen=4):
     
     side_chain = np.asarray(idList, dtype=int)
     
@@ -1546,6 +1554,8 @@ def build_sidechain_cnt2(ff, idList, sites, cnt, gen=3):
         build_side = build_mix2
     elif gen == 3:
         build_side = build_mix3
+    elif gen == 4:
+        build_side = build_mix4
     else:
         raise ValueError("Invalid generation of sidechains specified")
     side_chain = build_side(ff, side_chain)
@@ -1579,7 +1589,7 @@ def build_mix2(ff, idList):
     neighbors."""
     
     side_z = np.hstack(_mix2_array[np.array(idList, dtype=int)])
-    from .lattice.polymix import main as lattice
+    from .lattice.polymix_adv import main as lattice
     posList, nList, zList = lattice(side_z)
     mol = Molecule(ff, "mix", posList, nList, zList)
     
@@ -1601,6 +1611,22 @@ def build_mix3(ff, idList):
     zList[1:-1] = conversion[idList]
     
     mol = Molecule(ff, "tmix", posList, nList, zList)
+    
+    mol._configure()
+    
+    Interface([0], np.array([-1.,0.,0.]), mol)
+    
+    return mol
+
+def build_mix4(ff, idList):
+    """Return a polymer sequence containing the '2nd' version of the components
+    (ie. CH_2, CClBr, CFBr, etc.) that are single carbons with halide or hydrogen
+    neighbors."""
+    
+    side_z = np.hstack(_mix4_array[np.array(idList, dtype=int)])
+    from .lattice.polymix_adv import main as lattice
+    posList, nList, zList = lattice(side_z)
+    mol = Molecule(ff, "mix", posList, nList, zList)
     
     mol._configure()
     
