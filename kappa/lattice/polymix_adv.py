@@ -33,7 +33,6 @@ def generate_vinyl(ac, ah, num):
     
     # carbon backbone
     xmove = np.array([a*np.sqrt(2./3.), 0., 0.])
-    ymove = np.array([0., ah, 0.])
     zmove = a/np.sqrt(3)/2.
     
     pos = [np.array([0.,0.,0.])]
